@@ -5,7 +5,7 @@
    Sources: "Circular" = AS/SC 26-56 (22 Sep 2026); "Summary" = CPG v2.5
    to v2.6 Summary of Changes.
    Step types: read, choice, sort, multi, input, lookup, blocked, video
-   scope: "AP" | "CCP" (recognise & escalate) | "verify"
+   scope: "AP" (AP & CCP) | "CCP" (CCP only; APs recognise & escalate) | "verify"
    ===================================================================== */
 const MODS={trauma:"Trauma",newborn:"Newborn",cardiac:"Cardiac arrest",stroke:"Stroke"};
 const CRITICAL=["Q2","Q3","Q8","Q9","Q16","Q17","Q22"];
@@ -86,15 +86,26 @@ const QB=[
   explain:">8 and <24 hours with RACE <5: P2 to the nearest appropriate ED.",src:"CPG 3.1 p.64"}
 ];
 
-/* ---------- Diagnostic: 8 ungraded items, two per module ---------- */
+/* ---------- Icebreaker "Still true or changed?": ungraded, instant reveal. Each statement is a v2.5 habit, checked against v2.5 and v2.6 ---------- */
+const TC=["Still true in v2.6","Changed in v2.6"];
 const DQ=[
- {id:"D1",mod:"trauma",prompt:"In v2.6, which group gained a TXA indication?",options:["Paediatric trauma patients, including isolated TBI with GCS ≤12","Antepartum bleeding from placental abruption or praevia","None. The TXA indications are unchanged from v2.5."],answer:0},
- {id:"D2",mod:"trauma",prompt:"Which finding was newly added to the trauma bypass criteria?",options:["Abdominal seat belt sign","Ejection (partial or complete) from the vehicle","Roll-over with roof deformity"],answer:0},
- {id:"D3",mod:"newborn",prompt:"Which guideline is new in v2.6 for babies who do not need resuscitation?",options:["CPG 12.13 Care of the newborn","CPG 2.5 Resuscitation of the newborn & neonates","None. Routine newborn care is still covered within CPG 2.5."],answer:0},
- {id:"D4",mod:"newborn",prompt:"In newborn resuscitation, when is suction used?",options:["Routinely before the first breaths","Only for obstruction seen under direct vision","Whenever the liquor is meconium-stained"],answer:1},
- {id:"D5",mod:"cardiac",prompt:"In adult medical shockable arrest, the first amiodarone dose (300 mg) is reported after which shock?",options:["First","Third","Fifth"],answer:1},
- {id:"D6",mod:"cardiac",prompt:"What is the starting energy for adult broad-complex synchronised cardioversion in v2.6?",options:["150 J","200 J","120 J"],answer:0},
- {id:"D7",mod:"stroke",prompt:"Which stroke time threshold was removed in v2.6?",options:["15 hours","8 hours","24 hours"],answer:0},
- {id:"D8",mod:"stroke",prompt:"BEFAST positive, last known well 30 hours ago. Which branch applies?",options:["P1 to HGH ED","P2 to the nearest appropriate ED","No transport"],answer:1}
+ {id:"D1",mod:"trauma",prompt:"“APs give TXA to adults only, not to children.”",options:TC,answer:1,
+  explain:"APs can now give TXA to children (under 14) with major trauma less than 3 hours old and suspected or confirmed major haemorrhage, or TBI with GCS ≤12. Covered in Module 1.",src:"Formulary TXA p.392 · Circular rows 12–20, 27–28"},
+ {id:"D2",mod:"trauma",prompt:"“Ejection (partial or complete) from a vehicle meets the trauma bypass criteria.”",options:TC,answer:0,
+  explain:"Still a bypass criterion. What's new in CPG 10.10 is the abdominal seat belt sign. Covered in Module 1.",src:"CPG 10.10 p.194 · Circular row 19"},
+ {id:"D3",mod:"trauma",prompt:"“TXA is given for antepartum bleeding from a placental abruption.”",options:TC,answer:1,
+  explain:"TXA was removed from the ectopic, miscarriage, abruption and praevia algorithms. Post-partum haemorrhage is now the only obstetric indication. Covered in Module 1.",src:"Formulary TXA p.392 · Circular rows 22–25, 29"},
+ {id:"D4",mod:"newborn",prompt:"“Meconium-stained liquor on its own is a reason to suction the newborn.”",options:TC,answer:1,
+  explain:"Suction is now only for airway obstruction, done under direct vision. Meconium alone is no longer a reason to suction. Covered in Module 2.",src:"CPG 2.5 p.51"},
+ {id:"D5",mod:"newborn",prompt:"“If a newborn needs suction, suction the mouth first, then the nose.”",options:TC,answer:0,
+  explain:"Unchanged: mouth first, then nose. What changed is when suction is used. Covered in Module 2.",src:"CPG 2.5 p.51"},
+ {id:"D6",mod:"cardiac",prompt:"“Adult shockable arrest: the first amiodarone dose (300 mg) is given after the 3rd shock.”",options:TC,answer:0,
+  explain:"Unchanged: 300 mg after the 3rd shock. Other parts of the arrest algorithm did change. Covered in Module 3.",src:"CPG 2.1 p.35"},
+ {id:"D7",mod:"cardiac",prompt:"“Adult broad-complex synchronised cardioversion starts at 200 J.”",options:TC,answer:1,
+  explain:"It now starts at 150 J, with stepwise escalation if needed. Covered in Module 3.",src:"CPG 4.3 p.77"},
+ {id:"D8",mod:"stroke",prompt:"“A BEFAST-positive patient with symptom onset under 15 hours goes P1 to HGH ED.”",options:TC,answer:1,
+  explain:"The 15-hour cut-off is gone. Onset up to 8 hours: P1 to HGH ED. Between 8 and 24 hours: do a RACE score. RACE ≥5: P1 to HGH ED. RACE <5: P2 to the nearest appropriate ED. Covered in Module 4.",src:"CPG 3.1 p.64"},
+ {id:"D9",mod:"stroke",prompt:"“A wake-up stroke is treated as an acute stroke and transported P1.”",options:TC,answer:0,
+  explain:"Unchanged. Wake-up or unknown-onset stroke is still treated as acute: P1 to HGH ED with prenotification. Covered in Module 4.",src:"CPG 3.1 p.64"}
 ];
 

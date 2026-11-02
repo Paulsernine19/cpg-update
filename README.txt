@@ -11,7 +11,7 @@ Folders
 index.html  Open this to start the course.
 css/        Course styling
 js/         Course content (modules, questions, quick reference) and hands-on activities
-docs/       Summary of changes v2.5 to v2.6 (PDF), linked from the course
+docs/       List of changes v2.5 to v2.6 (Circular AS/SC 26-56, pages 2-3, PDF), linked from the course
 brand/     HMCAS logos
 tx/         TXA preparation activity photos, avatar and video
 th/         Newborn thermal care activity photos

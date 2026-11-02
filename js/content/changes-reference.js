@@ -120,5 +120,5 @@ const REF={
 /* ---------- Source documents (orientation + Reference tab) ---------- */
 const DOCS=[
  {t:"CPG v2.6 2026 · full guideline",d:"Opens in Adobe Acrobat online · needs internet",href:"https://acrobat.adobe.com/id/urn:aaid:sc:AP:1963e713-622d-4f82-ae96-87aba78a5ac9"},
- {t:"Summary of changes v2.5 → v2.6",d:"PDF · 0.3 MB · included with this course",href:"docs/CPG_v2.5_to_v2.6_Summary_of_Changes.pdf"}
+ {t:"List of changes v2.5 → v2.6",d:"Circular AS/SC 26-56 · PDF · 0.5 MB · included with this course",href:"docs/CPG_v2.6_List_of_Changes_AS-SC-26-56.pdf"}
 ];

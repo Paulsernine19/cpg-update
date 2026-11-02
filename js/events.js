@@ -27,7 +27,7 @@ document.addEventListener("click",e=>{
   if(t.dataset.act==="sim-manual"){P.simManual=!P.simManual;drawPlayer('[data-act="sim-manual"]');return}
   if(t.dataset.conf){P.conf=t.dataset.conf;drawPlayer(`[data-conf="${P.conf}"]`);return}
   if(t.dataset.walk!==undefined){walkPick(+t.dataset.walk);return}
-  if(t.dataset.opt&&!locked()){P.sel=+t.dataset.opt;P.status="idle";drawPlayer(`[data-opt="${P.sel}"]`);return}
+  if(t.dataset.opt&&!locked()){P.sel=+t.dataset.opt;P.status="idle";if(P.mode==="diag"){check();return}drawPlayer(`[data-opt="${P.sel}"]`);return}
   if(t.dataset.multi&&!locked()){const i=+t.dataset.multi;P.multi=P.multi.includes(i)?P.multi.filter(x=>x!==i):[...P.multi,i];P.status="idle";drawPlayer(`[data-multi="${i}"]`);return}
   if(t.dataset.bin!==undefined&&!locked()){P.sort[t.dataset.card]=+t.dataset.bin;P.status="idle";drawPlayer(`[data-card="${t.dataset.card}"][data-bin="${t.dataset.bin}"]`);return}
   const a=t.dataset.act;if(!a)return;

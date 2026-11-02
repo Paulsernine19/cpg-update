@@ -3,7 +3,7 @@ function shuffleOpts(q){
   return {...q,options:idx.map(i=>q.options[i]),answer:idx.indexOf(q.answer),fb:q.fb?idx.map(i=>q.fb[i]):undefined};
 }
 function stepsFor(l){
-  if(l.bank==="diag") return DQ.map(q=>({type:"choice",label:"Diagnostic · "+MODS[q.mod],...q}));
+  if(l.bank==="diag") return DQ.map(q=>({type:"choice",label:"Still true or changed? · "+MODS[q.mod],...q}));
   if(l.bank==="all") return QB.map(q=>({type:"choice",label:"Question",...shuffleOpts(q)}));
   if(l.bank) return QB.filter(q=>q.mod===l.bank).map(q=>({type:"choice",label:"Check · "+q.id,...shuffleOpts(q)}));
   return l.steps;
@@ -61,7 +61,6 @@ I.cards='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width
 I.syringe='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2l4 4M20 4l-9.5 9.5M8 8l8 8M14.5 5.5l4 4L9 19H5v-4z"/><path d="M5 19l-3 3"/></svg>';
 const CONF=[["guess","Guessing"],["fair","Fairly sure"],["sure","Certain"]];
 const iconBox=(c,size)=>`<div class="icon" style="background:var(${c.hue});${size?`width:${size}px;height:${size}px`:''}">${I[c.icon]}</div>`;
-const banner=()=>`<div class="banner" role="note">${I.warn}<div><b>Clinical-review draft.</b> Content checked against the approved CPG v2.6 (2026); awaiting education-lead sign-off before use as an official training record.</div></div>`;
 const GLOSS=[["AP","Ambulance Paramedic"],["CCP","Critical Care Paramedic"],["CPG","Clinical Practice Guideline"],["TXA","Tranexamic acid"],["TBI","Traumatic brain injury"],["GCS","Glasgow Coma Scale"],["PPH","Postpartum haemorrhage"],["SMR","Spinal motion restriction"],["MAP","Mean arterial pressure"],["PEEP","Positive end-expiratory pressure"],["BVM","Bag-valve-mask"],["ROSC","Return of spontaneous circulation"],["DSED","Dual sequential external defibrillation"],["SGA","Supraglottic airway"],["e-CPR","Extracorporeal cardiopulmonary resuscitation"],["HOTT","Hypovolaemia, oxygenation, tension pneumothorax, tamponade"],["BEFAST","Balance, Eyes, Face, Arm, Speech, Time"],["RACE","Rapid Arterial oCclusion Evaluation scale"],["RBS","Random blood sugar"],["HGH","Hamad General Hospital"],["ED","Emergency department"],["ETA","Estimated time of arrival"]];
 
 /* ============================ VIEWS ============================ */
@@ -101,7 +100,7 @@ function homeView(){
   const c=activeCourse(),nl=nextLesson(c),h=new Date().getHours();
   const greet=h<12?"Good morning":h<18?"Good afternoon":"Good evening";
   const others=COURSES.filter(x=>x.id!==c.id);
-  return topbar()+banner()+`<div class="org"><img src="brand/hmcas-wordmark.webp" alt="Hamad Medical Corporation Ambulance Service"><span>Clinical Education · CPG v2.6</span></div><div class="hello"><h1>${greet}</h1><p>HMCAS CPG v2.6 update training for Ambulance Paramedics. Four modules, about 3 hours in total.</p></div>
+  return topbar()+`<div class="org"><img src="brand/hmcas-wordmark.webp" alt="Hamad Medical Corporation Ambulance Service"><span>Clinical Education · CPG v2.6</span></div><div class="hello"><h1>${greet}</h1><p>HMCAS CPG v2.6 update training for Ambulance Paramedics and Critical Care Paramedics. Four modules, about 3 hours in total.</p></div>
   <div class="resume">${iconBox(c)}<div><div class="label">${c.category} · ${c.title}</div>
     <h2>${nl?nl.title:"All modules complete"}</h2><p>${doneCount(c)} of ${allLessons(c).length} lessons done</p>
     ${nl?`<button class="btn" data-lesson="${nl.id}">${I.play.replace('<svg','<svg width="18" height="18"')} ${doneCount(c)?"Continue":"Start"}</button>`:`<button class="btn ghost" data-go="profile">See your results</button>`}</div></div>
@@ -161,8 +160,8 @@ ${confSection()}
 const docLinks=()=>`<div class="quick">${DOCS.map(d=>`<a class="qbtn" href="${d.href}" target="_blank" rel="noopener">${I.book}<span><b>${d.t}</b><small>${d.d}</small></span></a>`).join("")}</div>`;
 function referenceView(){
   const R=REF[refMod],c=courseById(refMod);
-  const sc=x=>x==="AP"?`<span class="badge ap">AP action</span>`:x==="CCP"?`<span class="badge ccp">CCP · recognise &amp; escalate</span>`:`<span class="badge pend">Scope to verify</span>`;
-  return topbar()+banner()+`<div class="hello"><h1>Quick reference</h1><p>The v2.6 changes on one screen per module. Open it any time, including on shift.</p>${docLinks()}</div>
+  const sc=x=>x==="AP"?`<span class="badge ap">AP &amp; CCP</span>`:x==="CCP"?`<span class="badge ccp">CCP only</span>`:`<span class="badge pend">Scope to verify</span>`;
+  return topbar()+`<div class="hello"><h1>Quick reference</h1><p>The v2.6 changes on one screen per module. Open it any time, including on shift.</p>${docLinks()}</div>
   <div class="section"><div class="chips" role="group" aria-label="Choose module">${Object.keys(MODS).map(k=>`<button class="chip" data-refmod="${k}" aria-pressed="${refMod===k}">${MODS[k]}</button>`).join("")}</div>
   <div class="section-head" style="margin-top:6px"><h2>${c.title}</h2><span class="label">${c.category}</span></div>
   ${R.visual?`<div class="visual">${V[R.visual]}</div>`:""}
@@ -220,8 +219,8 @@ const assessMode=()=>P.mode==="diag"||P.mode==="final";
 function badges(s){
   const b=[];
   if(s.pop) b.push(`<span class="badge pop">${s.pop}</span>`);
-  if(s.scope==="AP") b.push(`<span class="badge ap">AP action</span>`);
-  if(s.scope==="CCP") b.push(`<span class="badge ccp">CCP · recognise &amp; escalate</span>`);
+  if(s.scope==="AP") b.push(`<span class="badge ap">AP &amp; CCP</span>`);
+  if(s.scope==="CCP") b.push(`<span class="badge ccp">CCP only</span>`);
   if(s.scope==="verify") b.push(`<span class="badge pend">Scope to verify</span>`);
   if(s.type==="blocked") b.push(`<span class="badge pend">Pending approved source</span>`);
   if(s.id&&CRITICAL.includes(s.id)&&P.mode!=="final") b.push(`<span class="badge crit">Critical item</span>`);
@@ -233,9 +232,9 @@ const locked=()=>P.status==="right"||P.status==="revealed";
 
 function stepBody(s){
   const lab=s.label?`<span class="label">${s.label}</span>`:"";
-  if(s.type==="read") return `${badges(s)}<h2>${s.title}</h2><p>${s.body}</p>${s.points?`<ul>${s.points.map(p=>`<li>${p}</li>`).join("")}</ul>`:""}${s.visual?`<div class="visual">${V[s.visual]}</div>`:""}${s.docs?docLinks():""}${pendingBox(s.pending)}${srcLine(s)}`;
+  if(s.type==="read") return `${badges(s)}<h2>${s.title}</h2><p>${s.body}</p>${s.points?`<ul>${s.points.map(p=>`<li>${p}</li>`).join("")}</ul>`:""}${s.visual?`<div class="visual">${V[s.visual]}</div>`:""}${s.docs?docLinks():""}${s.foot?`<p class="note">${s.foot}</p>`:""}${pendingBox(s.pending)}${srcLine(s)}`;
   if(s.type==="choice") return `${badges(s)}${lab}<h2>${s.prompt}</h2>${s.visual?`<div class="visual">${V[s.visual]}</div>`:""}<div class="opts" role="radiogroup" aria-label="Answer options">${s.options.map((o,i)=>{
-      let cls="";if(locked()&&i===s.answer)cls="right";else if(P.status==="wrong"&&i===P.sel)cls="wrong";
+      let cls="";if(locked()&&i===s.answer)cls="right";else if((P.status==="wrong"||P.status==="revealed")&&i===P.sel)cls="wrong";
       return `<button class="opt ${cls}" role="radio" aria-checked="${P.sel===i}" data-opt="${i}" ${locked()?"disabled":""}><span class="k">${String.fromCharCode(65+i)}</span>${o}</button>`}).join("")}</div>${srcLine(s)}`;
   if(s.type==="multi") return `${badges(s)}${lab}<h2>${s.prompt}</h2><p class="note">Select all that apply.</p><div class="opts">${s.options.map((o,i)=>{
       const on=P.multi.includes(i),inKey=s.answer.includes(i);let cls="";
@@ -313,12 +312,13 @@ function footHTML(s){
   if(s.type==="watch") return `<button class="btn wide" data-act="next" ${!s.src||P.watchDone?"":"disabled"}>Continue</button>`;
   if(s.type==="sim"){const ok=(S.sim&&S.sim.done)||P.simManual;return `<button class="btn wide" data-act="next" ${ok?"":"disabled"}>${ok?"Continue":"Finish independent mode to continue"}</button>`;}
   if(s.type==="walk") return s.nodes[P.cur||s.start].end?`<button class="btn wide" data-act="next">Continue</button>`:`<button class="btn wide" disabled>Work through the algorithm to continue</button>`;
+  if(P.status==="idle"&&P.mode==="diag") return `<p class="note" style="text-align:center;margin:0">Tap your answer</p>`;
   if(P.status==="idle"){const conf=P.mode!=="diag"&&QTYPES.includes(s.type)?`<div class="conf" role="group" aria-label="How sure are you?"><span class="label">How sure are you?${needConf()?"":" · optional"}</span>${CONF.map(([k,t])=>`<button class="cbtn" data-conf="${k}" aria-pressed="${P.conf===k}">${t}</button>`).join("")}</div>`:"";
     return `${conf}<button class="btn wide" data-act="check" ${canCheck(s)?"":"disabled"}>${assessMode()?"Submit answer":"Check"}</button>`;}
   const fbText=s.fb&&P.sel!==null&&s.fb[P.sel]?s.fb[P.sel]:"Have another look and try again.";
   if(P.status==="right") return `<div class="fb"><h3>${I.check.replace('<svg','<svg width="22" height="22"')} Correct</h3><p>${s.explain||""}</p>${confNote(true)}${s.src?`<p class="src">Source: ${s.src}</p>`:""}</div><button class="btn good wide" data-act="next">Continue</button>`;
   if(P.status==="wrong") return `<div class="fb"><h3>Not quite</h3><p>${fbText}</p>${confNote(false)}</div><div class="foot-btns"><button class="btn ghost" data-act="reveal">Show answer</button><button class="btn bad" data-act="retry">Try again</button></div>`;
-  if(P.status==="revealed") return `<div class="fb"><h3 style="color:var(--ink)">Answer</h3><p>${s.explain||""}</p>${s.src?`<p class="src">Source: ${s.src}</p>`:""}</div><button class="btn wide" data-act="next">Continue</button>`;
+  if(P.status==="revealed") return `<div class="fb">${P.mode==="diag"?"<h3>Not quite</h3>":`<h3 style="color:var(--ink)">Answer</h3>`}<p>${s.explain||""}</p>${s.src?`<p class="src">Source: ${s.src}</p>`:""}</div><button class="btn wide" data-act="next">Continue</button>`;
 }
 function drawPlayer(keepFocus){
   const el=document.getElementById("player");
@@ -333,7 +333,7 @@ function drawPlayer(keepFocus){
   }
   if(P.status==="complete"){el.innerHTML=endScreen();const b=el.querySelector(".p-foot .btn");if(b)b.focus();return;}
   const s=P.steps[P.i],pct=(P.i/P.steps.length)*100;
-  const fcls=P.status==="right"?"right":P.status==="wrong"?"wrong":"";
+  const fcls=P.status==="right"?"right":P.status==="wrong"||(P.mode==="diag"&&P.status==="revealed")?"wrong":"";
   el.innerHTML=`<div class="p-top"><button class="x" data-act="close" aria-label="Close lesson">${I.x}</button><div class="bar" role="progressbar" aria-label="Lesson progress" aria-valuenow="${Math.round(pct)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div><span class="count">${P.i+1}/${P.steps.length}</span></div>
     <div class="p-body"><div class="step" ${keepFocus?'style="animation:none"':""}>${stepBody(s)}</div></div>
     <div class="p-foot ${fcls}"><div class="foot-in">${footHTML(s)}</div></div>`;
@@ -357,6 +357,7 @@ function check(){
   if(P.firstTry){P.asked++;if(ok)P.right++; if(s.id) P.answers.push({id:s.id,mod:s.mod,lesson:s.lesson,ok,conf:P.conf});
     if(P.mode!=="diag"){S.conf[s.id&&P.mode!=="practice"?s.id:P.l.id+"#"+P.i]={c:P.conf,ok,lesson:s.lesson||P.l.id,label:s.id?s.id+" · "+MODS[s.mod]:P.l.title+" · "+(s.label||"question")};save();}}
   P.firstTry=false;
+  if(P.mode==="diag"){P.status=ok?"right":"revealed";drawPlayer();return;}
   if(assessMode()){nextStep();return;}
   P.status=ok?"right":"wrong";drawPlayer();
 }
@@ -412,9 +413,9 @@ function endScreen(){
      ${R.crit.length?`<p class="note" style="grid-column:1/-1;color:var(--bad)">Critical item missed: ${R.crit.join(", ")}</p>`:""}${revisitButtons(R.miss)}</div>${cwRow()}</div>`;
   }
   if(P.mode==="diag"){
-    const by=R.by;
-    inner=`<h1 style="font-size:2rem">Diagnostic complete</h1><p class="note">Ungraded. It shows where to focus; every module is still required.</p>
-     <div class="res">${Object.keys(MODS).map(m=>{const d=by[m]||{r:0,n:0};const focus=d.r<d.n;return `<div class="resrow"><b>${MODS[m]}</b><small class="${focus?"no":"ok"}">${d.r}/${d.n} · ${focus?"Focus here":"Looks familiar"}</small></div>`}).join("")}</div>`;
+    const by=R.by,tot=Object.values(by).reduce((a,d)=>({r:a.r+d.r,n:a.n+d.n}),{r:0,n:0});
+    inner=`<h1 style="font-size:2rem">You got ${tot.r} of ${tot.n}</h1><p class="note">Not scored. Every module is still required, but this shows where v2.6 might catch you out.</p>
+     <div class="res">${Object.keys(MODS).map(m=>{const d=by[m]||{r:0,n:0};const focus=d.r<d.n;return `<div class="resrow"><b>${MODS[m]}</b><small class="${focus?"no":"ok"}">${d.r}/${d.n} · ${focus?"Watch out here":"On top of it"}</small></div>`}).join("")}</div>`;
   }
   if(P.mode==="final"){
     amber=!R.met;
@@ -422,7 +423,7 @@ function endScreen(){
      <div class="res">${Object.keys(MODS).map(m=>{const d=R.by[m],need=Math.ceil(d.n*.75),ok=d.r>=need;
        return `<div class="resrow"><b>${MODS[m]}</b><small class="${ok?"ok":"no"}">${d.r}/${d.n}</small><div class="bar"><i style="width:${d.r/d.n*100}%;background:var(${ok?"--good":"--bad"})"></i></div>${!ok?revisitButtons(d.miss.map(a=>a.lesson)):""}</div>`}).join("")}
      ${R.crit.length?`<div class="resrow"><b style="color:var(--bad)">Critical items missed</b><small class="no">${R.crit.join(", ")}</small>${revisitButtons(P.answers.filter(a=>R.crit.includes(a.id)).map(a=>a.lesson))}</div>`:""}${cwRow()}</div>
-     <p class="note">${R.met?"Certificate rules await education-lead approval.":"Revisit the lessons above, then retake the assessment."}</p>`;
+     <p class="note">${R.met?"Well done. Your certificate is issued on eTaleem once you complete the course.":"Revisit the lessons above, then retake the assessment."}</p>`;
     if(!R.met) cta="Done";
   }
   return `<div></div><div class="p-body"><div class="done"><div class="burst ${amber?"amber":""}">${amber?I.warn:I.check}</div>${inner}</div></div>

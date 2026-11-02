@@ -1,6 +1,6 @@
 # HMCAS CPG v2.6 Update Training
 
-Offline, interactive training course that gets HMCAS Ambulance Paramedics familiar with the CPG v2.6 update before it goes live.
+Offline, interactive training course that gets HMCAS Ambulance Paramedics (AP) and Critical Care Paramedics (CCP) familiar with the CPG v2.6 update (in effect from 1 October 2026).
 Plain HTML/CSS/JS with no build step and no framework. Users open `index.html` by double-clicking it (file://), so it must keep working without a server.
 
 ## Where things live (open only the file you need)
@@ -27,7 +27,7 @@ Plain HTML/CSS/JS with no build step and no framework. Users open `index.html` b
 - Clinical content must match the **approved HMCAS CPG v2.6 (2026)**. Never invent or "correct" doses, thresholds, time windows or algorithms from general knowledge. If something looks wrong, flag it and ask.
 - Keep the `src` / "CPG x.y p.N" citations next to the content they support. Update the citation whenever you change the content.
 - Unverified items go in the step's pending-verification list, not into the main content.
-- Audience: Ambulance Paramedics (AP) and some CCP-scope items (`scope` field). Write in plain, clear English.
+- Audience: APs and CCPs. The `scope` field marks each item: `"AP"` shows as "AP & CCP" (both act), `"CCP"` as "CCP only" (APs recognise and escalate). Write in plain, clear English.
 
 ## Working conventions
 - Match the existing compact code style (dense one-line functions, template-literal HTML).
