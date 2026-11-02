@@ -2,8 +2,10 @@ function shuffleOpts(q){
   const idx=q.options.map((_,i)=>i).sort(()=>Math.random()-.5);
   return {...q,options:idx.map(i=>q.options[i]),answer:idx.indexOf(q.answer),fb:q.fb?idx.map(i=>q.fb[i]):undefined};
 }
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const vsHTML=s=>s.was?`<div class="vs"><span><small>v2.5</small>${s.was}</span><i aria-hidden="true">→</i><span class="now"><small>v2.6</small>${s.now}</span></div>`:"";
 function stepsFor(l){
-  if(l.bank==="diag") return DQ.map(q=>({type:"choice",label:"Still true or changed? · "+MODS[q.mod],...q}));
+  if(l.bank==="diag") return shuffle(DQ).map(q=>({type:"choice",label:"Still true or changed? · "+MODS[q.mod],...q}));
   if(l.bank==="all") return QB.map(q=>({type:"choice",label:"Question",...shuffleOpts(q)}));
   if(l.bank) return QB.filter(q=>q.mod===l.bank).map(q=>({type:"choice",label:"Check · "+q.id,...shuffleOpts(q)}));
   return l.steps;
@@ -12,13 +14,12 @@ const stepCount=l=>l.bank==="diag"?DQ.length:l.bank==="all"?QB.length:l.bank?QB.
 
 /* ============================ STATE ============================ */
 const KEY="stepwise-cpg26-v1";
-const blank=()=>({done:{},xp:0,streak:0,last:null,days:[],current:"intro",results:{},video:false,lookups:{},conf:{},cards:{},sim:null});
+const blank=()=>({done:{},xp:0,streak:0,last:null,days:[],current:"intro",results:{},video:false,lookups:{},conf:{},cards:{},sim:null,tourDone:false});
 let S=blank();
 try{const raw=localStorage.getItem(KEY); if(raw) S={...blank(),...JSON.parse(raw)};}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const ymd=d=>d.toLocaleDateString("en-CA");
 const today=()=>ymd(new Date());
-function liveStreak(){ if(!S.last) return 0; const y=new Date();y.setDate(y.getDate()-1); return (S.last===today()||S.last===ymd(y))?S.streak:0; }
 
 const allLessons=c=>c.units.flatMap(u=>u.lessons);
 const courseById=id=>COURSES.find(c=>c.id===id)||COURSES[0];
@@ -28,7 +29,14 @@ const courseDone=c=>doneCount(c)===allLessons(c).length;
 const nextLesson=c=>allLessons(c).find(l=>!S.done[l.id]);
 const reqMet=c=>(c.requires||[]).every(id=>courseDone(courseById(id)));
 function isUnlocked(c,l){ if(!reqMet(c)) return false; const ls=allLessons(c);const i=ls.indexOf(l);return i===0||S.done[ls[i-1].id]||S.done[l.id];}
-function activeCourse(){ const c=courseById(S.current); if(reqMet(c)&&nextLesson(c)) return c; return COURSES.find(x=>reqMet(x)&&nextLesson(x))||c; }
+let homeOverride=null; // set by the app tour to show a specific course's path on Learn
+function activeCourse(){ if(homeOverride) return courseById(homeOverride); const c=courseById(S.current); if(reqMet(c)&&nextLesson(c)) return c; return COURSES.find(x=>reqMet(x)&&nextLesson(x))||c; }
+const lessonsAll=()=>COURSES.flatMap(allLessons);
+const lessonsDone=()=>lessonsAll().filter(l=>S.done[l.id]).length;
+const coursePct=()=>Math.round(lessonsDone()/lessonsAll().length*100);
+const minsLeft=()=>Math.round(COURSES.reduce((a,c)=>a+(c.minutes||0)*(1-doneCount(c)/allLessons(c).length),0)/5)*5;
+const fmtMins=m=>m<=0?"Done":m<60?m+" min":Math.floor(m/60)+" h"+(m%60?" "+m%60+" min":"");
+const PASS="Pass mark: 100% in the final assessment.";
 
 /* ============================ ICONS ============================ */
 const I={
@@ -59,6 +67,7 @@ I.sound='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width
 I.mute='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>';
 I.cards='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="7" y="3" width="13" height="16" rx="2.5"/><path d="M4 7v12a2 2 0 0 0 2 2h10"/></svg>';
 I.syringe='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2l4 4M20 4l-9.5 9.5M8 8l8 8M14.5 5.5l4 4L9 19H5v-4z"/><path d="M5 19l-3 3"/></svg>';
+I.clock='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
 const CONF=[["guess","Guessing"],["fair","Fairly sure"],["sure","Certain"]];
 const iconBox=(c,size)=>`<div class="icon" style="background:var(${c.hue});${size?`width:${size}px;height:${size}px`:''}">${I[c.icon]}</div>`;
 const GLOSS=[["AP","Ambulance Paramedic"],["CCP","Critical Care Paramedic"],["CPG","Clinical Practice Guideline"],["TXA","Tranexamic acid"],["TBI","Traumatic brain injury"],["GCS","Glasgow Coma Scale"],["PPH","Postpartum haemorrhage"],["SMR","Spinal motion restriction"],["MAP","Mean arterial pressure"],["PEEP","Positive end-expiratory pressure"],["BVM","Bag-valve-mask"],["ROSC","Return of spontaneous circulation"],["DSED","Dual sequential external defibrillation"],["SGA","Supraglottic airway"],["e-CPR","Extracorporeal cardiopulmonary resuscitation"],["HOTT","Hypovolaemia, oxygenation, tension pneumothorax, tamponade"],["BEFAST","Balance, Eyes, Face, Arm, Speech, Time"],["RACE","Rapid Arterial oCclusion Evaluation scale"],["RBS","Random blood sugar"],["HGH","Hamad General Hospital"],["ED","Emergency department"],["ETA","Estimated time of arrival"]];
@@ -75,7 +84,7 @@ function renderNav(){
 }
 function topbar(){
   return `<div class="topbar"><div class="brand">${BRAND}</div>
-  <div class="pills"><span class="pill" title="Day streak" style="color:var(--sun)">${I.flame}${liveStreak()}</span><span class="pill" title="Total XP" style="color:var(--accent)">${I.bolt}${S.xp}</span></div></div>`;
+  <div class="pills"><span class="pill" title="Course completed" style="color:var(--good)">${I.check}${coursePct()}%<span class="pill-x"> done</span></span><span class="pill" title="Estimated time left" style="color:var(--accent)">${I.clock}${minsLeft()>0?fmtMins(minsLeft())+`<span class="pill-x"> left</span>`:"Finished"}</span></div></div>`;
 }
 function nodeIcon(l,done,open,isNext){
   if(done) return I.check; if(!open) return I.lock;
@@ -133,15 +142,14 @@ function courseDetail(){
 function profileView(){
   const days=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],now=new Date(),dow=(now.getDay()+6)%7;
   const week=days.map((n,i)=>{const d=new Date(now);d.setDate(now.getDate()-dow+i);const k=ymd(d);const on=S.days.includes(k);
-    return `<div class="day ${on?"on":""} ${i===dow?"today":""}"><i>${on?I.flame:""}</i>${n}</div>`}).join("");
-  const total=Object.keys(S.done).length;
+    return `<div class="day ${on?"on":""} ${i===dow?"today":""}"><i>${on?I.check:""}</i>${n}</div>`}).join("");
   const f=S.results["fa-1"];
-  const checks=["tr-x","nb-x","ca-x","st-x"].map(id=>{const r=S.results[id],L=lessonById(id);const need=r?Math.ceil(r.n*.75):0;
-    return `<div class="row">${iconBox(L.c)}<div style="min-width:0"><b>${L.l.title}</b><div class="note">${r?(r.r>=need?"Meets 75% module standard":"Below 75% module standard")+(r.crit&&r.crit.length?" · critical item missed":""):"Not taken yet"}</div></div><small>${r?r.r+"/"+r.n:"–"}</small></div>`}).join("");
+  const checks=["tr-x","nb-x","ca-x","st-x"].map(id=>{const r=S.results[id],L=lessonById(id);
+    return `<div class="row">${iconBox(L.c)}<div style="min-width:0"><b>${L.l.title}</b><div class="note">${r?(r.r===r.n?"All correct":(r.n-r.r)+" to review before the final"):"Not taken yet"}</div></div><small>${r?r.r+"/"+r.n:"–"}</small></div>`}).join("");
   return topbar()+`<div class="hello"><h1>Your progress</h1><p>Saved in this browser only. This is not an official training record.</p></div>
-  <div class="section"><div class="tiles"><div class="tile"><b style="color:var(--sun)">${liveStreak()}</b><span>Day streak</span></div><div class="tile"><b style="color:var(--accent)">${S.xp}</b><span>Total XP</span></div><div class="tile"><b style="color:var(--good)">${total}</b><span>Lessons done</span></div></div></div>
+  <div class="section"><div class="tiles"><div class="tile"><b style="color:var(--good)">${coursePct()}%</b><span>Course completed</span></div><div class="tile"><b style="color:var(--accent)">${fmtMins(minsLeft())}</b><span>Time left (approx.)</span></div><div class="tile"><b>${lessonsDone()}/${lessonsAll().length}</b><span>Lessons done</span></div></div></div>
   <div class="section"><h2 style="font-size:1.2rem">Assessments</h2><div class="rows">${checks}
-    <div class="row">${iconBox(courseById("final"))}<div style="min-width:0"><b>Final assessment</b><div class="note">${f?(f.met?"Meets the draft completion standard":"Does not yet meet the draft standard"):"Unlocks after all four modules"}</div></div><small>${f?f.pct+"%":"–"}</small></div>
+    <div class="row">${iconBox(courseById("final"))}<div style="min-width:0"><b>Final assessment</b><div class="note">${f?(f.met?"Passed":"Not passed yet · 100% needed to pass"):"Unlocks after all four modules · 100% needed to pass"}</div></div><small>${f?f.pct+"%":"–"}</small></div>
     <div class="row">${iconBox(courseById("stroke"))}<div style="min-width:0"><b>Required RACE video</b><div class="note">${S.video?"Marked as watched":"Not yet watched"}</div></div><small>${S.video?"Done":"–"}</small></div>
     <div class="row"><div class="icon" style="background:var(--c-trauma)">${I.syringe}</div><div style="min-width:0"><b>TXA hands-on: solo run</b><div class="note">${S.sim&&S.sim.done?(S.sim.mode==="pressure"?"Pressure run":"Independent run")+" · "+(S.sim.comp?"Competent":"Needs review"):"Not completed yet"}</div></div><small>${S.sim&&S.sim.done?(S.sim.score!=null?S.sim.score+"%":"Done"):"–"}</small></div>
     <div class="row"><div class="icon" style="background:var(--c-newborn)">${I.newborn}</div><div style="min-width:0"><b>Thermal care: solo round</b><div class="note">${S.thermo&&S.thermo.done?S.thermo.errors+" incorrect · "+S.thermo.hints+" hints":"Not completed yet"}</div></div><small>${S.thermo&&S.thermo.done?S.thermo.first+"/"+S.thermo.of:"–"}</small></div>
@@ -157,7 +165,7 @@ ${confSection()}
     ${confirmReset?`<span class="note">Erase all progress in this browser?</span><button class="btn bad" data-act="reset-yes">Yes, reset</button><button class="btn ghost" data-act="reset-no">Cancel</button>`
       :`<button class="btn ghost" data-act="reset">Reset progress</button><button class="btn ghost" data-act="theme">Switch theme</button>`}</div></div>`;
 }
-const docLinks=()=>`<div class="quick">${DOCS.map(d=>`<a class="qbtn" href="${d.href}" target="_blank" rel="noopener">${I.book}<span><b>${d.t}</b><small>${d.d}</small></span></a>`).join("")}</div>`;
+const docLinks=()=>`<div class="quick docs">${DOCS.map(d=>`<a class="qbtn" href="${d.href}" target="_blank" rel="noopener">${I.book}<span><b>${d.t}</b><small>${d.d}</small></span></a>`).join("")}</div>`;
 function referenceView(){
   const R=REF[refMod],c=courseById(refMod);
   const sc=x=>x==="AP"?`<span class="badge ap">AP &amp; CCP</span>`:x==="CCP"?`<span class="badge ccp">CCP only</span>`:`<span class="badge pend">Scope to verify</span>`;
@@ -176,9 +184,18 @@ function confSection(){
    <div class="confgrid"><div class="tile"><b style="color:var(--good)">${sureOk}</b><span>Certain and right</span></div><div class="tile"><b style="color:var(--bad)">${sureNo.length}</b><span>Certain but wrong</span></div><div class="tile"><b style="color:var(--sun)">${guess}</b><span>Guessed</span></div></div>
    ${sureNo.length?`<div class="rows">${sureNo.map(e=>`<div class="row"><div class="icon" style="background:var(--bad)">${I.warn}</div><div style="min-width:0"><b>${e.label}</b><div class="note">You were certain, but this was wrong</div></div><button class="btn ghost sm" data-revisit="${e.lesson}">Revisit</button></div>`).join("")}</div>`:`<p class="note">No confident errors so far.</p>`}</div>`;
 }
+const gateHTML=()=>`<div class="gate-card"><div class="visual">${V.org}</div>
+  <h1 id="gateT">CPG v2.6 Update</h1><p>Ambulance Paramedics and Critical Care Paramedics</p>
+  <span class="label">Orientation · 5 min</span><ol class="gate-steps"><li><b>1</b>Welcome</li><li><b>2</b>App tour</li><li><b>3</b>Warm-up</li></ol>
+  <button class="btn wide" data-lesson="in-1">${I.play.replace('<svg','<svg width="18" height="18"')} Begin orientation</button>
+  <p class="note">4 modules and a final assessment · approx. 3 hours · progress is saved automatically</p></div>`;
 function render(){
   renderNav();
   document.getElementById("main").innerHTML=view==="reference"?referenceView():view==="courses"?coursesView():view==="profile"?profileView():view==="course"?courseDetail():homeView();
+  // first-launch gate: until Welcome is done, the only way in is Start Here (the player sits above it)
+  let g=document.getElementById("gate");const need=!S.done["in-1"];
+  if(need&&!g){g=document.createElement("div");g.id="gate";g.className="gate";g.setAttribute("role","dialog");g.setAttribute("aria-modal","true");g.setAttribute("aria-labelledby","gateT");document.body.appendChild(g);}
+  if(need){g.innerHTML=gateHTML();if(!P)g.querySelector(".btn").focus();}else if(g)g.remove();
 }
 function go(v,cid){view=v;courseView=cid||null;confirmReset=false;
   const h=v==="course"?"module-"+cid:v; if(location.hash!=="#"+h){try{history.replaceState(null,"","#"+h)}catch(e){}} render(); window.scrollTo(0,0);}
@@ -232,7 +249,7 @@ const locked=()=>P.status==="right"||P.status==="revealed";
 
 function stepBody(s){
   const lab=s.label?`<span class="label">${s.label}</span>`:"";
-  if(s.type==="read") return `${badges(s)}<h2>${s.title}</h2><p>${s.body}</p>${s.points?`<ul>${s.points.map(p=>`<li>${p}</li>`).join("")}</ul>`:""}${s.visual?`<div class="visual">${V[s.visual]}</div>`:""}${s.docs?docLinks():""}${s.foot?`<p class="note">${s.foot}</p>`:""}${pendingBox(s.pending)}${srcLine(s)}`;
+  if(s.type==="read") return `${badges(s)}${s.top&&s.visual?`<div class="visual">${V[s.visual]}</div>`:""}<h2>${s.title}</h2>${s.body?`<p>${s.body}</p>`:""}${s.ptitle?`<span class="label">${s.ptitle}</span>`:""}${s.points?`<ul>${s.points.map(p=>`<li>${p}</li>`).join("")}</ul>`:""}${s.visual&&!s.top?`<div class="visual">${V[s.visual]}</div>`:""}${s.docs?docLinks():""}${s.foot?`<p class="note">${s.foot}</p>`:""}${pendingBox(s.pending)}${srcLine(s)}`;
   if(s.type==="choice") return `${badges(s)}${lab}<h2>${s.prompt}</h2>${s.visual?`<div class="visual">${V[s.visual]}</div>`:""}<div class="opts" role="radiogroup" aria-label="Answer options">${s.options.map((o,i)=>{
       let cls="";if(locked()&&i===s.answer)cls="right";else if((P.status==="wrong"||P.status==="revealed")&&i===P.sel)cls="wrong";
       return `<button class="opt ${cls}" role="radio" aria-checked="${P.sel===i}" data-opt="${i}" ${locked()?"disabled":""}><span class="k">${String.fromCharCode(65+i)}</span>${o}</button>`}).join("")}</div>${srcLine(s)}`;
@@ -261,7 +278,7 @@ function stepBody(s){
     return `${badges(s)}<span class="label">${s.label}</span><h2>${s.title}</h2><div class="case"><span class="label">Case</span><p>${s.case}</p></div>
     ${P.trail.length?`<div class="trail">${P.trail.map(t=>`<div class="crumb">${I.check}<span>${t.q}</span><b>${t.a}</b></div>`).join("")}</div>`:""}
     ${n.end?`<div class="wend ${n.tone}" role="status"><span class="label">Outcome</span><b>${n.end}</b></div>`
-      :`<div class="wq"><h3>${n.q}</h3><div class="wopts">${n.opts.map((o,i)=>`<button class="opt ${P.whyIdx===i?"wrong":""}" data-walk="${i}">${o.t}</button>`).join("")}</div>${P.why?`<div class="why" role="status"><b>Not this way.</b> ${P.why}</div>`:""}</div>`}${srcLine(s)}`;}
+      :`<div class="wq"><h3>${n.q}</h3><div class="wopts">${n.opts.map((o,i)=>`<button class="opt ${P.whyIdx===i?"wrong":""}" data-walk="${i}">${o.t}</button>`).join("")}</div>${P.why?`<div class="why" role="status"><b>Incorrect.</b> ${P.why}</div>`:""}</div>`}${srcLine(s)}`;}
   return "";
 }
 function walkPick(i){
@@ -275,13 +292,13 @@ const needConf=()=>P.mode==="exit"||P.mode==="final";
 const canCheck=s=>isReady(s)&&(!needConf()||P.conf);
 function confNote(ok){
   if(P.tries!==1||!P.conf) return "";
-  if(!ok&&P.conf==="sure") return `<p class="cnote bad">You were certain. Confident errors are the ones most likely to carry into practice, so give this change extra attention.</p>`;
-  if(ok&&P.conf==="guess") return `<p class="cnote mid">Correct, but you were guessing. A look at the quick reference will help it stick.</p>`;
+  if(!ok&&P.conf==="sure") return `<p class="cnote bad">Incorrect with high confidence. Confident errors are the most likely to carry into practice.</p>`;
+  if(ok&&P.conf==="guess") return `<p class="cnote mid">Correct, but marked as a guess. Review this change in the quick reference.</p>`;
   return "";
 }
 function cwRow(){
   const w=P.answers.filter(a=>a.conf==="sure"&&!a.ok);
-  return w.length?`<div class="resrow"><b>Certain but wrong</b><small class="no">${w.map(a=>a.id).join(", ")}</small><p class="note" style="grid-column:1/-1">You were sure of these. They are the changes most likely to carry into practice.</p></div>`:"";
+  return w.length?`<div class="resrow"><b>Certain but wrong</b><small class="no">${w.map(a=>a.id).join(", ")}</small><p class="note" style="grid-column:1/-1">Answered with high confidence but incorrect. These are the most likely to carry into practice.</p></div>`:"";
 }
 function deckHTML(){
   const n=P.cards.length;
@@ -312,17 +329,18 @@ function footHTML(s){
   if(s.type==="watch") return `<button class="btn wide" data-act="next" ${!s.src||P.watchDone?"":"disabled"}>Continue</button>`;
   if(s.type==="sim"){const ok=(S.sim&&S.sim.done)||P.simManual;return `<button class="btn wide" data-act="next" ${ok?"":"disabled"}>${ok?"Continue":"Finish independent mode to continue"}</button>`;}
   if(s.type==="walk") return s.nodes[P.cur||s.start].end?`<button class="btn wide" data-act="next">Continue</button>`:`<button class="btn wide" disabled>Work through the algorithm to continue</button>`;
-  if(P.status==="idle"&&P.mode==="diag") return `<p class="note" style="text-align:center;margin:0">Tap your answer</p>`;
+  if(P.status==="idle"&&P.mode==="diag") return "";
   if(P.status==="idle"){const conf=P.mode!=="diag"&&QTYPES.includes(s.type)?`<div class="conf" role="group" aria-label="How sure are you?"><span class="label">How sure are you?${needConf()?"":" · optional"}</span>${CONF.map(([k,t])=>`<button class="cbtn" data-conf="${k}" aria-pressed="${P.conf===k}">${t}</button>`).join("")}</div>`:"";
     return `${conf}<button class="btn wide" data-act="check" ${canCheck(s)?"":"disabled"}>${assessMode()?"Submit answer":"Check"}</button>`;}
   const fbText=s.fb&&P.sel!==null&&s.fb[P.sel]?s.fb[P.sel]:"Have another look and try again.";
-  if(P.status==="right") return `<div class="fb"><h3>${I.check.replace('<svg','<svg width="22" height="22"')} Correct</h3><p>${s.explain||""}</p>${confNote(true)}${s.src?`<p class="src">Source: ${s.src}</p>`:""}</div><button class="btn good wide" data-act="next">Continue</button>`;
+  if(P.status==="right") return `<div class="fb"><h3>${I.check.replace('<svg','<svg width="22" height="22"')} Correct</h3>${vsHTML(s)}<p>${s.explain||""}</p>${confNote(true)}${s.src?`<p class="src">Source: ${s.src}</p>`:""}</div><button class="btn good wide" data-act="next">Continue</button>`;
   if(P.status==="wrong") return `<div class="fb"><h3>Not quite</h3><p>${fbText}</p>${confNote(false)}</div><div class="foot-btns"><button class="btn ghost" data-act="reveal">Show answer</button><button class="btn bad" data-act="retry">Try again</button></div>`;
-  if(P.status==="revealed") return `<div class="fb">${P.mode==="diag"?"<h3>Not quite</h3>":`<h3 style="color:var(--ink)">Answer</h3>`}<p>${s.explain||""}</p>${s.src?`<p class="src">Source: ${s.src}</p>`:""}</div><button class="btn wide" data-act="next">Continue</button>`;
+  if(P.status==="revealed") return `<div class="fb">${P.mode==="diag"?"<h3>Incorrect</h3>":`<h3 style="color:var(--ink)">Answer</h3>`}${vsHTML(s)}<p>${s.explain||""}</p>${s.src?`<p class="src">Source: ${s.src}</p>`:""}</div><button class="btn wide" data-act="next">Continue</button>`;
 }
 function drawPlayer(keepFocus){
   const el=document.getElementById("player");
   if(P.mode==="deck"){el.innerHTML=deckHTML();const f=el.querySelector(keepFocus||".p-foot .btn");if(f)f.focus();return;}
+  if(P.status!=="complete"&&P.steps&&P.steps[P.i]&&P.steps[P.i].type==="tour"){finishLesson();closeLesson();go("home");tourStart();return;}
   el.classList.toggle("scene",!!(P.l&&P.l.scene));
   if(P.status!=="complete"&&P.steps&&P.steps[P.i]&&P.steps[P.i].type==="stage"){
     const s=P.steps[P.i],body=txBody(s),st=P.sx,fc=st.fb?(st.fb.ok?"right":"wrong"):"";
@@ -378,17 +396,14 @@ function tally(answers){
 }
 function finishLesson(){
   const A=P.answers,r=A.filter(a=>a.ok).length;
-  P.xp=10+P.right*5;
   if(P.mode==="exit"){S.results[P.l.id]={r,n:A.length,crit:A.filter(a=>!a.ok&&CRITICAL.includes(a.id)).map(a=>a.id),miss:A.filter(a=>!a.ok).map(a=>a.lesson)};}
   if(P.mode==="diag"){S.results[P.l.id]={by:tally(A)};}
   if(P.l.thRun){P.thRes=thRunResult();const R=P.thRes;S.thermo={done:true,first:R.first,of:R.rows.length,errors:R.errors,hints:R.hints,date:today()};}
   if(P.l.rxRun){P.rxRes=rxRunResult(P.l.rxRun);const R=P.rxRes;S.rx=S.rx||{};S.rx[P.l.rxRun]={done:true,first:R.first,of:R.rows.length,errors:R.errors,hints:R.hints,label:R.label||"",date:today()};}
   if(P.l.txRun){P.runRes=txRunResult();const R=P.runRes;S.sim={done:true,score:R.score,comp:R.comp,mode:P.txMode,date:today()};clearInterval(P.tick);}
   if(P.mode==="final"){const by=tally(A),pct=Math.round(r/A.length*100);const crit=A.filter(a=>!a.ok&&CRITICAL.includes(a.id)).map(a=>a.id);
-    const domOk=Object.values(by).every(d=>d.r>=Math.ceil(d.n*.75));
-    S.results[P.l.id]={pct,r,n:A.length,by,crit,met:pct>=80&&domOk&&crit.length===0,date:today()};}
-  S.done[P.l.id]=true; S.xp+=P.xp; const t=today();
-  if(S.last!==t){const y=new Date();y.setDate(y.getDate()-1);S.streak=S.last===ymd(y)?S.streak+1:1;S.last=t;}
+    S.results[P.l.id]={pct,r,n:A.length,by,crit,met:r===A.length,date:today()};} // pass mark: 100%
+  S.done[P.l.id]=true; const t=today();
   if(!S.days.includes(t))S.days.push(t);S.days=S.days.slice(-60);
   if(courseDone(P.c)){const nx=COURSES.find(x=>reqMet(x)&&nextLesson(x));if(nx)S.current=nx.id;}
   save();P.status="complete";
@@ -401,32 +416,34 @@ function endScreen(){
   if(P.l&&P.l.txRun) return txRunEnd();
   if(P.l&&P.l.thRun) return thRunEnd();
   if(P.l&&P.l.rxRun) return rxRunEnd();
-  const R=S.results[P.l.id];let inner="",cta="Continue",amber=false;
+  const R=S.results[P.l.id];let inner="",cta="Continue",amber=false,next="";
   if(P.mode==="practice"){
     const acc=P.asked?Math.round(P.right/P.asked*100):100;
-    inner=`<h1 style="font-size:2rem">Lesson complete</h1><p class="note">${P.l.title}</p><div class="tiles"><div class="tile"><b style="color:var(--accent)">+${P.xp}</b><span>XP</span></div><div class="tile"><b style="color:var(--good)">${P.asked?acc+"%":"–"}</b><span>First-try accuracy</span></div><div class="tile"><b style="color:var(--sun)">${liveStreak()}</b><span>Day streak</span></div></div>`;
+    inner=`<h1 style="font-size:2rem">Lesson complete</h1><p class="note">${P.l.title}</p><div class="tiles"><div class="tile"><b style="color:var(--good)">${P.asked?acc+"%":"–"}</b><span>First-try accuracy</span></div><div class="tile"><b style="color:var(--accent)">${coursePct()}%</b><span>Course completed</span></div><div class="tile"><b>${fmtMins(minsLeft())}</b><span>Time left (approx.)</span></div></div>`;
   }
   if(P.mode==="exit"){
-    const need=Math.ceil(R.n*.75),ok=R.r>=need&&!R.crit.length;amber=!ok;
-    inner=`<h1 style="font-size:2rem">${P.l.title}</h1><p class="note">First-attempt score. Module standard (draft): ${need}/${R.n} and every critical item correct.</p>
-     <div class="res"><div class="resrow"><b>${MODS[P.l.bank]}</b><small class="${ok?"ok":"no"}">${R.r}/${R.n} · ${ok?"Meets standard":"Below standard"}</small><div class="bar"><i style="width:${R.r/R.n*100}%;background:var(${ok?"--good":"--bad"})"></i></div>
+    const ok=R.r===R.n;amber=!ok;
+    inner=`<h1 style="font-size:2rem">${P.l.title}</h1><p class="note">First-attempt score. ${PASS} ${ok?"":"Review the missed items before the final assessment."}</p>
+     <div class="res"><div class="resrow"><b>${MODS[P.l.bank]}</b><small class="${ok?"ok":"no"}">${R.r}/${R.n} · ${ok?"All correct":"Review the missed items"}</small><div class="bar"><i style="width:${R.r/R.n*100}%;background:var(${ok?"--good":"--bad"})"></i></div>
      ${R.crit.length?`<p class="note" style="grid-column:1/-1;color:var(--bad)">Critical item missed: ${R.crit.join(", ")}</p>`:""}${revisitButtons(R.miss)}</div>${cwRow()}</div>`;
   }
   if(P.mode==="diag"){
     const by=R.by,tot=Object.values(by).reduce((a,d)=>({r:a.r+d.r,n:a.n+d.n}),{r:0,n:0});
-    inner=`<h1 style="font-size:2rem">You got ${tot.r} of ${tot.n}</h1><p class="note">Not scored. Every module is still required, but this shows where v2.6 might catch you out.</p>
-     <div class="res">${Object.keys(MODS).map(m=>{const d=by[m]||{r:0,n:0};const focus=d.r<d.n;return `<div class="resrow"><b>${MODS[m]}</b><small class="${focus?"no":"ok"}">${d.r}/${d.n} · ${focus?"Watch out here":"On top of it"}</small></div>`}).join("")}</div>`;
+    inner=`<h1 style="font-size:2rem">You got ${tot.r} of ${tot.n}</h1><p class="note">Ungraded. Areas marked for review are covered in the modules.</p>
+     <div class="res">${Object.keys(MODS).map(m=>{const d=by[m]||{r:0,n:0};const focus=d.r<d.n;return `<div class="resrow"><b>${MODS[m]}</b><small class="${focus?"no":"ok"}">${d.r}/${d.n} · ${focus?"Review":"Familiar"}</small>${focus?`<p class="note" style="grid-column:1/-1;margin:0"><b>Missed:</b> ${d.miss.map(a=>(DQ.find(q=>q.id===a.id)||{}).short).join(" · ")}<br>Covered in ${courseById(m).category}: ${courseById(m).title}</p>`:""}</div>`}).join("")}</div>`;
+    const nx=COURSES.find(x=>x.id!=="intro"&&reqMet(x)&&nextLesson(x));
+    if(nx) next=`<button class="btn ghost" data-act="finish">Back to home</button><button class="btn" data-lesson="${nextLesson(nx).id}">Start ${nx.category}: ${nx.title}</button>`;
   }
   if(P.mode==="final"){
     amber=!R.met;
-    inner=`<h1 style="font-size:2rem">${R.met?"Draft standard met":"Not yet"}</h1><p class="note">Overall ${R.pct}% (draft standard 80%) · 75% in every module · all critical items correct.</p>
-     <div class="res">${Object.keys(MODS).map(m=>{const d=R.by[m],need=Math.ceil(d.n*.75),ok=d.r>=need;
+    inner=`<h1 style="font-size:2rem">${R.met?"Passed":"Not passed"}</h1><p class="note">Score ${R.pct}% (${R.r}/${R.n}). ${PASS}</p>
+     <div class="res">${Object.keys(MODS).map(m=>{const d=R.by[m],ok=d.r===d.n;
        return `<div class="resrow"><b>${MODS[m]}</b><small class="${ok?"ok":"no"}">${d.r}/${d.n}</small><div class="bar"><i style="width:${d.r/d.n*100}%;background:var(${ok?"--good":"--bad"})"></i></div>${!ok?revisitButtons(d.miss.map(a=>a.lesson)):""}</div>`}).join("")}
-     ${R.crit.length?`<div class="resrow"><b style="color:var(--bad)">Critical items missed</b><small class="no">${R.crit.join(", ")}</small>${revisitButtons(P.answers.filter(a=>R.crit.includes(a.id)).map(a=>a.lesson))}</div>`:""}${cwRow()}</div>
-     <p class="note">${R.met?"Well done. Your certificate is issued on eTaleem once you complete the course.":"Revisit the lessons above, then retake the assessment."}</p>`;
+     ${cwRow()}</div>
+     <p class="note">${R.met?"Your certificate will be issued through eTaleem.":"Revisit the lessons above, then retake the assessment."}</p>`;
     if(!R.met) cta="Done";
   }
   return `<div></div><div class="p-body"><div class="done"><div class="burst ${amber?"amber":""}">${amber?I.warn:I.check}</div>${inner}</div></div>
-   <div class="p-foot"><div class="foot-in"><div class="foot-btns">${(P.mode==="exit"||P.mode==="final")&&amber?`<button class="btn ghost" data-act="retake">Retake</button>`:""}<button class="btn" data-act="finish">${cta}</button></div></div></div>`;
+   <div class="p-foot"><div class="foot-in"><div class="foot-btns">${next||`${(P.mode==="exit"||P.mode==="final")&&amber?`<button class="btn ghost" data-act="retake">Retake</button>`:""}<button class="btn" data-act="finish">${cta}</button>`}</div></div></div>`;
 }
 

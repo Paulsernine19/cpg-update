@@ -15,12 +15,13 @@ Plain HTML/CSS/JS with no build step and no framework. Users open `index.html` b
 | TXA hands-on simulation (also the shared stage engine `TXS`, sounds, voice) | `js/hands-on/txa.js` |
 | Newborn thermal care hands-on (`scene:"thermo"`) | `js/hands-on/thermal.js` |
 | Newborn resus (`nbr`), code clock (`code`), stretcher/SMR (`smr`) hands-on | `js/hands-on/resus.js` |
+| App tour coach marks (started by a `{type:"tour"}` step in Start Here) | `js/tour.js` |
 | Click/key/input handlers, startup | `js/events.js` |
 | Images: brand logos / TXA + avatar / thermal / resus equipment | `brand/`, `tx/`, `th/`, `rx/` |
 
 ## How the code fits together
-- These are classic `<script>` files that share one global scope. **Load order in `index.html` matters**: content → `app.js` → hands-on → `events.js`. A file can't call a function from a later file at load time. Don't switch to ES modules, because they break on file://.
-- Lesson step types: `read`, `choice`, `multi`, `sort`, `input`, `walk`, `watch`, `video`, `lookup`, `stage` (a hands-on stage, handled by `TXS[...]`).
+- These are classic `<script>` files that share one global scope. **Load order in `index.html` matters**: content → `app.js` → hands-on → `tour.js` → `events.js`. A file can't call a function from a later file at load time. Don't switch to ES modules, because they break on file://.
+- Lesson step types: `read`, `choice`, `multi`, `sort`, `input`, `walk`, `watch`, `video`, `lookup`, `stage` (a hands-on stage, handled by `TXS[...]`), `tour` (closes the player and runs the app tour).
 - Progress is saved in localStorage under the key `stepwise-cpg26-v1`. If you change the state shape, keep old saves loading (`S={...blank(),...saved}`).
 
 ## Clinical content rules (important)
@@ -28,6 +29,7 @@ Plain HTML/CSS/JS with no build step and no framework. Users open `index.html` b
 - Keep the `src` / "CPG x.y p.N" citations next to the content they support. Update the citation whenever you change the content.
 - Unverified items go in the step's pending-verification list, not into the main content.
 - Audience: APs and CCPs. The `scope` field marks each item: `"AP"` shows as "AP & CCP" (both act), `"CCP"` as "CCP only" (APs recognise and escalate). Write in plain, clear English.
+- Learner-facing tone: professional, concise and factual, like an official HMCAS course. No chatty or self-evident instructions ("Everyone starts here", "Tap your answer", "help it stick"), no cheerleading, no filler.
 
 ## Working conventions
 - Match the existing compact code style (dense one-line functions, template-literal HTML).

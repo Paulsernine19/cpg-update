@@ -52,3 +52,4 @@ document.addEventListener("keydown",e=>{
 document.addEventListener("input",e=>{if(e.target.dataset&&e.target.dataset.txin)txInput(e.target);});
 window.addEventListener("hashchange",fromHash);
 fromHash();
+if(S.done["in-1"]&&!S.tourDone)tourStart(); // resume an unfinished first tour after a reload

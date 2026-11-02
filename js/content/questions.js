@@ -86,26 +86,35 @@ const QB=[
   explain:">8 and <24 hours with RACE <5: P2 to the nearest appropriate ED.",src:"CPG 3.1 p.64"}
 ];
 
-/* ---------- Icebreaker "Still true or changed?": ungraded, instant reveal. Each statement is a v2.5 habit, checked against v2.5 and v2.6 ---------- */
+/* ---------- Icebreaker "Still true or changed?": ungraded, instant reveal, shuffled per attempt.
+   Each statement is a v2.5 habit, checked against v2.5 and v2.6. short = label on the end screen; was/now = v2.5 → v2.6 strip ---------- */
 const TC=["Still true in v2.6","Changed in v2.6"];
 const DQ=[
- {id:"D1",mod:"trauma",prompt:"“APs give TXA to adults only, not to children.”",options:TC,answer:1,
-  explain:"APs can now give TXA to children (under 14) with major trauma less than 3 hours old and suspected or confirmed major haemorrhage, or TBI with GCS ≤12. Covered in Module 1.",src:"Formulary TXA p.392 · Circular rows 12–20, 27–28"},
- {id:"D2",mod:"trauma",prompt:"“Ejection (partial or complete) from a vehicle meets the trauma bypass criteria.”",options:TC,answer:0,
+ {id:"D1",mod:"trauma",short:"TXA for children",prompt:"“APs give TXA to adults only, not to children.”",options:TC,answer:1,
+  was:"Children: CCP only, major haemorrhage only",now:"Children: APs and CCPs, major haemorrhage or TBI with GCS ≤12",
+  explain:"APs can now give TXA to children (under 14) with major trauma less than 3 hours old. Covered in Module 1.",src:"Formulary TXA v2.6 p.392 (v2.5 p.377) · Circular rows 12–20, 27–28"},
+ {id:"D2",mod:"trauma",short:"Ejection as a bypass criterion",prompt:"“Ejection (partial or complete) from a vehicle meets the trauma bypass criteria.”",options:TC,answer:0,
   explain:"Still a bypass criterion. What's new in CPG 10.10 is the abdominal seat belt sign. Covered in Module 1.",src:"CPG 10.10 p.194 · Circular row 19"},
- {id:"D3",mod:"trauma",prompt:"“TXA is given for antepartum bleeding from a placental abruption.”",options:TC,answer:1,
-  explain:"TXA was removed from the ectopic, miscarriage, abruption and praevia algorithms. Post-partum haemorrhage is now the only obstetric indication. Covered in Module 1.",src:"Formulary TXA p.392 · Circular rows 22–25, 29"},
- {id:"D4",mod:"newborn",prompt:"“Meconium-stained liquor on its own is a reason to suction the newborn.”",options:TC,answer:1,
-  explain:"Suction is now only for airway obstruction, done under direct vision. Meconium alone is no longer a reason to suction. Covered in Module 2.",src:"CPG 2.5 p.51"},
- {id:"D5",mod:"newborn",prompt:"“If a newborn needs suction, suction the mouth first, then the nose.”",options:TC,answer:0,
+ {id:"D3",mod:"trauma",short:"TXA in antepartum bleeding",prompt:"“TXA is given for antepartum bleeding from a placental abruption.”",options:TC,answer:1,
+  was:"Ante- or post-partum haemorrhage",now:"Post-partum haemorrhage only",
+  explain:"TXA was removed from the ectopic, miscarriage, abruption and praevia algorithms. Covered in Module 1.",src:"Formulary TXA v2.6 p.392 (v2.5 p.377) · Circular rows 22–25, 29"},
+ {id:"D10",mod:"trauma",short:"Self-extrication",prompt:"“An alert patient with neck pain, who can follow instructions and stand, is extricated on a board rather than self-extricating.”",options:TC,answer:1,
+  was:"No extrication guideline",now:"Self-extrication first-line, including neck or back pain",
+  explain:"Self-extrication or minimal assistance is now the first-line technique. Contraindications: unable to follow instructions, or unable to stand on at least one leg. Covered in Module 1.",src:"CPG 10.13 p.200 · Circular row 21"},
+ {id:"D4",mod:"newborn",short:"Suction for meconium",prompt:"“Meconium-stained liquor on its own is a reason to suction the newborn.”",options:TC,answer:1,
+  was:"Airway obstruction or meconium-stained fluid",now:"Airway obstruction only, under direct vision",
+  explain:"Meconium alone is no longer a reason to suction. Covered in Module 2.",src:"CPG 2.5 v2.6 p.51 (v2.5 p.48)"},
+ {id:"D5",mod:"newborn",short:"Newborn suction order",prompt:"“If a newborn needs suction, suction the mouth first, then the nose.”",options:TC,answer:0,
   explain:"Unchanged: mouth first, then nose. What changed is when suction is used. Covered in Module 2.",src:"CPG 2.5 p.51"},
- {id:"D6",mod:"cardiac",prompt:"“Adult shockable arrest: the first amiodarone dose (300 mg) is given after the 3rd shock.”",options:TC,answer:0,
+ {id:"D6",mod:"cardiac",short:"First amiodarone dose",prompt:"“Adult shockable arrest: the first amiodarone dose (300 mg) is given after the 3rd shock.”",options:TC,answer:0,
   explain:"Unchanged: 300 mg after the 3rd shock. Other parts of the arrest algorithm did change. Covered in Module 3.",src:"CPG 2.1 p.35"},
- {id:"D7",mod:"cardiac",prompt:"“Adult broad-complex synchronised cardioversion starts at 200 J.”",options:TC,answer:1,
-  explain:"It now starts at 150 J, with stepwise escalation if needed. Covered in Module 3.",src:"CPG 4.3 p.77"},
- {id:"D8",mod:"stroke",prompt:"“A BEFAST-positive patient with symptom onset under 15 hours goes P1 to HGH ED.”",options:TC,answer:1,
-  explain:"The 15-hour cut-off is gone. Onset up to 8 hours: P1 to HGH ED. Between 8 and 24 hours: do a RACE score. RACE ≥5: P1 to HGH ED. RACE <5: P2 to the nearest appropriate ED. Covered in Module 4.",src:"CPG 3.1 p.64"},
- {id:"D9",mod:"stroke",prompt:"“A wake-up stroke is treated as an acute stroke and transported P1.”",options:TC,answer:0,
+ {id:"D7",mod:"cardiac",short:"Broad-complex cardioversion energy",prompt:"“Adult broad-complex synchronised cardioversion starts at 200 J.”",options:TC,answer:1,
+  was:"200 J",now:"150 J, stepwise escalation if needed",
+  explain:"Covered in Module 3.",src:"CPG 4.3 v2.6 p.77 (v2.5 p.72)"},
+ {id:"D8",mod:"stroke",short:"Stroke time window",prompt:"“A BEFAST-positive patient with symptom onset under 15 hours goes P1 to HGH ED.”",options:TC,answer:1,
+  was:"Under 15 h: P1 · over 15 h: P2",now:"Up to 8 h: P1 · 8–24 h: RACE ≥5 P1, <5 P2 · 24 h or more: P2",
+  explain:"The 15-hour cut-off is gone. Covered in Module 4.",src:"CPG 3.1 v2.6 p.64 (v2.5 p.59)"},
+ {id:"D9",mod:"stroke",short:"Wake-up stroke",prompt:"“A wake-up stroke is treated as an acute stroke and transported P1.”",options:TC,answer:0,
   explain:"Unchanged. Wake-up or unknown-onset stroke is still treated as acute: P1 to HGH ED with prenotification. Covered in Module 4.",src:"CPG 3.1 p.64"}
 ];
 
