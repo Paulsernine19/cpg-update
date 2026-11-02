@@ -88,12 +88,12 @@ const QB=[
 
 /* ---------- Diagnostic: 8 ungraded items, two per module ---------- */
 const DQ=[
- {id:"D1",mod:"trauma",prompt:"In v2.6, which group gained a TXA indication?",options:["Paediatric trauma patients, including isolated TBI with GCS ≤12","Adults with minor isolated limb injuries","No change was made to TXA"],answer:0},
- {id:"D2",mod:"trauma",prompt:"Which finding was newly added to the trauma bypass criteria?",options:["Abdominal seat belt sign","Isolated wrist pain","Mechanism of injury alone"],answer:0},
- {id:"D3",mod:"newborn",prompt:"Which guideline is new in v2.6 for babies who do not need resuscitation?",options:["CPG 12.13 Care of the newborn","CPG 2.6 ROSC","CPG 3.1 Stroke"],answer:0},
+ {id:"D1",mod:"trauma",prompt:"In v2.6, which group gained a TXA indication?",options:["Paediatric trauma patients, including isolated TBI with GCS ≤12","Antepartum bleeding from placental abruption or praevia","None. The TXA indications are unchanged from v2.5."],answer:0},
+ {id:"D2",mod:"trauma",prompt:"Which finding was newly added to the trauma bypass criteria?",options:["Abdominal seat belt sign","Ejection (partial or complete) from the vehicle","Roll-over with roof deformity"],answer:0},
+ {id:"D3",mod:"newborn",prompt:"Which guideline is new in v2.6 for babies who do not need resuscitation?",options:["CPG 12.13 Care of the newborn","CPG 2.5 Resuscitation of the newborn & neonates","None. Routine newborn care is still covered within CPG 2.5."],answer:0},
  {id:"D4",mod:"newborn",prompt:"In newborn resuscitation, when is suction used?",options:["Routinely before the first breaths","Only for obstruction seen under direct vision","Whenever the liquor is meconium-stained"],answer:1},
  {id:"D5",mod:"cardiac",prompt:"In adult medical shockable arrest, the first amiodarone dose (300 mg) is reported after which shock?",options:["First","Third","Fifth"],answer:1},
- {id:"D6",mod:"cardiac",prompt:"Which energy is reported for adult broad-complex synchronised cardioversion?",options:["150 J","50 J","Same as narrow-complex"],answer:0},
+ {id:"D6",mod:"cardiac",prompt:"What is the starting energy for adult broad-complex synchronised cardioversion in v2.6?",options:["150 J","200 J","120 J"],answer:0},
  {id:"D7",mod:"stroke",prompt:"Which stroke time threshold was removed in v2.6?",options:["15 hours","8 hours","24 hours"],answer:0},
  {id:"D8",mod:"stroke",prompt:"BEFAST positive, last known well 30 hours ago. Which branch applies?",options:["P1 to HGH ED","P2 to the nearest appropriate ED","No transport"],answer:1}
 ];
