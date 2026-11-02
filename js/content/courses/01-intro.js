@@ -18,12 +18,8 @@ COURSES.push(
      {type:"read", title:"Labels you will see", body:"Each screen shows who acts and how certain the content is:",
       points:["<span class='badge ap'>AP action</span> within Ambulance Paramedic scope","<span class='badge ccp'>CCP · recognise &amp; escalate</span> taught for recognition, coordination and escalation only","<span class='badge pend'>Pending approved source</span> still being confirmed by HMCAS Clinical Services. Check the CPG itself before relying on it.","<span class='badge pop'>Population label</span> such as Adult medical, Adult trauma or Paediatric. Rules for one population must not be transferred to another."]}
     ]},
-    {id:"in-2", title:"Current Version", steps:[
-     {type:"choice", label:"Quick check", prompt:"It is 3 October 2026. A colleague's printed v2.5 pocket guide and the CPG on the Toughpad give different guidance. Which do you follow?", options:["The v2.5 printed guide, because it was signed off and you trained on it","CPG v2.6 2026, because all previous versions are disregarded from 1 October 2026","Whichever option is more conservative for the patient"], answer:1, scope:"AP",
-      explain:"CPG v2.6 2026 came into effect on 1 October 2026. From that date all previous versions are disregarded, even if they look more cautious.", src:"Circular AS/SC 26-56"},
-     {type:"choice", label:"Quick check", prompt:"While studying, you find two CPG v2.6 pages that seem to disagree with each other. What is the right next step?", options:["Follow the one that matches v2.5","Pick whichever seems clinically sensible and carry on","Email HMCAS-Clinicalguidelines@hamad.qa with both page numbers"], answer:2, scope:"AP",
-      explain:"Questions about the CPG go to HMCAS-Clinicalguidelines@hamad.qa. Quoting the page numbers helps them answer quickly.", src:"Circular AS/SC 26-56"},
-     {type:"lookup", title:"Find the current CPG", body:"Open CPG v2.6 2026 now. It can be downloaded from eTaleem and viewed on the ePCR Toughpads. You will be asked to look up specific sections during the modules.", find:"eTaleem › Clinical and Operational Updates › CPG V2.6 2026 (also on the ePCR Toughpads)", src:"Circular AS/SC 26-56"}
+    {id:"in-2", title:"Your Documents", steps:[
+     {type:"read", title:"Your reference documents", body:"You may find it useful to keep these open alongside the course. Downloading is optional. You can open them again at any time from the <b>Reference</b> tab. CPG v2.6 can also be viewed on the ePCR Toughpads.", docs:true, src:"CPG v2.6 2026 · HMCAS Summary of Changes v2.5 → v2.6 · Circular AS/SC 26-56"}
     ]},
     {id:"in-3", title:"Diagnostic", mode:"diag", bank:"diag"}
    ]}]},

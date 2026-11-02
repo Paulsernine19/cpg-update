@@ -116,3 +116,9 @@ const REF={
   {t:"<b>RACE competence:</b> the circular's RACE video is required; accurate scoring still needs an observed check.",scope:"AP",src:"Circular p.2"}]}
 };
 
+
+/* ---------- Source documents (orientation + Reference tab) ---------- */
+const DOCS=[
+ {t:"CPG v2.6 2026 · full guideline",d:"Opens in Adobe Acrobat online · needs internet",href:"https://acrobat.adobe.com/id/urn:aaid:sc:AP:1963e713-622d-4f82-ae96-87aba78a5ac9"},
+ {t:"Summary of changes v2.5 → v2.6",d:"PDF · 0.3 MB · included with this course",href:"docs/CPG_v2.5_to_v2.6_Summary_of_Changes.pdf"}
+];

@@ -158,10 +158,11 @@ ${confSection()}
     ${confirmReset?`<span class="note">Erase all progress in this browser?</span><button class="btn bad" data-act="reset-yes">Yes, reset</button><button class="btn ghost" data-act="reset-no">Cancel</button>`
       :`<button class="btn ghost" data-act="reset">Reset progress</button><button class="btn ghost" data-act="theme">Switch theme</button>`}</div></div>`;
 }
+const docLinks=()=>`<div class="quick">${DOCS.map(d=>`<a class="qbtn" href="${d.href}" target="_blank" rel="noopener">${I.book}<span><b>${d.t}</b><small>${d.d}</small></span></a>`).join("")}</div>`;
 function referenceView(){
   const R=REF[refMod],c=courseById(refMod);
   const sc=x=>x==="AP"?`<span class="badge ap">AP action</span>`:x==="CCP"?`<span class="badge ccp">CCP · recognise &amp; escalate</span>`:`<span class="badge pend">Scope to verify</span>`;
-  return topbar()+banner()+`<div class="hello"><h1>Quick reference</h1><p>The v2.6 changes on one screen per module. Open it any time, including on shift.</p></div>
+  return topbar()+banner()+`<div class="hello"><h1>Quick reference</h1><p>The v2.6 changes on one screen per module. Open it any time, including on shift.</p>${docLinks()}</div>
   <div class="section"><div class="chips" role="group" aria-label="Choose module">${Object.keys(MODS).map(k=>`<button class="chip" data-refmod="${k}" aria-pressed="${refMod===k}">${MODS[k]}</button>`).join("")}</div>
   <div class="section-head" style="margin-top:6px"><h2>${c.title}</h2><span class="label">${c.category}</span></div>
   ${R.visual?`<div class="visual">${V[R.visual]}</div>`:""}
@@ -232,7 +233,7 @@ const locked=()=>P.status==="right"||P.status==="revealed";
 
 function stepBody(s){
   const lab=s.label?`<span class="label">${s.label}</span>`:"";
-  if(s.type==="read") return `${badges(s)}<h2>${s.title}</h2><p>${s.body}</p>${s.points?`<ul>${s.points.map(p=>`<li>${p}</li>`).join("")}</ul>`:""}${s.visual?`<div class="visual">${V[s.visual]}</div>`:""}${pendingBox(s.pending)}${srcLine(s)}`;
+  if(s.type==="read") return `${badges(s)}<h2>${s.title}</h2><p>${s.body}</p>${s.points?`<ul>${s.points.map(p=>`<li>${p}</li>`).join("")}</ul>`:""}${s.visual?`<div class="visual">${V[s.visual]}</div>`:""}${s.docs?docLinks():""}${pendingBox(s.pending)}${srcLine(s)}`;
   if(s.type==="choice") return `${badges(s)}${lab}<h2>${s.prompt}</h2>${s.visual?`<div class="visual">${V[s.visual]}</div>`:""}<div class="opts" role="radiogroup" aria-label="Answer options">${s.options.map((o,i)=>{
       let cls="";if(locked()&&i===s.answer)cls="right";else if(P.status==="wrong"&&i===P.sel)cls="wrong";
       return `<button class="opt ${cls}" role="radio" aria-checked="${P.sel===i}" data-opt="${i}" ${locked()?"disabled":""}><span class="k">${String.fromCharCode(65+i)}</span>${o}</button>`}).join("")}</div>${srcLine(s)}`;
