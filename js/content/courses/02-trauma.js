@@ -35,10 +35,10 @@ COURSES.push(
        explain:"Limit care to critical interventions: haemorrhage control, TXA if indicated and analgesia to facilitate extrication, plus psychological support. Keep monitoring minimal; do the full head-to-toe once they're out.", src:"CPG 10.13 pp.200–202"}
      ]},
      {id:"tr-2", title:"U-STEP Out", steps:[
-      {type:"choice", label:"Case", scope:"AP", prompt:"You're about to guide a trapped driver out with U-STEP Out. When you reach them, they're unconscious with ineffective breathing. What now?",
+      {type:"choice", label:"Case", scope:"AP", intro:"<b>U-STEP Out</b> is the CPG 10.13 tool for guiding self-extrication decisions. Trapped patients are at higher risk of serious illness and death than those able to self-extricate, so the aim is to keep entrapment time as short as possible. The tool gives a structured way to decide whether a patient can safely get out with guidance.", prompt:"You're about to guide a trapped driver out with U-STEP Out. When you reach them, they're unconscious with ineffective breathing. What now?",
        options:["Continue with U-STEP Out, slowly","Immediate (snatch) extrication","Wait for them to regain consciousness"], answer:1,
        fb:["U-STEP Out is only for suitable, cooperative casualties. Unconscious with ineffective breathing means immediate extrication.",null,"An unconscious patient with ineffective breathing needs immediate extrication, not observation in the vehicle."],
-       explain:"Immediate threat to life, or unconscious with absent or ineffective breathing: perform an immediate extrication. U-STEP Out is only for suitable, cooperative casualties.", src:"CPG 10.13 p.201"},
+       explain:"Immediate threat to life, or unconscious with absent or ineffective breathing: perform an immediate extrication. U-STEP Out is only for suitable, cooperative casualties.", src:"CPG 10.13 pp.200–201"},
       {type:"read", title:"The U-STEP Out tool", scope:"AP", visual:"ustep", body:"U-STEP Out guides self-extrication: <b>U</b>nderstand · <b>S</b>upport · <b>T</b>ry moving · <b>E</b>gress · <b>P</b>lan · <b>Out</b>. Stop at any clinical concern or contraindication.", src:"CPG 10.13 p.201"},
       {type:"walk", label:"Guide the casualty", title:"Talk them out, step by step", scope:"AP",
        case:"Alert driver, neck pain, no contraindications. Civil Defence have the door open.", start:"u",
@@ -67,6 +67,14 @@ COURSES.push(
       {type:"sort", label:"Sort the cases", scope:"AP", prompt:"Give or withhold TXA?", bins:["Give TXA","Withhold TXA"],
        cards:[{t:"6 years, pelvic injury 40 minutes ago, pale and tachycardic",b:0},{t:"9 years, isolated head injury 1 hour ago, GCS 11",b:0},{t:"4 years, fall 4 hours ago, suspected internal bleeding",b:1},{t:"7 years, closed wrist fracture, haemodynamically normal",b:1},{t:"10 years, major haemorrhage, previous anaphylaxis to TXA",b:1},{t:"11 years, isolated head injury 30 minutes ago, GCS 14",b:1}],
        explain:"Give: major trauma under 3 hours with suspected major haemorrhage, or isolated TBI with GCS ≤12. Withhold: injury over 3 hours old, significant blood loss unlikely, TXA hypersensitivity, or isolated head injury with GCS above 12.", src:"HMCAS Paediatric IV TXA poster"},
+      {type:"choice", label:"Why withhold?", scope:"AP", prompt:"An 8-year-old fell from a scooter 5 hours ago and the parents called late. Abdominal bruising, mild tachycardia. Why is TXA withheld?",
+       options:["More than 3 hours after injury, TXA no longer helps and may increase the risk of death from bleeding","Paediatric TXA is only given for isolated head injury with a GCS of 12 or below","Mild tachycardia in a child is not a sign of bleeding, so no indication exists"], answer:0,
+       fb:[null,"Suspected or confirmed major haemorrhage is also an indication. What rules TXA out here is the time since injury.","Time is the deciding factor here. An injury more than 3 hours old is a contraindication."],
+       explain:"Injury more than 3 hours old is a contraindication. Beyond that window TXA no longer helps and may increase the risk of death from bleeding.", src:"HMCAS Paediatric IV TXA poster · HMCAS paediatric TXA preparation activity"},
+      {type:"choice", label:"Why withhold?", scope:"AP", prompt:"A 7-year-old fell from a bicycle 30 minutes ago. Closed wrist deformity, minor abrasions, haemodynamically normal. Why is TXA withheld?",
+       options:["The child would take on the drug's risks, such as clotting problems, with no expected benefit","Fractures are never an indication for TXA in a child, whatever the blood loss","Wrist injuries need a CCP assessment before TXA can be considered"], answer:0,
+       fb:[null,"The issue is the blood loss, not the fracture itself. A fracture with major haemorrhage can meet the criteria.","Paediatric TXA is within AP scope. TXA is withheld here because significant blood loss is unlikely."],
+       explain:"Significant blood loss is unlikely, which is a contraindication. Without it, the child takes on the drug's risks, such as clotting problems, with no expected benefit.", src:"HMCAS Paediatric IV TXA poster · HMCAS paediatric TXA preparation activity"},
       {type:"choice", label:"Obstetric crossover", scope:"AP", prompt:"A woman at 34 weeks has heavy vaginal bleeding from a suspected placental abruption. TXA?",
        options:["Yes, TXA is indicated for antepartum haemorrhage","No. Postpartum haemorrhage is now the only obstetric TXA indication","Only if she is hypotensive"], answer:1,
        fb:["That was v2.5. TXA has been removed from the abruption, praevia, ectopic and miscarriage algorithms.",null,"Haemodynamic status doesn't change this. TXA isn't indicated for placental abruption in v2.6."],
@@ -94,15 +102,15 @@ COURSES.push(
     ]},
     {title:"TXA preparation: hands-on", lessons:[
      {id:"tx-v", title:"Watch: TXA Preparation", steps:[{type:"watch",title:"Paediatric TXA preparation",scope:"AP",body:"Watch this video before you prepare and give TXA yourself in the hands-on lessons.",src:null,src2:"HMCAS video"}]},
-     {id:"tx-1", title:"The Call", scene:true, steps:[{type:"stage",stage:"intro"},{type:"stage",stage:"elig",case:"withhold"},{type:"stage",stage:"elig"}]},
+     {id:"tx-1", title:"The Briefing", scene:true, steps:[{type:"stage",stage:"intro"}]},
      {id:"tx-2", title:"Gather Equipment", scene:true, steps:[{type:"stage",stage:"equip"}]},
      {id:"tx-4", title:"Make Room in the Bag", scene:true, steps:[{type:"stage",stage:"room"}]},
      {id:"tx-5", title:"Check & Draw Up", scene:true, steps:[{type:"stage",stage:"drawup"}]},
      {id:"tx-6", title:"Label the Bag", scene:true, steps:[{type:"stage",stage:"label"}]},
      {id:"tx-7", title:"Mix Gently", scene:true, steps:[{type:"stage",stage:"mix"}]},
      {id:"tx-3", title:"Dose from the Chart", scene:true, steps:[{type:"stage",stage:"dose"}]},
-     {id:"tx-8", title:"5 Rights & Give It", scene:true, steps:[{type:"stage",stage:"give"}]},
-     {id:"tx-10", title:"Solo Run", scene:true, txRun:true, steps:[{type:"stage",stage:"elig",case:"run"},{type:"stage",stage:"equip",case:"run"},{type:"stage",stage:"room",case:"run"},{type:"stage",stage:"drawup",case:"run"},{type:"stage",stage:"label",case:"run"},{type:"stage",stage:"mix",case:"run"},{type:"stage",stage:"dose",case:"run"},{type:"stage",stage:"give",case:"run"}]}
+     {id:"tx-8", title:"Give It", scene:true, steps:[{type:"stage",stage:"give"}]},
+     {id:"tx-10", title:"Solo Run", scene:true, txRun:true, steps:[{type:"stage",stage:"equip",case:"run"},{type:"stage",stage:"room",case:"run"},{type:"stage",stage:"drawup",case:"run"},{type:"stage",stage:"label",case:"run"},{type:"stage",stage:"mix",case:"run"},{type:"stage",stage:"dose",case:"run"},{type:"stage",stage:"give",case:"run"}]}
     ]},
     {title:"Destination and spinal", lessons:[
      {id:"tr-5", title:"Seat Belt Sign Bypass", steps:[

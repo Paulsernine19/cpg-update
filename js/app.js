@@ -209,7 +209,7 @@ function openLesson(lid,opts={}){
   const f=lessonById(lid);if(!f||!isUnlocked(f.c,f.l))return;
   S.current=f.c.id;save();
   P={c:f.c,l:f.l,mode:f.l.mode||"practice",steps:stepsFor(f.l),i:0,answers:[],watched:S.video,right:0,asked:0};
-  if(f.l.scene){P.txMode=opts.txMode||(f.l.txRun||f.l.thRun||f.l.rxRun?"independent":"guided");P.thTemp=["th-4","th-5"].includes(f.l.id)?36.0:null;P.thHints={};P.thHintKeys={};P.t0=Date.now();P.txEvents=[];P.wcase=txCase({indicated:false});P.runCase=txCase({});P.lab=null;txStartRunTimer();}
+  if(f.l.scene){P.txMode=opts.txMode||(f.l.txRun||f.l.thRun||f.l.rxRun?"independent":"guided");P.thTemp=["th-4","th-5"].includes(f.l.id)?36.0:null;P.thHints={};P.thHintKeys={};P.t0=Date.now();P.txEvents=[];P.runCase=txCase();P.lab=null;txStartRunTimer();}
   resetStep();
   document.getElementById("player").hidden=false;document.body.style.overflow="hidden";drawPlayer();
 }
@@ -250,7 +250,7 @@ const locked=()=>P.status==="right"||P.status==="revealed";
 function stepBody(s){
   const lab=s.label?`<span class="label">${s.label}</span>`:"";
   if(s.type==="read") return `${badges(s)}${s.top&&s.visual?`<div class="visual">${V[s.visual]}</div>`:""}<h2>${s.title}</h2>${s.body?`<p>${s.body}</p>`:""}${s.ptitle?`<span class="label">${s.ptitle}</span>`:""}${s.points?`<ul>${s.points.map(p=>`<li>${p}</li>`).join("")}</ul>`:""}${s.visual&&!s.top?`<div class="visual">${V[s.visual]}</div>`:""}${s.docs?docLinks():""}${s.foot?`<p class="note">${s.foot}</p>`:""}${pendingBox(s.pending)}${srcLine(s)}`;
-  if(s.type==="choice") return `${badges(s)}${lab}<h2>${s.prompt}</h2>${s.visual?`<div class="visual">${V[s.visual]}</div>`:""}<div class="opts" role="radiogroup" aria-label="Answer options">${s.options.map((o,i)=>{
+  if(s.type==="choice") return `${badges(s)}${s.intro?`<div class="info">${s.intro}</div>`:""}${lab}<h2>${s.prompt}</h2>${s.visual?`<div class="visual">${V[s.visual]}</div>`:""}<div class="opts" role="radiogroup" aria-label="Answer options">${s.options.map((o,i)=>{
       let cls="";if(locked()&&i===s.answer)cls="right";else if((P.status==="wrong"||P.status==="revealed")&&i===P.sel)cls="wrong";
       return `<button class="opt ${cls}" role="radio" aria-checked="${P.sel===i}" data-opt="${i}" ${locked()?"disabled":""}><span class="k">${String.fromCharCode(65+i)}</span>${o}</button>`}).join("")}</div>${srcLine(s)}`;
   if(s.type==="multi") return `${badges(s)}${lab}<h2>${s.prompt}</h2><p class="note">Select all that apply.</p><div class="opts">${s.options.map((o,i)=>{

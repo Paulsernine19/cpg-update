@@ -5,49 +5,41 @@ const TXM=n=>"tx/"+n;
 const TX_CHART=[{age:1,weight:10,dose:150,volume:15},{age:2,weight:12,dose:180,volume:18},{age:3,weight:14,dose:210,volume:21},{age:4,weight:16,dose:240,volume:24},{age:5,weight:18,dose:270,volume:27},{age:6,weight:25,dose:370,volume:37},{age:7,weight:28,dose:420,volume:42},{age:8,weight:31,dose:460,volume:46,drawOut:44},{age:9,weight:34,dose:500,volume:50,drawOut:40},{age:10,weight:37,dose:550,volume:55,drawOut:35},{age:11,weight:40,dose:600,volume:60,drawOut:30},{age:12,weight:43,dose:640,volume:64,drawOut:26},{age:13,weight:46,dose:700,volume:70,drawOut:20},{age:14,weight:49,dose:730,volume:73,drawOut:17}];
 const TX_NAMES=["Liam","Noor","Omar","Sara","Yousef","Mia","Adam","Layla","Zayd","Hana"];
 const TX_GIVE=[{mechanism:"Pedestrian struck by car at 40 km/h",findings:"Pale, mottled, tender distended abdomen, cap refill 4 s",gcs:14},{mechanism:"Fall from 2nd-floor balcony",findings:"Open femur fracture, active bleeding, cool peripheries",gcs:13},{mechanism:"Unrestrained rear passenger in high-speed RTC",findings:"Isolated head injury, unequal pupils, scalp haematoma",gcs:9},{mechanism:"Deep laceration to thigh from glass door",findings:"Pulsatile bleeding controlled by tourniquet, tachycardic, pale",gcs:15}];
-const TX_WITHHOLD=[{mechanism:"Fall from scooter 5 hours ago, parents called late",findings:"Abdominal bruising, mild tachycardia",gcs:15,injuryMins:300,allergy:"Nil known",reason:"Injury is more than 3 hours old."},{mechanism:"Bicycle fall onto outstretched hand",findings:"Closed wrist deformity, minor abrasions, haemodynamically normal",gcs:15,injuryMins:30,allergy:"Nil known",reason:"Significant blood loss is unlikely."},{mechanism:"Struck by motorbike in car park",findings:"Pelvic tenderness, pale, tachycardic",gcs:14,injuryMins:40,allergy:"Tranexamic acid (previous anaphylaxis)",reason:"Hypersensitivity to TXA."}];
-const TX_CRITERIA=[{id:"bleeding",text:"Major trauma within 3 hours with suspected major haemorrhage"},{id:"tbi",text:"Major trauma within 3 hours with isolated TBI and GCS ≤12"},{id:"late",text:"The injury occurred more than 3 hours ago"},{id:"minor",text:"Significant blood loss is unlikely"},{id:"allergy",text:"The patient has a hypersensitivity to TXA"}];
-const TX_MISSED={bleeding:"Withholding TXA from a bleeding child loses its benefit — the effect falls with every minute of delay and is gone after 3 hours.",tbi:"Withholding TXA in a head injury with GCS ≤12 loses the chance to limit bleeding inside the skull while it can still help.",late:"More than 3 hours after injury TXA no longer helps and may increase the risk of death from bleeding.",minor:"Without significant blood loss the child takes on the drug’s risks, such as clotting problems, with no expected benefit.",allergy:"After previous anaphylaxis to TXA, giving it again risks a repeat life-threatening allergic reaction."};
 const TX_NEXT=[{text:"Draw out 10 mL of NSS from the bag",ok:true},{text:"Add 10 mL of NSS to the bag",outcome:"The bag would hold 110 mL before the TXA goes in, so it would no longer be 10 mg/mL and every dose drawn from the chart would be wrong."},{text:"Draw up TXA from the ampoules",outcome:"Adding 10 mL TXA without first making room gives 1 g in 110 mL (about 9 mg/mL) — every chart volume would under-dose the child."}];
 const TX_KIT=[{id:"bag",name:"0.9% NaCl 100 mL bag",ok:true,img:"eq-nacl-100ml-bag"},{id:"amp2",name:"TXA 500 mg/5 mL × 2 ampoules",ok:true,img:"eq-txa-two-ampoules"},{id:"s10",name:"10 mL syringe + drawing-up needle",ok:false,img:"eq-10ml-syringe-needle"},{id:"s50",name:"50 mL syringe",ok:true,img:"eq-50ml-syringe"},{id:"set",name:"IV giving set",ok:true,img:"eq-iv-giving-set"},{id:"stop",name:"Three-way stopcock",ok:true,img:"eq-three-way-stopcock"},{id:"label",name:"Medication additive label",ok:true,img:"eq-additive-label"},{id:"kidney",name:"Kidney basin",ok:true,img:"eq-kidney-basin"},{id:"sharps",name:"Sharps container",ok:true,img:"eq-sharps-container"},{id:"bag500",name:"0.9% NaCl 500 mL bag",ok:false,img:"eq-nacl-500ml-bag"},{id:"adr",name:"Adrenaline 1 mg/10 mL",ok:false,img:"eq-adrenaline"},{id:"amp1",name:"TXA 500 mg/5 mL × 1 ampoule only",ok:false,img:"eq-txa-one-ampoule"},{id:"glu",name:"Glucose 10% 250 mL",ok:false,img:"eq-glucose-10"}];
 const TX_KITWHY={bag500:"1 g in a 500 mL bag is only 2 mg/mL — every chart volume would deliver a fifth of the dose.",amp1:"One ampoule adds only 500 mg — the bag would be 5 mg/mL and every chart dose would be half strength.",adr:"A second drug ampoule on the tray is a classic set-up for a drug selection error."};
 const TX_DISCARD=[{text:"Discard it",ok:true},{text:"Inject it back into the bag later",outcome:"Putting the 10 mL back makes 1 g in 110 mL (about 9 mg/mL) — every dose drawn from the chart would be about 9% low."},{text:"Keep it to flush the line",outcome:"An unlabelled syringe of fluid left on the tray can be mistaken for a drug and given in error."}];
 const TX_DQ=[{ok:true,text:"Tranexamic acid, 500 mg in 5 mL. Clear and colourless with no particles. In date."},{text:"Tranexamic acid, 1 g in 5 mL. Clear and colourless with no particles. In date.",why:"Each TXA ampoule is 500 mg in 5 mL (100 mg/mL). If you expect the wrong strength, a wrong ampoule will not be noticed.",outcome:"An unnoticed strength mismatch gives the child the wrong dose."},{text:"Tranexamic acid, 500 mg in 5 mL. Slightly cloudy but still usable. In date.",why:"The solution must be clear and colourless with no particles. Never use a cloudy or discoloured ampoule.",outcome:"A contaminated or degraded solution could be given to the child."},{text:"Tranexamic acid, 500 mg in 5 mL. Clear and colourless with no particles. Expired last month, acceptable in an emergency.",why:"Never use an expired ampoule, even in an emergency. Take another ampoule from the kit.",outcome:"An expired drug may not work as expected."},{text:"Tranexamic acid. Clear. In date.",why:"The read-back must confirm the drug name AND strength, clarity and expiry. Strength is missing here.",outcome:"Without checking the strength, the wrong concentration could be drawn up."}];
-const TX_LINE=[{t:"Spike the bag & prime the giving set",img:"eq-iv-giving-set"},{t:"Attach the three-way stopcock to the line",img:"eq-three-way-stopcock"},{t:"Connect to the patient’s IV cannula & flush check",img:null}];
 const TX_RATE={1:"A rapid push of TXA can drop the child’s blood pressure.",30:"Running it in this slowly delays the drug while the child keeps bleeding.",60:"Running it in over an hour delays the drug while the child keeps bleeding."};
 const TX_BINS=[{id:"n",name:"Drawing-up needle",sharp:true,img:"eq-10ml-syringe-needle"},{id:"s50",name:"50 mL syringe",sharp:true,img:"eq-50ml-syringe"},{id:"a",name:"Empty glass ampoules",sharp:true,img:"eq-txa-two-ampoules"},{id:"w",name:"Wrapper packaging",sharp:false,img:null}];
 const TX_INTERRUPT=[{q:"Crew mate: “What concentration is the bag once the TXA is in?”",opts:["1 mg/mL","10 mg/mL","100 mg/mL"],a:1},{q:"Crew mate hands you a 500 mL bag: “Use this one, it’s closer.”",opts:["Accept the 500 mL bag","Decline — protocol uses a 100 mL bag"],a:1},{q:"Parent: “What is that medicine for?”",opts:["It helps reduce bleeding by stopping clots breaking down","It is a painkiller","It raises blood pressure"],a:0},{q:"Crew mate: “How fast are we running this in?”",opts:["Push over 1 minute","Slowly over 10 minutes","Over 1 hour"],a:1},{q:"Crew mate: “Just bin the glass ampoules in the general bag.”",opts:["OK, general waste","No — glass ampoules go in the sharps bin"],a:1}];
 const TX_LABEL=[{key:"conc",left:50.6,top:31.6,w:8.6,h:5.8,ans:()=>10,name:"Final concentration",unit:"mg/mL"},{key:"date",left:27.6,top:45.2,w:13,ans:()=>/\S{4,}/,name:"Date",ph:"dd/mm/yyyy"},{key:"time",left:45.2,top:45.2,w:10.8,ans:()=>/\d/,name:"Time",ph:"hh:mm"},{key:"weight",left:62.2,top:45.2,w:14,ans:c=>c.row.weight,name:"Patient weight",unit:"kg"},{key:"supplied",left:43.6,top:53.4,w:4.8,ans:()=>100,name:"Supplied as",unit:"mg/mL"},{key:"addMg",left:58,top:53.4,w:5.6,ans:()=>1000,name:"Add",unit:"mg"},{key:"addMl",left:67.8,top:53.4,w:5.6,ans:()=>10,name:"Add",unit:"mL"},{key:"toMl",left:26.4,top:62.4,w:6.6,ans:()=>90,name:"To … mL of solution",unit:"mL"},{key:"sol",left:38.4,top:62.4,w:7,ans:()=>/nacl|saline|sodium|nss|^\s*ns\s*$|0\.9/i,name:"Solution",ph:"e.g. 0.9% NaCl"},{key:"total",left:62.8,top:62.4,w:10.4,ans:()=>100,name:"Total volume",unit:"mL"}];
-const TX_RIGHTS=["Right patient","Right drug","Right dose","Right route","Right time"];
-const TX_TECH=[["Calculated the dose from the chart",/Dose calculation error|Wrong chart row/],["Drew out exactly 10 mL of saline",/Wrong volume drawn out/],["Discarded the drawn saline",/NSS not discarded/],["Double-checked the ampoules before opening",/before double-checking|double-check read-back/],["Added all 10 mL TXA to the bag",/Incorrect action after drawing TXA/],["Labelled the bag and cross-checked the 5 Rights",/label|5 Rights/i],["Mixed gently: slow turns, no shaking",/Shook the bag|Inadequate mixing/],["Drew the correct volume from the bag",/^Wrong volume drawn$/],["Set up the line in order",/Line set-up/],["Gave it over 10 minutes",/administration rate/],["Documented the time given",/not documented/]];
-const TX_CRIT=/despite|Withheld TXA|before double-checking|Wrong volume|Dose calculation error|Wrong chart row|administration rate|Shook the bag|Inadequate mixing|NSS not discarded|5 Rights|wrong bin/;
-const TX_STAGE_NAMES={elig:"Eligibility",equip:"Equipment",room:"Make room",drawup:"Check & draw up",label:"Label the bag",mix:"Mix",dose:"Dose calc",give:"5 Rights & administer"};
-const TX_STAGE_LESSON={elig:"tx-1",equip:"tx-2",dose:"tx-3",room:"tx-4",drawup:"tx-5",label:"tx-6",mix:"tx-7",give:"tx-8",dispose:"tx-9"};
+const TX_TECH=[["Read the dose from the chart",/Dose calculation error|Wrong chart row/],["Drew out exactly 10 mL of saline",/Wrong volume drawn out/],["Discarded the drawn saline",/NSS not discarded/],["Double-checked the ampoules before opening",/before double-checking|double-check read-back/],["Added all 10 mL TXA to the bag",/Incorrect action after drawing TXA/],["Labelled the bag",/label/i],["Mixed gently: slow turns, no shaking",/Shook the bag|Inadequate mixing/],["Drew the correct volume from the bag",/^Wrong volume drawn$/],["Gave it over 10 minutes",/administration rate/],["Documented the time given",/not documented/]];
+const TX_CRIT=/before double-checking|Wrong volume|Dose calculation error|Wrong chart row|administration rate|Shook the bag|Inadequate mixing|NSS not discarded|wrong bin/;
+const TX_STAGE_NAMES={equip:"Equipment",room:"Make room",drawup:"Check & draw up",label:"Label the bag",mix:"Mix",dose:"Dose from chart",give:"Administer"};
+const TX_STAGE_LESSON={equip:"tx-2",dose:"tx-3",room:"tx-4",drawup:"tx-5",label:"tx-6",mix:"tx-7",give:"tx-8",dispose:"tx-9"};
 const TX_TARGET=480;
 const TX_GUIDE={
- intro:[["welcome","Welcome. I’ll be your crew mate through this case."],["pointing","Your objective: safely prepare and give tranexamic acid (TXA) to the right paediatric patient, the way the poster sets it out."]],
- eligW:[["thinking","First, a quick one. Check this child against the AP criteria before you reach for the drug kit."]],
- elig:[["thinking","Here’s our patient. Review the case and decide whether TXA is indicated."]],
+ intro:[["welcome","Welcome. I’ll be your crew mate through this case."],["pointing","Your objective: safely prepare and give tranexamic acid (TXA) to a paediatric patient who meets the criteria, the way the poster sets it out."]],
  equip:[["pointing","Gather your equipment. Select only what you need from the drug kit."]],
- dose:[["thinking","The bag is ready at 10 mg/mL. Now work out this child’s dose and volume from the chart."]],
+ dose:[["thinking","The bag is ready at 10 mg/mL. Now find this child’s dose and volume on the chart."]],
  room:[["thinking","Equipment’s ready. What do you do before adding TXA to the bag?"]],
  drawup:[["ampoule","Time to prepare the TXA. Double-check the ampoules with me first, then draw up 1 g and add it to the bag."]],
  label:[["pointing","Label the bag immediately, before you mix it: an unlabelled bag is an unknown drug."]],
  mix:[["thinking","Now mix: turn the bag slowly a few times. Never shake it."]],
- give:[["pointing","Before you draw the dose, let’s cross-check the 5 Rights."],["syringe","Then give it over 10 minutes. Never faster: a rapid push can drop the child’s blood pressure."]],
+ give:[["syringe","Draw the dose, then give it over 10 minutes. Never faster: a rapid push can drop the child’s blood pressure."]],
  dispose:[["pointing","Last step: dispose of your sharps and waste safely."]],
- independent:[["neutral","Independent mode: no hints or guidance this time. Start by reviewing the case."]],
+ independent:[["neutral","Independent mode: no hints or guidance this time. Your patient meets the TXA criteria. Tap Case for the details."]],
  pressure:[["urgent","Pressure mode: work quickly and accurately, and expect interruptions. Target time is 8 minutes."]]
 };
 const TX_HINT={
- elig:"<b>Indications:</b> under 14, major trauma under 3 h AND suspected or confirmed major haemorrhage OR isolated TBI with GCS ≤12. <b>Contraindications:</b> TXA hypersensitivity, injury over 3 h, significant blood loss unlikely.",
  equip:"You need: 100 mL 0.9% NaCl, 2 × TXA 500 mg/5 mL, 50 mL syringe, giving set, three-way stopcock, medication label, kidney basin and sharps container. The 10 mL syringe is not used.",
-  dose:c=>c.ageMonths!==undefined?"Infant weight = (age in months × 0.5) + 4. Dose 15 mg/kg. Volume = dose ÷ 10 mg/mL.":`Find ${c.row.age} years on the chart. Dose = weight × 15 mg/kg; volume = dose ÷ 10 mg/mL.${c.large?" For 8 years and over, also note the draw-out volume.":""}`,
+  dose:c=>c.ageMonths!==undefined?"Infant weight = (age in months × 0.5) + 4. Dose 15 mg/kg. Volume = dose ÷ 10 mg/mL.":`Find ${c.row.age} years on the chart and read across.${c.large?" For 8 years and over, also note the draw-out volume.":""}`,
  room:"Attach the 50 mL syringe to the 100 mL bag, draw out exactly 10 mL of NSS, then discard it.",
  drawup:"Double-check the medication first, open both ampoules, draw up 1 g (10 mL) with the 50 mL syringe and inject it into the bag (90 mL → 100 mL).",
  label:"Label immediately: concentration, date, time, weight (from the chart for the child’s age), amount added, diluent and total volume.",
  mix:"Turn the bag slowly at least 3 times. Fast, jerky movement counts as shaking.",
- give:c=>`Tick all 5 Rights and confirm the read-back. Then ${c.large?`draw out and discard ${c.row.drawOut} mL and give the remaining volume`:`draw ${c.row.volume} mL (${c.row.dose} mg) from the bag and give it`} over 10 minutes.`,
+ give:c=>`${c.large?`draw out and discard ${c.row.drawOut} mL and give the remaining volume`:`draw ${c.row.volume} mL (${c.row.dose} mg) from the bag and give it`} over 10 minutes.`,
  dispose:"Needles, syringes and glass ampoules go into the yellow sharps bin. Packaging goes in general waste."
 };
 
@@ -59,19 +51,16 @@ const txFmt=s=>{s=Math.max(0,Math.round(s));return String(Math.floor(s/60)).padS
 const txEsc=v=>String(v??"").replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
 function txInfant(m){const w=m*.5+4,d=Math.round(w*15);return{age:0,weight:w,dose:d,volume:d/10,infant:true}}
 function txCase(o={}){
-  const withhold=o.indicated===false||(o.indicated===undefined&&Math.random()<.25);
-  const infant=!withhold&&!o.young&&Math.random()<.12;
+  const infant=!o.young&&Math.random()<.12;
   let row,ageLabel,ageMonths;
   if(infant){ageMonths=txPick([4,6,8,10]);row=txInfant(ageMonths);ageLabel=`${ageMonths} months`;}
-  else{const pool=o.young?TX_CHART.filter(r=>r.age>=3&&r.age<=7):withhold?TX_CHART:TX_CHART.filter(r=>r.age<14);row=txPick(pool);ageLabel=`${row.age} year${row.age>1?"s":""}`;}
+  else{const pool=o.young?TX_CHART.filter(r=>r.age>=3&&r.age<=7):TX_CHART.filter(r=>r.age<14);row=txPick(pool);ageLabel=`${row.age} year${row.age>1?"s":""}`;}
   const base={name:txPick(TX_NAMES),ageLabel,ageMonths,row,large:row.age>=8,hr:120+Math.floor(Math.random()*40),sbp:70+Math.floor(Math.random()*15)};
-  if(withhold){const u=txPick(TX_WITHHOLD),cr=u.injuryMins>180?"late":u.allergy!=="Nil known"?"allergy":"minor";
-    return{...base,...u,hr:cr==="minor"?100:base.hr,sbp:cr==="minor"?100:base.sbp,indicated:false,criterion:cr};}
   const g=txPick(TX_GIVE);
-  return{...base,...g,injuryMins:15+Math.floor(Math.random()*60),allergy:"Nil known",indicated:true,reason:g.gcs<=12?"Major trauma under 3 h with isolated TBI and GCS ≤12.":"Major trauma under 3 h with suspected major haemorrhage.",criterion:g.gcs<=12?"tbi":"bleeding"};
+  return{...base,...g,injuryMins:15+Math.floor(Math.random()*60),allergy:"Nil known",reason:g.gcs<=12?"Major trauma under 3 h with isolated TBI and GCS ≤12.":"Major trauma under 3 h with suspected major haemorrhage."};
 }
-function txGuidedCase(){ if(!S.txcase||!S.txcase.row){S.txcase=txCase({indicated:true,young:true});save();} return S.txcase; }
-function txCaseFor(s){ if(["nbr","code","smr"].includes(P.l.scene)) return rxCase(s); return s.case==="withhold"?P.wcase:s.case==="run"?P.runCase:txGuidedCase(); }
+function txGuidedCase(){ if(!S.txcase||!S.txcase.row){S.txcase=txCase({young:true});save();} return S.txcase; }
+function txCaseFor(s){ if(["nbr","code","smr"].includes(P.l.scene)) return rxCase(s); return s.case==="run"?P.runCase:txGuidedCase(); }
 function txLabelData(c){ if(P.lab) return P.lab; if(P.txMode==="guided"&&S.txLabel) return S.txLabel; const d=new Date(),p=x=>String(x).padStart(2,"0");
   return {conc:"10",date:`${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()}`,time:`${p(d.getHours())}:${p(d.getMinutes())}`,weight:String(c.row.weight),supplied:"100",addMg:"1000",addMl:"10",toMl:"90",sol:"0.9% NaCl",total:"100"}; }
 
@@ -109,7 +98,7 @@ function txInit(s){
   const st={key:s.stage,sid:s.stage+"#"+P.i,phase:TXS[s.stage].phases[0],fb:null,err:false,hint:false};
   TXS[s.stage].init&&TXS[s.stage].init(st,txCaseFor(s),s);
   const G=TXS[s.stage].guide;
-  const g=G?G(s):P.txMode==="guided"?(s.stage==="elig"&&s.case==="withhold"?TX_GUIDE.eligW:TX_GUIDE[s.stage]):(P.i===0?TX_GUIDE[P.txMode]:null);
+  const g=G?G(s):P.txMode==="guided"?TX_GUIDE[s.stage]:(P.i===0?TX_GUIDE[P.txMode]:null);
   st.guide=g; st.mood=g?g[g.length-1][0]:"neutral";
   if(g) setTimeout(()=>{ if(P&&P.sx===st) txSay(g.map(x=>x[1]).join(" ")); },250);
   return st;
@@ -137,7 +126,6 @@ function txGo(next){
 }
 function txEndStage(){
   const s=P.steps[P.i];
-  if(s.stage==="elig"&&s.case==="run"&&!P.runCase.indicated){ P.runCase=txCase({indicated:true}); P.sx=null; drawPlayer(); return; }
   nextStep();
 }
 const txBust=m=>TXM(`avatar${m&&m!=="neutral"?"-"+(m==="encourage"?"happy":m):""}-bust.webp`);
@@ -191,11 +179,10 @@ function txBindSyringe(limitFn){
   if(r){r.addEventListener("input",()=>txSetV(Number(r.value),limitFn&&limitFn()));}
 }
 function txChartHTML(st,c){
-  const mask=true,sel=st.row;
-  const cell=v=>mask?`<span class="q">?</span>`:v;
-  const tr=(r,label,w)=>{const id=r.infant?"0":String(r.age);return `<tr class="${sel===id?"sel":""}"><td><button class="rowbtn" data-tx="row" data-row="${id}" ${st.phase!=="row"?"disabled":""} aria-label="${label} row">${label}</button></td><td>${w}</td><td>${cell(r.dose+" mg")}</td><td>${cell(r.volume+" mL")}</td><td>${r.drawOut?`<span class="out">Draw out ${r.drawOut} mL</span>`:"–"}</td></tr>`;};
+  const sel=st.row;
+  const tr=(r,label,w)=>{const id=r.infant?"0":String(r.age);return `<tr class="${sel===id?"sel":""}"><td><button class="rowbtn" data-tx="row" data-row="${id}" ${st.phase!=="row"?"disabled":""} aria-label="${label} row">${label}</button></td><td>${w}</td><td>${r.infant?"15 mg/kg":r.dose+" mg"}</td><td>${r.infant?"Calculated":r.volume+" mL"}</td><td>${r.drawOut?`<span class="out">Draw out ${r.drawOut} mL</span>`:"–"}</td></tr>`;};
   return `<div class="visual"><table class="txc"><thead><tr><th>Age</th><th>Est. weight</th><th>Dose (15 mg/kg)</th><th>Volume (10 mg/mL)</th><th>≥8 years</th></tr></thead><tbody>
-   ${tr({infant:true,dose:"?",volume:"?"},"0–12 months","(months × 0.5) + 4")}
+   ${tr({infant:true},"0–12 months","(months × 0.5) + 4")}
    ${TX_CHART.filter(r=>r.age<8).map(r=>tr(r,r.age+" y",r.weight+" kg")).join("")}
    <tr class="band"><td colspan="5"><b>≥8 years or &gt;30 kg:</b> add 1 g, draw out and discard the volume shown, give the remaining volume over 10 minutes (includes 10 mL administration-set compensation).</td></tr>
    ${TX_CHART.filter(r=>r.age>=8).map(r=>tr(r,r.age+" y",r.weight+" kg")).join("")}
@@ -293,17 +280,9 @@ function txBindRig(limitFn){
 const TXS={
  intro:{phases:["intro"],
   body:(st,c)=>`${txHero("hero-ambulance-prep.webp","Paediatric TXA · hands-on","Prepare and give it right")}
-   <div class="mate big"><img src="${TXM("avatar-welcome-half.webp")}" alt="Your crew mate" width="150"><div class="bubble">${TX_GUIDE.intro.map(x=>`<p>${x[1]}</p>`).join("")}<p>We’ll follow the HMCAS poster, one stage at a time.</p></div></div>
+   <div class="mate big"><img src="${TXM("avatar-welcome-half.webp")}" alt="Your crew mate" width="150"><div class="bubble">${TX_GUIDE.intro.map(x=>`<p>${x[1]}</p>`).join("")}<p>Your patient: ${c.name}, ${c.ageLabel}. ${c.mechanism}. ${c.reason}</p><p>We’ll follow the HMCAS poster, one stage at a time.</p></div></div>
    <ol class="stages">${Object.values(TX_STAGE_NAMES).map((n,i)=>`<li><b>${i+1}</b>${n}</li>`).join("")}</ol>`,
   foot:()=>`<button class="btn wide" data-tx="intro-go">Start the case</button>`},
-
- elig:{phases:["decide","why"],
-  init:(st)=>{st.crit=txShuffle(TX_CRITERIA);},
-  body:(st,c)=>`<div class="dispatch"><span class="label">Dispatch · P1 paediatric trauma</span><h2>${c.mechanism}</h2></div>
-   <div class="monitor"><div class="mon-v hr"><span>HR</span><b>${c.hr}</b><i class="beat" style="animation-duration:${(60/c.hr).toFixed(2)}s"></i></div><div class="mon-v sbp"><span>SBP</span><b>${c.sbp}</b></div><div class="mon-v gcs"><span>GCS</span><b>${c.gcs}</b></div></div>
-   <dl class="casegrid"><dt>Patient</dt><dd>${c.name}, ${c.ageLabel}</dd><dt>Time since injury</dt><dd>${c.injuryMins>=60?Math.floor(c.injuryMins/60)+" h "+(c.injuryMins%60?c.injuryMins%60+" min":""):c.injuryMins+" min"}</dd><dt>Allergies</dt><dd>${c.allergy}</dd><dt>Findings</dt><dd>${c.findings}</dd></dl>
-   ${st.phase==="decide"?`<h3 class="q3">Using the AP scope criteria, is IV tranexamic acid indicated?</h3><div class="two"><button class="btn good" data-tx="decide" data-v="1">Indicated · prepare TXA</button><button class="btn bad" data-tx="decide" data-v="0">Contraindicated · withhold</button></div>`
-     :`<h3 class="q3">${c.indicated?"Which indication does this patient meet?":"Why is TXA withheld?"}</h3>${txOptsHTML("crit",st.crit,st)}`}`},
 
  equip:{phases:["pick"],
   init:(st)=>{st.order=txShuffle(TX_KIT);st.sel=[];},
@@ -317,9 +296,9 @@ const TXS={
   body:(st,c)=>{const inf=c.ageMonths!==undefined,f=(k,l,u)=>`<label class="fld">${l}<span><input type="number" inputmode="decimal" data-txin="${k}" value="${txEsc(st.vals[k])}"><em>${u}</em></span></label>`;
    return `<div class="info">The bag you prepared holds 1 g in 100 mL: <b>10 mg/mL</b>. Dose = <b>15 mg/kg</b>.${inf?" Babies 0–12 months: weight = (age in months × 0.5) + 4.":""}</div>
    <h3 class="q3">${st.phase==="row"?`Find ${c.name}’s age (${c.ageLabel}) on the chart and tap the row.`:st.rowMsg}</h3>
-   <p class="note">Dose and volume are hidden. Work them out from the weight.</p>${txChartHTML(st,c)}
+   ${txChartHTML(st,c)}
    ${st.phase==="calc"?`<div class="fields">${inf?f("w","Estimated weight","kg"):""}${f("d","TXA dose","mg")}${f("v","Volume to deliver","mL")}${c.large?f("o","Volume to draw out from bag","mL"):""}</div>`:""}`;},
-  foot:(st)=>st.phase==="calc"?`<button class="btn wide" data-tx="dose-check">Check calculation</button>`:""},
+  foot:(st)=>st.phase==="calc"?`<button class="btn wide" data-tx="dose-check">Check dose</button>`:""},
 
  room:{phases:["next","draw","discard"],
   init:(st)=>{st.next=txShuffle(TX_NEXT);st.disc=txShuffle(TX_DISCARD);st.v=0;st.cap=50;st.bagBase=100;},
@@ -378,7 +357,7 @@ const TXS={
  mix:{phases:["mix"],
   init:(st)=>{st.turns=0;st.rot=0;st.acc=0;st.froth=false;},
   body:(st,c)=>{const lab=txLabelData(c);
-   return `${txHero("mix-bag.webp","Stage 6","Mix gently")}
+   return `${txHero("mix-bag.webp","Stage 5","Mix gently")}
    <div class="mixzone" id="txmix" role="application" aria-label="Drag in a slow circle to turn the bag"><div class="mixbag" id="txmixbag" style="transform:rotate(${st.rot}deg)"><img src="${TXM("eq-nacl-100ml-bag.webp")}" alt="" draggable="false"><div class="sticker"><b>TRANEXAMIC ACID</b><span>${txEsc(lab.conc||"10")} mg/mL</span><small>${txEsc(lab.date||"")} ${txEsc(lab.time||"")} · ${txEsc(lab.weight||"")} kg</small></div><svg class="streaks" id="txstreak" viewBox="0 0 100 100" preserveAspectRatio="none" style="opacity:${Math.max(0,1-st.turns/3)}"><path d="M50 95 C40 75 62 60 48 40"/><path d="M50 95 C62 78 40 62 56 44"/><path d="M50 95 C46 80 58 70 44 55"/></svg>${st.froth?`<div class="froth"></div>`:""}</div></div>
    <div class="mixstat"><span>Gentle turns <b id="txturns">${st.turns}</b></span><button class="btn ghost sm" data-tx="turn">Turn once</button></div>`;},
   foot:()=>`<button class="btn wide" data-tx="mix-done">Mixing complete</button>`,
@@ -392,24 +371,19 @@ const TXS={
     st.rot+=d;bag.style.transform=`rotate(${st.rot}deg)`;st.acc+=Math.abs(d);if(st.acc>=160){st.acc=0;txTurn(st);}});
    ["pointerup","pointercancel"].forEach(k=>z.addEventListener(k,()=>last=null));}},
 
- give:{phases:["rights","readback","draw","line","rate","infuse","doc"],
-  init:(st,c)=>{st.rights=[];st.rb=txShuffle(txReadback(c));st.v=0;st.cap=50;st.bagBase=100;st.line=[];st.lineOrder=txShuffle([0,1,2]);st.left=600;st.speed=1;st.run=false;st.time="";},
+ give:{phases:["draw","rate","infuse","doc"],
+  init:(st,c)=>{st.v=0;st.cap=50;st.bagBase=100;st.left=600;st.speed=1;st.run=false;st.time="";},
   body:(st,c)=>{const r=c.row,dose=r.dose,give=r.volume,lab=txLabelData(c);
-   const bag=`<div class="bagcard"><img src="${TXM("eq-nacl-100ml-bag.webp")}" alt="Labelled 100 mL bag"><div class="sticker"><b>TRANEXAMIC ACID</b><span>${txEsc(lab.conc||"10")} mg/mL</span><small>${txEsc(lab.date||"")} ${txEsc(lab.time||"")} · ${txEsc(lab.weight||"")} kg</small></div></div>`;
-   if(st.phase==="rights") return `<div class="split"><div>${bag}</div><div><h3 class="q3">Cross-check the 5 medication rights with your colleague before drawing the dose.</h3><p class="note">Patient: ${c.name}, ${c.ageLabel}</p><div class="rights">${TX_RIGHTS.map(x=>`<button class="tog ${st.rights.includes(x)?"on":""}" data-tx="right" data-r="${x}" aria-pressed="${st.rights.includes(x)}"><i>${st.rights.includes(x)?I.check:""}</i>${x}</button>`).join("")}</div></div></div>`;
-   if(st.phase==="readback") return `<div class="split"><div>${bag}</div><div><div class="mate"><img src="${txBust("pointing")}" alt="Crew mate" width="64" height="64"><div class="bubble"><p>Reading the labelled bag and the dose back to you. Which read-back is correct for ${c.name}?</p></div></div>${txOptsHTML("rb",st.rb,st)}</div></div>`;
    if(st.phase==="draw"){const tg=c.large?r.drawOut:r.volume;
      return `<h3 class="q3">${c.large?`Using the 50 mL syringe, draw OUT and discard ${r.drawOut} mL from the bag.`:`Using the 50 mL syringe, draw up the calculated dose of ${dose} mg from the bag.`}</h3>
      ${txBench(st,{mode:"bag",fluid:"txa",label:lab,bagOf:v=>100-v,target:tg,max:50,mg:c.large?(v=>`Bag left: ${(100-v).toFixed(1)} mL`):(v=>`${Math.round(v*10)} mg TXA`),
        gauge:c.large?(v=>({t:`Left to give after set compensation: <b>${Math.round(Math.max(0,90-v)*10)} mg</b> · dose ${dose} mg`,ok:Math.abs(v-tg)<.6,pct:50+(v-tg)/tg*50})):(v=>({t:`${v.toFixed(1)} mL = <b>${Math.round(v*10)} mg</b> · dose ${dose} mg`,ok:Math.abs(v-tg)<.6,pct:50+(v-tg)/tg*50}))})}`;}
-   if(st.phase==="line") return `<h3 class="q3">Set up the administration line in the correct order. Tap each step in sequence.</h3>
-     <div class="linegrid">${st.lineOrder.map(i=>{const L=TX_LINE[i],done=st.line.includes(i);return `<button class="lineitem ${done?"on":""}" data-tx="line" data-i="${i}" ${done?"disabled":""}>${L.img?`<img src="${TXM(L.img+".webp")}" alt="">`:`<span class="ph">${I.syringe}</span>`}<span>${done?`<b>${st.line.indexOf(i)+1}.</b> `:""}${L.t}</span></button>`}).join("")}</div>`;
    if(st.phase==="rate") return `<h3 class="q3">Over what duration should the ${give} mL be given?</h3><div class="rates">${[1,10,30,60].map(n=>`<button class="btn ghost" data-tx="rate" data-n="${n}">${n} min</button>`).join("")}</div>`;
    if(st.phase==="infuse"){const del=Math.round(give*(1-st.left/600)*10)/10;
     return `<div class="pump"><span class="label">Infusion · TXA 10 mg/mL · ${give} mL over 10 min</span><div class="pumpscreen"><b id="txclockbig">${txFmt(st.left)}</b><span id="txdel">Delivered ${del} / ${give} mL (${Math.round(del*10)} mg)</span><div class="bar"><i id="txinfbar" style="width:${(1-st.left/600)*100}%"></i></div></div>
      <div class="two"><button class="btn" data-tx="inf-run">${st.run?"Pause":st.left===600?"Start infusion":"Resume"}</button><button class="btn ghost" data-tx="inf-speed">Speed ${st.speed}×</button></div></div>`;}
    return `<div class="pump done"><span class="label">Infusion complete</span><p class="q3">Document the administration time on the PCR.</p><label class="fld">Time administered<span><input data-txin="time" value="${txEsc(st.time)}" placeholder="hh:mm"><em></em></span></label><button class="btn ghost sm" data-tx="time-now" style="justify-self:start">Use the current time</button></div>`;},
-  foot:(st)=>st.phase==="rights"?`<button class="btn wide" data-tx="rights-ok">Confirm 5 Rights</button>`:st.phase==="draw"?`<button class="btn wide" id="txconfirm" data-tx="give-confirm">${P.txMode==="guided"?`Confirm ${st.v.toFixed(1)} mL`:"Confirm volume"}</button>`:st.phase==="doc"?`<button class="btn wide" data-tx="doc">Document &amp; continue</button>`:"",
+  foot:(st)=>st.phase==="draw"?`<button class="btn wide" id="txconfirm" data-tx="give-confirm">${P.txMode==="guided"?`Confirm ${st.v.toFixed(1)} mL`:"Confirm volume"}</button>`:st.phase==="doc"?`<button class="btn wide" data-tx="doc">Document &amp; continue</button>`:"",
   after:(st)=>{ if(st.phase==="draw") txBindRig(); }},
 
  dispose:{phases:["bin"],

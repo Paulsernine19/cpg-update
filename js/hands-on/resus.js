@@ -412,8 +412,6 @@ function rxTop(s){
   return `<div class="pt"><div class="pt-id"><b>Trauma patient</b><span>${c.conscious?"GCS 15 · neck pain":"GCS 6 · unconscious"}</span></div><div class="pt-v"><span>SMR</span></div></div>`;
 }
 
-function txReadback(c){const r=c.row,g=r.weight,b=`${c.name}, ${g} kg · Tranexamic acid 10 mg/mL`,u=Math.round(r.dose)/100,G=g+10;
- return[{ok:true,text:`${b} · ${r.dose} mg = ${r.volume} mL · IV · over 10 minutes`},{text:`${b} · ${r.dose} mg = ${u} mL · IV · over 10 minutes`,why:`At 10 mg/mL, ${r.dose} mg is ${r.volume} mL. ${u} mL would only be right for the undiluted 100 mg/mL ampoule.`,outcome:`The child would receive about ${Math.round(r.dose/10)} mg instead of ${r.dose} mg — a 90% underdose.`},{text:`${b} · ${r.dose} mg = ${r.volume} mL · IV · push over 1 minute`,why:"TXA is given slowly over 10 minutes.",outcome:"A rapid push of TXA can drop the child’s blood pressure."},{text:`${b} · ${r.dose} mg = ${r.volume} mL · IM · over 10 minutes`,why:"The route is IV, as on the label and the protocol.",outcome:"Giving the IV preparation by the wrong route means the dose does not work as intended."},{text:`${c.name}, ${G} kg · Tranexamic acid 10 mg/mL · ${G*15} mg = ${G*1.5} mL · IV · over 10 minutes`,why:`The weight must match the patient: ${g} kg, not ${G} kg.`,outcome:`The child would receive ${G*15} mg instead of ${r.dose} mg — an overdose.`}];}
 function txTurn(st){st.turns++;txSound("slosh");const t=document.getElementById("txturns");if(t)t.textContent=st.turns;const s=document.getElementById("txstreak");if(s)s.style.opacity=Math.max(0,1-st.turns/3);}
 function txBindHold(btn,done){
   let timer=null,t0=0;const ring=btn.querySelector(".ring circle");
@@ -439,14 +437,6 @@ function txClick(t){
   if(st.rx&&rxClick(t,st))return;
   switch(a){
    case "intro-go": nextStep(); return;
-   case "decide": { const yes=t.dataset.v==="1";
-     if(yes===c.indicated){txSound("click");st.phase="why";drawPlayer('[data-tx="crit"]');}
-     else txErr(c.indicated?"Withheld TXA despite indication":"Gave TXA despite contraindication",c.indicated?`This child meets the AP criteria: ${c.reason}`:`TXA is contraindicated here. ${c.reason}`,TX_MISSED[c.criterion]);
-     return; }
-   case "crit": { const pick=st.crit[i];
-     if(pick.id===c.criterion) txOk(c.indicated?`Eligibility and indication confirmed: ${c.reason}`:`TXA correctly withheld: ${c.reason}${s.case==="run"?" Next patient.":""}`,{next:"END"});
-     else txErr("Wrong criterion","Look again at the time since injury, the findings, the GCS and the allergies.");
-     return; }
    case "kit": { const id=t.dataset.id;st.sel=st.sel.includes(id)?st.sel.filter(x=>x!==id):[...st.sel,id];txSound("click");drawPlayer(`[data-id="${id}"]`);return; }
    case "kit-confirm": { const miss=TX_KIT.filter(k=>k.ok&&!st.sel.includes(k.id)),extra=TX_KIT.filter(k=>!k.ok&&st.sel.includes(k.id));
      if(!miss.length&&!extra.length){txOk("Correct equipment selected.",{next:"END"});return;}
@@ -482,21 +472,16 @@ function txClick(t){
      else txErr("Incorrect action after drawing TXA","Add all 10 mL of TXA to the 90 mL normal saline bag via its medication port to make 100 mL total, then label it immediately.",o.outcome);return; }
    case "inj-done": if(st.v<=.05) txOk("Added 1 g TXA to the bag: 1 g in 100 mL (10 mg/mL).",{quiet:true,next:"END"});return;
    case "now": { const d=new Date(),p=x=>String(x).padStart(2,"0");st.vals.date=`${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()}`;st.vals.time=`${p(d.getHours())}:${p(d.getMinutes())}`;drawPlayer('[data-tx="now"]');return; }
-   case "right": { const r=t.dataset.r;st.rights=st.rights.includes(r)?st.rights.filter(x=>x!==r):[...st.rights,r];txSound("click");drawPlayer(`[data-r="${r}"]`);return; }
    case "label-confirm": { const bad=TX_LABEL.filter(f=>{const want=f.ans(c),got=String(st.vals[f.key]??"").trim();return want instanceof RegExp?!want.test(got):(got===""||Math.abs(parseFloat(got)-want)>.01);}).map(f=>f.name+(f.unit?` (${f.unit})`:""));
      if(bad.length){txErr("Incomplete or incorrect label",`Check: ${[...new Set(bad)].join(", ")}.`,"An incomplete label makes the bag an unknown drug to the next person who picks it up.");return;}
      P.lab={...st.vals};if(P.txMode==="guided"){S.txLabel={...st.vals};save();}
      txLog(true,"Label completed");txSound("click");st.phase="attach";drawPlayer();return; }
-   case "rights-ok": if(st.rights.length===5){txLog(true,"5 Rights ticked");txSound("click");st.phase="readback";drawPlayer('[data-tx="rb"]');} else txErr("5 Rights not cross-checked",`Tick all five: ${TX_RIGHTS.filter(x=>!st.rights.includes(x)).join(", ")} still unchecked.`,"Skipping a right is how the wrong dose, route or patient slips through.");return;
-   case "rb": { const o=st.rb[i]; if(o.ok) txOk(`5 Rights cross-checked for ${c.name}.`,{next:"draw"}); else txErr("Wrong 5 Rights read-back",o.why,o.outcome);return; }
    case "turn": txTurn(st);return;
    case "mix-done": if(st.turns>=3) txOk("Mixed the bag gently.",{next:"END"}); else txErr("Inadequate mixing","Turn the bag slowly at least 3 times to mix.","If the TXA is not mixed through, the first millilitres drawn may be much stronger or weaker than 10 mg/mL.");return;
    case "give-confirm": { const r=c.row,C=c.large?r.drawOut:r.volume,v=st.v;
-     if(Math.abs(v-C)<.6) txOk(c.large?`Drew out and discarded ${C} mL. The remaining volume is given.`:`Drew up ${r.volume} mL (${r.dose} mg).`,{next:"line"});
+     if(Math.abs(v-C)<.6) txOk(c.large?`Drew out and discarded ${C} mL. The remaining volume is given.`:`Drew up ${r.volume} mL (${r.dose} mg).`,{next:"rate"});
      else{const j=c.large?(90-v)*10:v*10;txErr("Wrong volume drawn",c.large?`For ${r.age} years draw out ${r.drawOut} mL (chart), leaving ${r.volume} mL to give.`:`${r.dose} mg ÷ 10 mg/mL = ${r.volume} mL.`,j>0?txNs(j,r.dose):undefined);}
      return; }
-   case "line": { if(i===st.line.length){st.line.push(i);txSound("click");if(st.line.length===3)txOk("Line set up in order: giving set primed, stopcock attached, connected and flush-checked.",{next:"rate"});else drawPlayer('.lineitem:not([disabled])');}
-     else txErr("Line set-up order",`The next step should be: ${TX_LINE[st.line.length].t}.`);return; }
    case "rate": { const n=+t.dataset.n; if(n===10) txOk("Rate set: over 10 minutes.",{quiet:true,next:"infuse"}); else txErr("Incorrect administration rate","TXA is given slowly over 10 minutes.",TX_RATE[n]);return; }
    case "inf-run": st.run=!st.run;txInfTimer(st,c);drawPlayer('[data-tx="inf-run"]');return;
    case "inf-speed": st.speed=st.speed===1?30:1;drawPlayer('[data-tx="inf-speed"]');return;
@@ -538,7 +523,7 @@ function txTopHTML(s){
    <div class="bar" role="progressbar" aria-label="Progress" aria-valuenow="${Math.round(pct)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div>
    <span class="count">${label}</span>
    ${run?`<span class="clock ${P.txMode==="pressure"&&el>TX_TARGET?"over":""}" id="txclock">${txFmt(el)}${P.txMode==="pressure"?" / "+txFmt(TX_TARGET):""}</span>`:""}
-   ${P.l.scene!==true?"":`<button class="tbtn" data-tx="chart" ${s.stage==="dose"?"disabled title=\"Hidden while you calculate\"":""} aria-label="Dose chart">${I.book}</button>`}
+   ${P.l.scene!==true?"":`<button class="tbtn" data-tx="chart" aria-label="Dose chart">${I.book}</button>`}
    <button class="tbtn" data-tx="sound" aria-pressed="${txSoundOn()}" aria-label="${txSoundOn()?"Mute sound and voice":"Turn on sound and voice"}">${txSoundOn()?I.sound:I.mute}</button></div>
    ${["nbr","code","smr"].includes(P.l.scene)?rxTop(s):showPt&&thermo?`<div class="pt"><div class="pt-id"><b>Newborn</b><span>term · just born</span></div><div class="pt-v"><span class="tmp">Temp <b>${P.thTemp?P.thTemp.toFixed(1)+" °C":"not yet measured"}</b></span><span>Target <b>${P.thTemp?"36.5–37.5 °C":"—"}</b></span></div></div>`:showPt?`<div class="pt"><div class="pt-id"><b>${c.name}</b><span>${c.ageLabel}</span></div><div class="pt-v"><span class="hr"><i class="beat" style="animation-duration:${(60/c.hr).toFixed(2)}s"></i>${c.hr}</span><span>SBP <b>${c.sbp}</b></span><span>GCS <b>${c.gcs}</b></span></div><button class="pt-more" data-tx="case" aria-expanded="${!!P.caseOpen}">Case</button></div>
    ${P.caseOpen?`<div class="pt-case"><p><b>Mechanism:</b> ${c.mechanism}</p><p><b>Findings:</b> ${c.findings}</p><p><b>Time since injury:</b> ${c.injuryMins} min · <b>Allergies:</b> ${c.allergy}</p></div>`:""}`:""}`;
