@@ -70,7 +70,7 @@ const CHANGES={
 /* ---------- Quick reference: one screen per module ---------- */
 const REF={
  trauma:{visual:"txachart",items:[
-  {t:"<b>Extrication:</b> self-extrication or minimal assistance is first line (incl. children who follow instructions, neck/back pain, soft neuro signs, central cord syndrome). Not if unable to follow instructions or stand on at least one leg. Hard neuro signs: rapid extrication, gentle handling.",scope:"AP",src:"CPG 10.13 p.200"},
+  {t:"<b>Extrication:</b> self-extrication or minimal assistance is first line, including children who follow instructions, neck/back pain, soft neuro signs such as tingling that doesn't follow a nerve pathway (non-dermatomal tingling), and weakness or burning pain in the arms and hands, worse than in the legs (signs of central cord syndrome). Not if unable to follow instructions or stand on at least one leg. Hard neuro signs: rapid extrication, gentle handling.",scope:"AP",src:"CPG 10.13 p.200"},
   {t:"<b>U-STEP Out:</b> Understand · Support · Try moving · Egress · Plan · Out. Snatch rescue first if immediate threat to life or unconscious with absent/ineffective breathing.",scope:"AP",src:"CPG 10.13 p.201"},
   {t:"<b>While trapped:</b> minimal monitoring; only haemorrhage control, TXA if indicated and analgesia (Penthrox or ketamine). No MILS needed if conscious with no neuro deficit. Extrication buddy via Civil Defence.",scope:"AP",src:"CPG 10.13 pp.200–202"},
   {t:"<b>Paediatric TXA indications (AP &amp; CCP):</b> child under 14, major trauma under 3 hours, with suspected or confirmed major haemorrhage or isolated TBI with GCS ≤12.",scope:"AP",src:"HMCAS Paediatric IV TXA poster"},

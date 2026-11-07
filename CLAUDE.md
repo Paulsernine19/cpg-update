@@ -8,7 +8,7 @@ Plain HTML/CSS/JS with no build step and no framework. Users open `index.html` b
 |---|---|
 | Page shell + script load order | `index.html` (keep it small) |
 | All styling | `css/style.css` (image paths are relative to `css/`, so use `../tx/...`) |
-| Question bank (`QB`), diagnostic (`DQ`), module names (`MODS`), critical items (`CRITICAL`) | `js/content/questions.js` |
+| Module check bank (`QB`), final-only questions (`FQ`), diagnostic (`DQ`), module names (`MODS`), critical items (`CRITICAL`) | `js/content/questions.js` |
 | Text visuals (`V`), "what changed" flip cards (`CHANGES`), quick reference (`REF`) | `js/content/changes-reference.js` |
 | Lessons for each module | `js/content/courses/01-intro.js` … `06-final.js` (each one does `COURSES.push({...})`) |
 | State/progress, icons, views (home, modules, reference, progress), lesson player | `js/app.js` |

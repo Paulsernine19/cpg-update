@@ -8,9 +8,9 @@
    scope: "AP" (AP & CCP) | "CCP" (CCP only; APs recognise & escalate) | "verify"
    ===================================================================== */
 const MODS={trauma:"Trauma",newborn:"Newborn",cardiac:"Cardiac arrest",stroke:"Stroke"};
-const CRITICAL=["Q2","Q3","Q8","Q9","Q16","Q17","Q22"];
+const CRITICAL=["Q2","Q3","Q8","Q9","Q16","Q17","Q22","FT3","FT4"];
 
-/* ---------- Draft question bank (Q1–Q20), used by module checks and the final ---------- */
+/* ---------- Draft question bank (QB), used by module checks; also by the final for modules with no FQ questions yet ---------- */
 const QB=[
  {id:"Q1",mod:"trauma",lesson:"tr-1",scope:"AP",prompt:"An alert collision patient has neck pain, follows instructions, can stand and has no neurological deficit. Which approach should be considered first?",
   options:["Routine immobilised extraction because of the neck pain","Self-extrication or minimally assisted extrication","Leave the patient in the vehicle until the pain resolves"],answer:1,
@@ -80,7 +80,7 @@ const QB=[
  {id:"Q21",mod:"trauma",lesson:"tr-1",scope:"AP",prompt:"A trapped driver can't move or feel their legs. Which extrication approach applies?",
   options:["Self-extrication with verbal guidance","Rapid extrication with gentle handling","Wait for full monitoring before any movement"],answer:1,
   fb:["Hard neurological signs rule out self-extrication.",null,"Keep monitoring to a minimum while the patient is trapped. Hard signs mean rapid extrication with gentle handling."],
-  explain:"Hard neurological signs (loss of motor and sensory function) mean rapid extrication with gentle handling. Soft signs such as non-dermatomal tingling don't rule out self-extrication.",src:"CPG 10.13 p.200"},
+  explain:"Hard neurological signs (loss of motor and sensory function) mean rapid extrication with gentle handling. Soft signs such as tingling that doesn't follow a nerve pathway (non-dermatomal tingling) don't rule out self-extrication.",src:"CPG 10.13 p.200"},
  {id:"Q22",mod:"newborn",lesson:"nb-4",scope:"AP",prompt:"After 30 seconds of effective BVM ventilation, the newborn's heart rate is 50/min. What next?",
   options:["Continue ventilation only and recheck in 2 minutes","Start compressions at 3:1 using the two-thumb technique and increase oxygen to 100%","Give glucagon"],answer:1,
   explain:"HR still <60 after 30 seconds of ventilation: start compressions at 3:1 with the two-thumb technique, 100% oxygen, and reassess HR and breathing every 30 seconds.",src:"CPG 2.5 p.52"},
@@ -91,6 +91,36 @@ const QB=[
   options:["P1 to HGH ED","P2 to the nearest appropriate ED","No transport needed"],answer:1,
   explain:">8 and <24 hours with RACE <5: P2 to the nearest appropriate ED.",src:"CPG 3.1 p.64"}
 ];
+
+/* ---------- Final-only questions (FQ): never shown in a module check. Once a module has questions here,
+   the final uses them instead of that module's QB questions, and its module check gets full feedback back.
+   DRAFT: awaiting clinical review. Modules still to do: newborn, cardiac, stroke. ---------- */
+const FQ=[
+ {id:"FT1",mod:"trauma",lesson:"tr-1",scope:"AP",prompt:"After a collision, a driver is alert, follows instructions and has no neurological deficit. The right ankle is deformed, but they can stand on the left leg. Which extrication approach applies?",
+  options:["Self-extrication or minimally assisted extrication","Manual extrication on the combi-carrier","Rapid extrication with gentle handling"],answer:0,
+  explain:"The contraindication is injury that prevents standing on at least one leg, so one injured ankle does not rule out self-extrication. Rapid extrication is for hard neurological signs.",src:"CPG 10.13 p.200"},
+ {id:"FT2",mod:"trauma",lesson:"tr-1",scope:"AP",prompt:"An adult has been trapped since a collision 20 minutes ago. They are pale and tachycardic, and you suspect major haemorrhage. Civil Defence are still cutting the vehicle. What is the priority while they remain trapped?",
+  options:["Control any haemorrhage and consider TXA","Complete a full head-to-toe assessment before giving TXA","Attach full monitoring and repeat full sets of vital signs"],answer:0,
+  explain:"Care during entrapment is limited to critical interventions, including haemorrhage control and TXA if indicated. Keep monitoring to a minimum. The head-to-toe assessment follows extrication.",src:"CPG 10.13 pp.200, 202"},
+ {id:"FT3",mod:"trauma",lesson:"tr-3",scope:"AP",prompt:"A 6-year-old fell from a balcony 3½ hours ago. Isolated head injury, GCS 9. You are the AP on scene. What do you do about TXA?",
+  options:["Give it, because the GCS is 12 or below","Withhold it, because the injury is more than 3 hours old","Withhold it, because paediatric TXA is for CCPs only"],answer:1,
+  explain:"The GCS meets the threshold, but injury more than 3 hours old is a contraindication. Paediatric TXA is within AP scope in v2.6.",src:"Formulary TXA p.392 · HMCAS Paediatric IV TXA poster"},
+ {id:"FT4",mod:"trauma",lesson:"tr-3",scope:"AP",prompt:"A woman at 36 weeks has painless, bright red vaginal bleeding and signs of shock. You suspect placenta praevia. What do you do?",
+  options:["Give TXA, because she is in shock","Give TXA only if the bleeding continues after IV fluids","Withhold TXA, manage shock as per CPG 6.5 and transport to the nearest appropriate ED"],answer:2,
+  explain:"TXA was removed from the placenta praevia algorithm, and shock does not change this. Removal does not reduce the urgency of haemorrhage care.",src:"CPG 12.4 pp.226–227 · Formulary TXA p.392 · Circular row 25"},
+ {id:"FT5",mod:"trauma",lesson:"tr-4",scope:"AP",visual:"txachart",prompt:"A 9-year-old meets the TXA criteria, and 1 g has been added to the 100 mL bag. Using the chart, what do you do next?",
+  options:["Draw up 50 mL into a syringe and give it over 10 minutes","Draw out and discard 40 mL, then give the remaining volume over 10 minutes","Draw out and discard 50 mL, then give the remaining volume over 10 minutes"],answer:1,
+  explain:"From age 8, draw out and discard the chart volume (40 mL). The remaining 60 mL is the 50 mL dose plus 10 mL to compensate for the administration set.",src:"HMCAS Paediatric IV TXA poster"},
+ {id:"FT6",mod:"trauma",lesson:"tr-5",scope:"AP",prompt:"A 12-year-old restrained passenger has bruising along the path of the seat belt across the abdomen. GCS 15, vital signs normal, and an ED is 5 minutes away. What is your destination decision?",
+  options:["Transport to the nearest ED, because the vital signs are normal","Notify the CCD and transport directly to the HGH Trauma Resuscitation Unit","Notify the CCD and transport directly to the Sidra Hospital ED"],answer:2,
+  explain:"The abdominal seat belt sign meets the bypass criteria even with normal vital signs. Paediatric patients go to the Sidra Hospital ED.",src:"CPG 10.10 p.194 · Circular row 19"},
+ {id:"FT7",mod:"trauma",lesson:"tr-6",scope:"AP",prompt:"After a fall from height, a patient is hypotensive and cannot move their legs. You suspect neurogenic shock. What must you do before applying a neurogenic shock MAP target?",
+  options:["Rule out other causes of shock, such as major haemorrhage and TBI","Give repeated fluid boluses until the blood pressure is normal","Wait for a CCP to start a vasopressor before treating the hypotension"],answer:0,
+  explain:"Other causes of shock must be ruled out and managed as per their CPG. Hypotension must be avoided, and fluids are given judiciously to avoid overload.",src:"CPG 10.3 p.178"}
+];
+/* Modules with final-only questions use them in the final; the rest still reuse their QB questions */
+const hasFinalQs=m=>FQ.some(q=>q.mod===m);
+const FINAL_BANK=[...FQ,...QB.filter(q=>!hasFinalQs(q.mod))];
 
 /* ---------- Icebreaker "Still true or changed?": ungraded, instant reveal, shuffled per attempt.
    Each statement is a v2.5 habit, checked against v2.5 and v2.6. short = label on the end screen; was/now = v2.5 → v2.6 strip ---------- */

@@ -6,11 +6,11 @@ const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math
 const vsHTML=s=>s.was?`<div class="vs"><span><small>v2.5</small>${s.was}</span><i aria-hidden="true">→</i><span class="now"><small>v2.6</small>${s.now}</span></div>`:"";
 function stepsFor(l){
   if(l.bank==="diag") return shuffle(DQ).map(q=>({type:"choice",label:"Still true or changed? · "+MODS[q.mod],...q}));
-  if(l.bank==="all") return QB.map(q=>({type:"choice",label:"Question",...shuffleOpts(q)}));
+  if(l.bank==="all") return shuffle(FINAL_BANK).map(q=>({type:"choice",label:"Question",...shuffleOpts(q)}));
   if(l.bank) return QB.filter(q=>q.mod===l.bank).map(q=>({type:"choice",label:"Check · "+q.id,...shuffleOpts(q)}));
   return l.steps;
 }
-const stepCount=l=>l.bank==="diag"?DQ.length:l.bank==="all"?QB.length:l.bank?QB.filter(q=>q.mod===l.bank).length:l.steps.length;
+const stepCount=l=>l.bank==="diag"?DQ.length:l.bank==="all"?FINAL_BANK.length:l.bank?QB.filter(q=>q.mod===l.bank).length:l.steps.length;
 
 /* ============================ STATE ============================ */
 const KEY="stepwise-cpg26-v1";
@@ -94,7 +94,7 @@ function nodeSub(l,done,open){
   const r=S.results[l.id];
   if(done&&r&&r.n) return l.mode==="diag"?"Done":`${r.r}/${r.n} correct`;
   if(done) return "Completed"; if(!open) return "Locked";
-  return l.mode==="exit"?"Module check":l.mode==="final"?QB.length+" questions":l.mode==="diag"?"Ungraded":stepCount(l)+" steps";
+  return l.mode==="exit"?"Module check":l.mode==="final"?FINAL_BANK.length+" questions":l.mode==="diag"?"Ungraded":stepCount(l)+" steps";
 }
 function pathHTML(c){
   const offs=[0,48,72,48,0,-48,-72,-48];let n=0;const nxt=reqMet(c)?nextLesson(c):null;
@@ -231,7 +231,7 @@ window.addEventListener("message",e=>{
 });
 function openDeck(mod){P={mode:"deck",mod,cards:CHANGES[mod].map((c,i)=>({...c,key:mod+i})),ci:0,flipped:false,known:0,again:[]};document.getElementById("player").hidden=false;document.body.style.overflow="hidden";drawPlayer();}
 function closeLesson(){if(P){clearInterval(P.tick);clearInterval(P.infT);}txHush();const pl=document.getElementById("player");pl.classList.remove("scene");document.getElementById("player").hidden=true;document.body.style.overflow="";P=null;render();}
-const assessMode=()=>P.mode==="diag"||P.mode==="final";
+const assessMode=()=>P.mode==="diag"||P.mode==="final"||(P.mode==="exit"&&!hasFinalQs(P.l.bank)); // no per-question feedback; a module check gets feedback only once the final no longer reuses its questions
 
 function badges(s){
   const b=[];
@@ -338,7 +338,7 @@ function footHTML(s){
     return `${conf}<button class="btn wide" data-act="check" ${canCheck(s)?"":"disabled"}>${assessMode()?"Submit answer":"Check"}</button>`;}
   const fbText=s.fb&&P.sel!==null&&s.fb[P.sel]?s.fb[P.sel]:s.type==="order"?"Items in red are in the wrong position.":"Have another look and try again.";
   if(P.status==="right") return `<div class="fb"><h3>${I.check.replace('<svg','<svg width="22" height="22"')} Correct</h3>${vsHTML(s)}<p>${s.explain||""}</p>${confNote(true)}${s.src?`<p class="src">Source: ${s.src}</p>`:""}</div><button class="btn good wide" data-act="next">Continue</button>`;
-  if(P.status==="wrong") return `<div class="fb"><h3>Incorrect</h3><p>${fbText}</p>${confNote(false)}</div><div class="foot-btns"><button class="btn ghost" data-act="reveal">Show answer</button><button class="btn bad" data-act="retry">Try again</button></div>`;
+  if(P.status==="wrong") return `<div class="fb"><h3>Incorrect</h3><p>${fbText}</p>${confNote(false)}</div><div class="foot-btns">${P.tries>=2?`<button class="btn ghost" data-act="reveal">Show answer</button>`:""}<button class="btn bad" data-act="retry">Try again</button></div>`;
   if(P.status==="revealed") return `<div class="fb">${P.mode==="diag"?"<h3>Incorrect</h3>":`<h3 style="color:var(--ink)">Answer</h3>`}${vsHTML(s)}<p>${s.explain||""}</p>${s.src?`<p class="src">Source: ${s.src}</p>`:""}</div><button class="btn wide" data-act="next">Continue</button>`;
 }
 function drawPlayer(keepFocus){
@@ -428,8 +428,8 @@ function endScreen(){
   }
   if(P.mode==="exit"){
     const ok=R.r===R.n;amber=!ok;
-    inner=`<h1 style="font-size:2rem">${P.l.title}</h1><p class="note">First-attempt score. ${PASS} ${ok?"":"Review the missed items before the final assessment."}</p>
-     <div class="res"><div class="resrow"><b>${MODS[P.l.bank]}</b><small class="${ok?"ok":"no"}">${R.r}/${R.n} · ${ok?"All correct":"Review the missed items"}</small><div class="bar"><i style="width:${R.r/R.n*100}%;background:var(${ok?"--good":"--bad"})"></i></div>
+    inner=`<h1 style="font-size:2rem">${P.l.title}</h1><p class="note">${assessMode()?"":"First-attempt score. "}${PASS} ${ok?"":"Revisit the lessons below before the final assessment."}</p>
+     <div class="res"><div class="resrow"><b>${MODS[P.l.bank]}</b><small class="${ok?"ok":"no"}">${R.r}/${R.n} · ${ok?"All correct":"Review needed"}</small><div class="bar"><i style="width:${R.r/R.n*100}%;background:var(${ok?"--good":"--bad"})"></i></div>
      ${R.crit.length?`<p class="note" style="grid-column:1/-1;color:var(--bad)">Critical item missed: ${R.crit.join(", ")}</p>`:""}${revisitButtons(R.miss)}</div>${cwRow()}</div>`;
   }
   if(P.mode==="diag"){
