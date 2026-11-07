@@ -209,11 +209,11 @@ function openLesson(lid,opts={}){
   const f=lessonById(lid);if(!f||!isUnlocked(f.c,f.l))return;
   S.current=f.c.id;save();
   P={c:f.c,l:f.l,mode:f.l.mode||"practice",steps:stepsFor(f.l),i:0,answers:[],watched:S.video,right:0,asked:0};
-  if(f.l.scene){P.txMode=opts.txMode||(f.l.txRun||f.l.thRun||f.l.rxRun?"independent":"guided");P.thTemp=["th-4","th-5"].includes(f.l.id)?36.0:null;P.thHints={};P.thHintKeys={};P.t0=Date.now();P.txEvents=[];P.runCase=txCase();P.lab=null;txStartRunTimer();}
+  if(f.l.scene){P.txMode=opts.txMode||(f.l.txRun||f.l.thRun||f.l.rxRun?"independent":"guided");P.thTemp=["th-4","th-5"].includes(f.l.id)?36.0:null;P.thHints={};P.thHintKeys={};P.t0=Date.now();P.txEvents=[];P.runCase=f.l.txRun?txRunCase():null;P.lab=null;txStartRunTimer();}
   resetStep();
   document.getElementById("player").hidden=false;document.body.style.overflow="hidden";drawPlayer();
 }
-function resetStep(){P.watchDone=false;P.sx=null;P.chartOpen=false;P.sel=null;P.val="";P.multi=[];P.sort={};P.ord=[];P.ordMix=null;P.status="idle";P.firstTry=true;P.conf=null;P.tries=0;P.cur=null;P.trail=[];P.why=null;P.whyIdx=null;P.walkMiss=false;}
+function resetStep(){P.watchDone=false;P.sx=null;P.chartOpen=false;P.sel=null;P.val="";P.multi=[];P.sort={};P.match={};P.matchSel=null;P.matchOrd=null;P.ord=[];P.ordMix=null;P.status="idle";P.firstTry=true;P.conf=null;P.tries=0;P.cur=null;P.trail=[];P.why=null;P.whyIdx=null;P.walkMiss=false;}
 let simOpen=false;
 function openSim(){
   const w=document.getElementById("simwrap");simOpen=true;w.hidden=false;
@@ -263,6 +263,8 @@ function stepBody(s){
   if(s.type==="sort") return `${badges(s)}${lab}<h2>${s.prompt}</h2><div class="sort">${s.cards.map((cd,ci)=>{
       const pick=locked()?cd.b:P.sort[ci];let cls="";if(locked())cls="right";else if(P.status==="wrong")cls=P.sort[ci]===cd.b?"right":"wrong";
       return `<div class="srow ${cls}"><div class="ct">${cd.t}</div><div class="bins" role="group" aria-label="${cd.t}">${s.bins.map((bn,bi)=>`<button class="bin" data-card="${ci}" data-bin="${bi}" aria-pressed="${pick===bi}" ${locked()?"disabled":""}>${bn}</button>`).join("")}</div></div>`}).join("")}</div>${srcLine(s)}`;
+  if(s.type==="match"){if(!P.matchOrd)P.matchOrd=shuffle(s.pairs.map((_,i)=>i));const L=locked(),card=(i,on)=>`<button class="mcard ${on?"on":""} ${P.matchSel===i?"sel":""}" data-mcard="${i}" aria-pressed="${P.matchSel===i}" ${L?"disabled":""}>${s.pairs[i].def}</button>`,pool=L?[]:P.matchOrd.filter(i=>!Object.values(P.match).includes(i));
+    return `${badges(s)}${lab}<h2>${s.prompt}</h2><p class="note">Drag each definition onto its term, or tap a definition and then a term.</p>${pool.length?`<div class="mpool">${pool.map(i=>card(i)).join("")}</div>`:""}<div class="sort">${s.pairs.map((p,k)=>{const at=L?k:P.match[k],has=at!==undefined,cls=L?"right":P.status==="wrong"&&has?(at===k?"right":"wrong"):"";return `<div class="srow mslot ${cls}" data-k="${k}"><div class="ct">${p.term}</div>${has?card(at,true):`<button class="mdrop" data-mslot="${k}" aria-label="Place definition on ${p.term}">Drop here</button>`}</div>`}).join("")}</div>${srcLine(s)}`;}
   if(s.type==="input") return `${badges(s)}${lab}<h2>${s.prompt}</h2>${s.visual?`<div class="visual">${V[s.visual]}</div>`:""}<div class="ans"><input id="ansInput" inputmode="decimal" autocomplete="off" aria-label="Your answer" value="${locked()?s.answer:P.val}" ${locked()?"disabled":""}>${s.unit?`<span>${s.unit}</span>`:""}</div>${srcLine(s)}`;
   if(s.type==="watch") return `${badges(s)}<span class="label">Watch first</span><h2>${s.title}</h2><p>${s.body}</p>${s.src?`<div class="vid"><video id="watchvid" src="${s.src}" ${s.poster?`poster="${s.poster}"`:""} controls playsinline preload="metadata" aria-label="${s.title}"></video></div><p class="note" id="watchnote">${P.watchDone?"Video watched.":"Watch to the end to continue."}</p>`:`<div class="pending"><b>Video to be added</b><span>Your video will play here, before the hands-on practice. Until it is added you can continue.</span></div>`}${srcLine(s)}`;
   if(s.type==="lookup") return `${badges(s)}<span class="label">Source lookup</span><h2>${s.title}</h2><p>${s.body}</p><div class="lookup">${I.book}<div><span class="label">Find</span><b>${s.find}</b></div></div>${srcLine(s)}`;
@@ -290,7 +292,7 @@ function walkPick(i){
   P.trail.push({q:n.q,a:o.t});P.cur=o.to;P.why=null;P.whyIdx=null;
   drawPlayer(s.nodes[o.to].end?".p-foot .btn":'[data-walk="0"]');
 }
-const QTYPES=["choice","multi","sort","input","order"];
+const QTYPES=["choice","multi","sort","match","input","order"];
 const needConf=()=>P.mode==="exit"||P.mode==="final";
 const canCheck=s=>isReady(s)&&(!needConf()||P.conf);
 function confNote(ok){
@@ -323,6 +325,7 @@ function isReady(s){
   if(s.type==="choice") return P.sel!==null;
   if(s.type==="multi") return P.multi.length>0;
   if(s.type==="sort") return Object.keys(P.sort).length===s.cards.length;
+  if(s.type==="match") return Object.keys(P.match).length===s.pairs.length;
   if(s.type==="order") return P.ord.length===s.items.length;
   if(s.type==="input") return P.val.trim()!=="";
   return true;
@@ -336,7 +339,7 @@ function footHTML(s){
   if(P.status==="idle"&&P.mode==="diag") return "";
   if(P.status==="idle"){const conf=P.mode!=="diag"&&QTYPES.includes(s.type)?`<div class="conf" role="group" aria-label="How sure are you?"><span class="label">How sure are you?${needConf()?"":" · optional"}</span>${CONF.map(([k,t])=>`<button class="cbtn" data-conf="${k}" aria-pressed="${P.conf===k}">${t}</button>`).join("")}</div>`:"";
     return `${conf}<button class="btn wide" data-act="check" ${canCheck(s)?"":"disabled"}>${assessMode()?"Submit answer":"Check"}</button>`;}
-  const fbText=s.fb&&P.sel!==null&&s.fb[P.sel]?s.fb[P.sel]:s.type==="order"?"Items in red are in the wrong position.":"Have another look and try again.";
+  const fbText=s.fb&&P.sel!==null&&s.fb[P.sel]?s.fb[P.sel]:s.type==="order"?"Items in red are in the wrong position.":s.type==="match"?"Definitions in red are on the wrong term.":"Have another look and try again.";
   if(P.status==="right") return `<div class="fb"><h3>${I.check.replace('<svg','<svg width="22" height="22"')} Correct</h3>${vsHTML(s)}<p>${s.explain||""}</p>${confNote(true)}${s.src?`<p class="src">Source: ${s.src}</p>`:""}</div><button class="btn good wide" data-act="next">Continue</button>`;
   if(P.status==="wrong") return `<div class="fb"><h3>Incorrect</h3><p>${fbText}</p>${confNote(false)}</div><div class="foot-btns">${P.tries>=2?`<button class="btn ghost" data-act="reveal">Show answer</button>`:""}<button class="btn bad" data-act="retry">Try again</button></div>`;
   if(P.status==="revealed") return `<div class="fb">${P.mode==="diag"?"<h3>Incorrect</h3>":`<h3 style="color:var(--ink)">Answer</h3>`}${vsHTML(s)}<p>${s.explain||""}</p>${s.src?`<p class="src">Source: ${s.src}</p>`:""}</div><button class="btn wide" data-act="next">Continue</button>`;
@@ -370,10 +373,12 @@ function evaluate(s){
   if(s.type==="choice") return P.sel===s.answer;
   if(s.type==="multi") return P.multi.length===s.answer.length&&s.answer.every(i=>P.multi.includes(i));
   if(s.type==="sort") return s.cards.every((cd,ci)=>P.sort[ci]===cd.b);
+  if(s.type==="match") return s.pairs.every((_,k)=>P.match[k]===k);
   if(s.type==="order") return P.ord.every((v,k)=>v===k);
   if(s.type==="input"){const v=P.val.trim().replace(/,/g,"").replace(/\s*[a-zµ]+$/i,"");return v===String(s.answer)||(v!==""&&!isNaN(+v)&&Math.abs(+v-(+s.answer))<1e-9);}
   return true;
 }
+function matchPlace(k,i){for(const x in P.match)if(P.match[x]===i)delete P.match[x];P.match[k]=i;P.matchSel=null;P.status="idle";drawPlayer();}
 function check(){
   const s=P.steps[P.i],ok=evaluate(s);
   P.tries++;

@@ -13,7 +13,7 @@ const TX_DQ=[{ok:true,text:"Tranexamic acid, 500 mg in 5 mL. Clear and colourles
 const TX_RATE={1:"A rapid push of TXA can drop the child’s blood pressure.",30:"Running it in this slowly delays the drug while the child keeps bleeding.",60:"Running it in over an hour delays the drug while the child keeps bleeding."};
 const TX_BINS=[{id:"n",name:"Drawing-up needle",sharp:true,img:"eq-10ml-syringe-needle"},{id:"s50",name:"50 mL syringe",sharp:true,img:"eq-50ml-syringe"},{id:"a",name:"Empty glass ampoules",sharp:true,img:"eq-txa-two-ampoules"},{id:"w",name:"Wrapper packaging",sharp:false,img:null}];
 const TX_INTERRUPT=[{q:"Crew mate: “What concentration is the bag once the TXA is in?”",opts:["1 mg/mL","10 mg/mL","100 mg/mL"],a:1},{q:"Crew mate hands you a 500 mL bag: “Use this one, it’s closer.”",opts:["Accept the 500 mL bag, as it’s closer","Decline — protocol uses a 100 mL bag"],a:1},{q:"Parent: “What is that medicine for?”",opts:["It helps to reduce the bleeding","It is a painkiller for the injury","It raises the child’s blood pressure"],a:0},{q:"Crew mate: “How fast are we running this in?”",opts:["Push over 1 minute","Slowly over 10 minutes","Over 1 hour"],a:1},{q:"Crew mate: “Just bin the glass ampoules in the general bag.”",opts:["OK, they can go in the general waste","No — glass ampoules go in the sharps bin"],a:1}];
-const TX_LABEL=[{key:"conc",left:50.6,top:31.6,w:8.6,h:5.8,ans:()=>10,name:"Final concentration",unit:"mg/mL"},{key:"date",left:27.6,top:45.2,w:13,ans:()=>/\S{4,}/,name:"Date",ph:"dd/mm/yyyy"},{key:"time",left:45.2,top:45.2,w:10.8,ans:()=>/\d/,name:"Time",ph:"hh:mm"},{key:"weight",left:62.2,top:45.2,w:14,ans:c=>c.row.weight,name:"Patient weight",unit:"kg"},{key:"supplied",left:43.6,top:53.4,w:4.8,ans:()=>100,name:"Supplied as",unit:"mg/mL"},{key:"addMg",left:58,top:53.4,w:5.6,ans:()=>1000,name:"Add",unit:"mg"},{key:"addMl",left:67.8,top:53.4,w:5.6,ans:()=>10,name:"Add",unit:"mL"},{key:"toMl",left:26.4,top:62.4,w:6.6,ans:()=>90,name:"To … mL of solution",unit:"mL"},{key:"sol",left:38.4,top:62.4,w:7,ans:()=>/nacl|saline|sodium|nss|^\s*ns\s*$|0\.9/i,name:"Solution",ph:"e.g. 0.9% NaCl"},{key:"total",left:62.8,top:62.4,w:10.4,ans:()=>100,name:"Total volume",unit:"mL"}];
+const TX_LABEL=[{key:"conc",left:50.6,top:31.6,w:8.6,h:5.8,ans:()=>10,name:"Final concentration",unit:"mg/mL"},{key:"date",left:27.6,top:45.5,w:13,ans:()=>/\S{4,}/,name:"Date"},{key:"time",left:45.2,top:45.5,w:10.8,ans:()=>/\d/,name:"Time"},{key:"weight",left:62.2,top:45.5,w:14,ans:c=>c.row.weight,name:"Patient weight",unit:"kg"},{key:"supplied",left:43,top:54,w:5.6,ans:()=>100,name:"Supplied as",unit:"mg/mL"},{key:"addMg",left:57.8,top:54,w:6.2,ans:()=>1000,name:"Add",unit:"mg"},{key:"addMl",left:67.8,top:54,w:5.6,ans:()=>10,name:"Add",unit:"mL"},{key:"toMl",left:26.4,top:63,w:6.6,ans:()=>90,name:"To … mL of solution",unit:"mL"},{key:"sol",left:38.4,top:63,w:7,ans:()=>/nacl|saline|sodium|nss|^\s*ns\s*$|0\.9/i,name:"Solution",},{key:"total",left:62.8,top:63,w:10.4,ans:()=>100,name:"Total volume",unit:"mL"}];
 const TX_TECH=[["Read the dose from the chart",/Dose calculation error|Wrong chart row/],["Drew out exactly 10 mL of saline",/Wrong volume drawn out/],["Discarded the drawn saline",/NSS not discarded/],["Double-checked the ampoules before opening",/before double-checking|double-check read-back/],["Added all 10 mL TXA to the bag",/Incorrect action after drawing TXA/],["Labelled the bag",/label/i],["Mixed gently: slow turns, no shaking",/Shook the bag|Inadequate mixing/],["Drew the correct volume from the bag",/^Wrong volume drawn$/],["Gave it over 10 minutes",/administration rate/],["Documented the time given",/not documented/]];
 const TX_CRIT=/before double-checking|Wrong volume|Dose calculation error|Wrong chart row|administration rate|Shook the bag|Inadequate mixing|NSS not discarded|wrong bin/;
 const TX_STAGE_NAMES={equip:"Equipment",room:"Make room",drawup:"Check & draw up",label:"Label the bag",mix:"Mix",dose:"Dose from chart",give:"Administer"};
@@ -51,15 +51,16 @@ const txFmt=s=>{s=Math.max(0,Math.round(s));return String(Math.floor(s/60)).padS
 const txEsc=v=>String(v??"").replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
 function txInfant(m){const w=m*.5+4,d=Math.round(w*15);return{age:0,weight:w,dose:d,volume:d/10,infant:true}}
 function txCase(o={}){
-  const infant=!o.young&&Math.random()<.12;
+  const infant=!o.young&&o.band!=="over8"&&Math.random()<.12;
   let row,ageLabel,ageMonths;
   if(infant){ageMonths=txPick([4,6,8,10]);row=txInfant(ageMonths);ageLabel=`${ageMonths} months`;}
-  else{const pool=o.young?TX_CHART.filter(r=>r.age>=3&&r.age<=7):TX_CHART.filter(r=>r.age<14);row=txPick(pool);ageLabel=`${row.age} year${row.age>1?"s":""}`;}
+  else{const pool=o.young?TX_CHART.filter(r=>r.age>=3&&r.age<=7):TX_CHART.filter(r=>r.age<14&&(o.band==="over8"?r.age>=8:o.band==="under8"?r.age<8:true));row=txPick(pool);ageLabel=`${row.age} year${row.age>1?"s":""}`;}
   const base={name:txPick(TX_NAMES),ageLabel,ageMonths,row,large:row.age>=8,hr:120+Math.floor(Math.random()*40),sbp:70+Math.floor(Math.random()*15)};
   const g=txPick(TX_GIVE);
   return{...base,...g,injuryMins:15+Math.floor(Math.random()*60),allergy:"Nil known",reason:g.gcs<=12?"Major trauma under 3 h with isolated TBI and GCS ≤12.":"Major trauma under 3 h with suspected major haemorrhage."};
 }
-function txGuidedCase(){ if(!S.txcase||!S.txcase.row){S.txcase=txCase({young:true});save();} return S.txcase; }
+function txGuidedCase(){ if(!S.txcase||!S.txcase.row){S.txcase=txCase(Math.random()<.5?{young:true}:{band:"over8"});save();} return S.txcase; }
+function txRunCase(){ return txCase({band:txGuidedCase().row.age>=8?"under8":"over8"}); } // solo run: the age band not seen in practice
 function txCaseFor(s){ if(["nbr","code","smr"].includes(P.l.scene)) return rxCase(s); return s.case==="run"?P.runCase:txGuidedCase(); }
 function txLabelData(c){ if(P.lab) return P.lab; if(P.txMode==="guided"&&S.txLabel) return S.txLabel; const d=new Date(),p=x=>String(x).padStart(2,"0");
   return {conc:"10",date:`${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()}`,time:`${p(d.getHours())}:${p(d.getMinutes())}`,weight:String(c.row.weight),supplied:"100",addMg:"1000",addMl:"10",toMl:"90",sol:"0.9% NaCl",total:"100"}; }
@@ -324,7 +325,7 @@ const TXS={
    if(st.phase==="draw") return `<h3 class="q3">Draw up 1 g TXA (2 × 5 mL = 10 mL) into the 50 mL syringe.</h3>
      ${txBench(st,{mode:"needle",fluid:"txa",target:st.amp===0?5:10,max:10,mg:v=>`${Math.round(v*100)} mg TXA`,gauge:v=>({t:`TXA in the syringe: <b>${Math.round(v*100)} mg</b> of 1000 mg`,ok:v>=10,pct:v*10,zone:94})})}
      ${st.amp===0&&st.rem[0]<=0?`<button class="btn" data-tx="amp2" style="justify-self:center">Move the needle to ampoule 2</button>`:""}`;
-   if(st.phase==="inject") return `<div class="split"><div class="photo"><img src="${TXM("eq-50ml-syringe.webp")}" alt="50 mL syringe"></div><div><h3 class="q3">The 50 mL syringe now holds 10 mL (1 g) of TXA. What next?</h3>${txOptsHTML("inj",st.inj,st)}</div></div>`;
+   if(st.phase==="inject") return `<div class="split"><div class="photo"><img src="${TXM("eq-50ml-syringe-10ml.jpg")}" alt="50 mL syringe holding 10 mL"></div><div><h3 class="q3">The 50 mL syringe now holds 10 mL (1 g) of TXA. What next?</h3>${txOptsHTML("inj",st.inj,st)}</div></div>`;
    return `<h3 class="q3">Push all 10 mL of TXA into the 90 mL bag through the medication port.</h3>
      ${txBench(st,{mode:"bag",fluid:"txa",push:true,bagOf:v=>100-v,streakOf:v=>(10-v)/10,target:0,max:10,gauge:v=>({t:v<=.05?"1 g TXA in 100 mL: <b>10 mg/mL</b>. Label it now, before mixing.":`TXA in the bag: <b>${Math.round((10-v)*100)} mg</b> of 1000 mg`,ok:v<=.05,pct:(10-v)*10,zone:94})})}`;},
   foot:(st)=>st.phase==="video"?`<button class="btn wide" id="txvidok" data-tx="vid-ok" ${st.watched?"":"disabled"}>Confirmed · back to the ampoules</button>`
@@ -346,10 +347,8 @@ const TXS={
   init:(st,c)=>{st.vals={};},
   body:(st,c)=>{
    const photo=(vals)=>`<div class="labelphoto"><img src="${TXM("label.webp")}" alt="Tranexamic acid additive label on the 100 mL bag">${TX_LABEL.map(f=>`<span class="hand" id="txlab-${f.key}" style="left:${f.left}%;top:${f.top}%;width:${f.w}%;height:${f.h||2.4}%">${txEsc(vals[f.key]||"")}</span>`).join("")}</div>`;
-   if(st.phase==="fill") return `<p class="lead">Fill in the additive label. Your entries appear on the label as you type.</p>
-     <div class="labelgrid">${photo(st.vals)}<div class="labelform"><button class="btn ghost sm" data-tx="now">Use the current date and time</button>
-      <div class="fields">${TX_LABEL.map(f=>`<label class="fld">${f.name}<span><input data-txin="lab:${f.key}" value="${txEsc(st.vals[f.key]||"")}" ${f.unit?'inputmode="decimal"':""} placeholder="${f.ph||""}"><em>${f.unit||""}</em></span></label>`).join("")}</div>
-</div></div></div>`;
+   if(st.phase==="fill") return `<p class="lead">Fill in the blanks directly on the additive label.</p><button class="btn ghost sm" data-tx="now" style="justify-self:start">Use the current date and time</button>
+     <div class="labelphoto crop"><img src="${TXM("label.webp")}" alt="Tranexamic acid additive label">${TX_LABEL.map(f=>`<input class="labin ${f.key==="conc"?"big":""}" data-txin="lab:${f.key}" aria-label="${f.name}${f.unit?" in "+f.unit:""}" value="${txEsc(st.vals[f.key]||"")}" ${f.unit?'inputmode="decimal"':""} enterkeyhint="next" autocomplete="off" style="left:${(f.left*9-150)/6.55}%;top:${(f.top*12.72-320)/6.25}%;--w:${f.w*9/6.55}%;--h:${(f.h||2.9)*12.72/6.25}%">`).join("")}</div>`;
    return `<div class="attach">${photo(st.vals)}<p class="q3">Attaching the label to the bag…</p></div>`;},
   foot:(st)=>st.phase==="fill"?`<button class="btn wide" data-tx="label-confirm">Confirm label</button>`:"",
   after:(st)=>{ if(st.phase==="attach"&&!st.t){st.t=setTimeout(()=>{if(P&&P.sx===st)txOk("Bag labelled immediately: 1 g in 100 mL, 10 mg/mL.",{next:"END"});},1500);} }},
