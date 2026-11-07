@@ -12,7 +12,7 @@ COURSES.push(
        points:["<b>Energy:</b> LP15 200, 300, 360 J · Zoll 150, 200, 200 J","<b>DSED:</b> maximum 3, then standard anterior-posterior pads at maximum joules. Vector change: APs and CCPs","<b>CPR:</b> 100–120/min, 5–6 cm, full recoil, pauses &lt;5 s. If in doubt, assume arrest","<b>Airway:</b> waveform capnography with any advanced airway, aim EtCO₂ ≈25 mmHg; APs may now pass a gastric tube via the SGA","<b>CPR-induced consciousness:</b> no neuromuscular blockers (CCP: ketamine 1 mg/kg)","<span class='badge ccp'>CCP</span> may use the mechanical ventilator. Check e-CPR criteria (CPG 2.9) and update NCC"], src:"CPG 2.1 · Summary p.1"},
       {type:"walk", label:"Interactive algorithm", title:"Step through the drug milestones", pop:"Adult medical arrest", scope:"AP",
        case:"Adult medical cardiac arrest, shockable rhythm, high-quality CPR ongoing.", start:"a",
-       nodes:{a:{q:"Shock 3 delivered. What is due now?",opts:[{t:"Adrenaline and amiodarone 300 mg",to:"b"},{t:"Adrenaline only",why:"Amiodarone 300 mg is also due after the third shock."},{t:"Nothing yet",why:"Adrenaline and amiodarone 300 mg are both due after the third shock."}]},
+       nodes:{a:{q:"Shock 3 delivered. What is due now?",opts:[{t:"Adrenaline and amiodarone 300 mg",to:"b"},{t:"Adrenaline only, with no amiodarone",why:"Amiodarone 300 mg is also due after the third shock."},{t:"Nothing yet, until the next shock",why:"Adrenaline and amiodarone 300 mg are both due after the third shock."}]},
               b:{q:"Shock 5 delivered. Which amiodarone dose?",opts:[{t:"300 mg",why:"300 mg was the first dose. The dose after the fifth shock is 150 mg."},{t:"150 mg",to:"e"},{t:"No further amiodarone",why:"A second dose of 150 mg is given after the fifth shock."}]},
               e:{end:"Adrenaline continues every 4 minutes. These milestones apply to adult medical arrest only.",tone:"p1"}},
        src:"CPG 2.1 · Summary p.1"},
@@ -26,9 +26,9 @@ COURSES.push(
      ]},
      {id:"ca-2", title:"Adult Trauma Arrest", steps:[
       {type:"choice", label:"Case", pop:"Adult trauma arrest", scope:"AP", prompt:"An adult in traumatic cardiac arrest after a high-speed collision. Which approach fits v2.6?",
-       options:["Apply the adult medical drug timing","Prioritise the HOTT causes, keep scene time to the minimum, and give adrenaline only after volume replacement","Delay all interventions until hospital"], answer:1,
+       options:["Prioritise adrenaline, following adult medical drug timing","Prioritise HOTT causes; adrenaline after volume replacement","Delay all interventions until you reach the hospital"], answer:1,
        fb:["Adult medical timing must not be reused for trauma arrest.",null,"Trauma arrest priorities start on scene."],
-       explain:"Trauma arrest has its own priorities and its own drug timing.", src:"CPG 2.2 p.35"},
+       explain:"Prioritise the HOTT causes, keep scene time to the minimum and give adrenaline only after volume replacement. Trauma arrest has its own priorities and its own drug timing.", src:"CPG 2.2 p.35"},
       {type:"read", title:"Trauma arrest priorities", pop:"Adult trauma arrest", scope:"AP", body:"Treat the reversible traumatic causes first (<b>HOTT</b>: hypovolaemia, oxygenation, tension pneumothorax, tamponade) and keep scene time to a minimum.",
        points:["<b>No adrenaline</b> until reversible causes are managed and at least <b>500 ml normal saline</b> has been given","Then adrenaline every 4 minutes","Amiodarone as in medical arrest: 300 mg after the 3rd shock, 150 mg after the 5th","Gastric tube via SGA: APs and CCPs"], src:"CPG 2.2 p.35"},
       {type:"input", label:"Practice", pop:"Adult trauma arrest", scope:"AP", prompt:"Minimum volume of normal saline before the first adrenaline in adult trauma arrest?", answer:"500", unit:"ml", explain:"At least 500 ml normal saline, with reversible causes managed.", src:"CPG 2.2 p.35"}
@@ -53,7 +53,7 @@ COURSES.push(
     {title:"ROSC and special settings", lessons:[
      {id:"ca-4", title:"After ROSC", steps:[
       {type:"choice", label:"Case", scope:"AP", prompt:"After ROSC, the patient's SpO₂ reads 100% on high-flow oxygen. What do you do?",
-       options:["Titrate oxygen down to a target of 94–98%","Keep SpO₂ at 100% throughout transport","Remove all oxygen"], answer:0,
+       options:["Titrate oxygen down to a target of 94–98%","Keep SpO₂ at 100% throughout transport","Remove all oxygen and monitor the SpO₂"], answer:0,
        explain:"The post-ROSC SpO₂ target is 94–98%. Avoid hyperoxaemia.", src:"CPG 2.6 p.54"},
       {type:"read", title:"Post-ROSC care", scope:"AP", body:"Support ABC, maintain cerebral perfusion and manage arrhythmias.",
        points:["SpO₂ <b>94–98%</b>; don't hyperventilate; don't try to normalise a raised EtCO₂","12-lead ECG after a medical arrest; STEMI → PCI-capable facility","Adult SBP &gt;90 or MAP &gt;65 (MAP 70–80 for isolated TBI); 250 ml boluses. Paediatric SBP (age × 2) + 70, <b>10 ml/kg</b> boluses","Correct RBS &lt;4.0: adults D10 50 ml; children 2 ml/kg (max 50 ml)","Avoid rapid movement for up to 10 minutes after ROSC","<b>Cooling (new):</b> comatose <b>adult</b> after a <b>medical</b> arrest: ice packs to the axillae and groin. Don't let temperature drop <b>below 33 °C</b>, and tell the hospital"], src:"CPG 2.6 pp.54–56"},
@@ -87,7 +87,7 @@ COURSES.push(
      {id:"ca-6", title:"Cardioversion & Antiemetics", steps:[
       {type:"read", title:"Who cardioverts?", scope:"CCP", body:"Synchronised cardioversion is <b>CCP scope of practice only</b>. Your role as an AP is to recognise a life-threatening tachycardia, get a 12-lead ECG, apply the pads and request a CCP early. Know the energies so you can anticipate and support.", src:"HMCAS scope of practice · CPG 4.3–4.4"},
       {type:"choice", label:"Check", scope:"CCP", prompt:"A colleague says: \"It's 150 J for all synchronised cardioversion now.\" Is that right?",
-       options:["Yes, for both broad- and narrow-complex","No. 150 J is broad-complex; narrow-complex is 120 J regular, 200 J irregular","No, it's unchanged from v2.5"], answer:1,
+       options:["Yes, for both broad- and narrow-complex","No. 150 J is for broad-complex only","No, it's unchanged from v2.5"], answer:1,
        explain:"Adult broad-complex: 150 J (was 200 J). Adult narrow-complex: 120 J if regular, 200 J if irregular. Escalate stepwise if the first shock fails.", src:"CPG 4.3 p.77 · CPG 4.4 p.79"},
       {type:"sort", label:"Anticipate the energy", scope:"CCP", prompt:"Adult, life-threatening compromise. Which first energy will the CCP select?", bins:["120 J","150 J","200 J"],
        cards:[{t:"Regular narrow-complex (SVT)",b:0},{t:"Broad-complex tachycardia",b:1},{t:"Irregular narrow-complex (AF)",b:2}],
@@ -95,12 +95,12 @@ COURSES.push(
       {type:"read", title:"Sign-off after an antiemetic", scope:"CCP", body:"A CCP may give an antiemetic and sign the patient off to the AP crew for transport <b>only if all</b> of these are true:",
        points:["The patient is stable","There are no adverse effects","No other CCP medications have been given that aren't approved for sign-off to APs","Remember: antiemetics aren't routine; prophylaxis only for long transfers where motion sickness could be harmful (ondansetron doesn't treat motion sickness)"], src:"CPG 6.4 · ondansetron formulary"},
       {type:"choice", label:"Case", scope:"AP", prompt:"Your patient is in a broad-complex tachycardia, hypotensive and confused. No CCP is on scene. What do you do?",
-       options:["Cardiovert at 150 J yourself","12-lead ECG, apply pads, request a CCP urgently and be ready to manage arrest","Wait for the hospital to cardiovert"], answer:1,
+       options:["Apply pads and cardiovert at 150 J yourself","12-lead ECG, apply pads and request a CCP urgently","12-lead ECG, then wait for the hospital to cardiovert"], answer:1,
        fb:["Synchronised cardioversion is CCP scope only.",null,"A life-threatening tachycardia needs a CCP now, not at hospital. Request early and prepare for arrest."],
        explain:"Recognise, prepare and escalate. Pads on means the CCP can shock straight away, and you're ready if the patient goes pulseless.", src:"HMCAS scope of practice · CPG 4.3"},
       {type:"choice", label:"Case", scope:"CCP", prompt:"A CCP gave ondansetron and ketamine analgesia and wants to sign off to you. The patient is stable. Do you accept?",
-       options:["Yes, the patient is stable","Not unless ketamine is approved for AP sign-off; otherwise the CCP continues care","Yes, antiemetic sign-off covers every drug"], answer:1,
-       explain:"Sign-off after an antiemetic needs all three conditions, including no other CCP medications not approved for sign-off.", src:"CPG 6.4"}
+       options:["Yes, because the patient is stable","Not unless ketamine is approved for AP sign-off","Yes, antiemetic sign-off covers every drug"], answer:1,
+       explain:"Sign-off after an antiemetic needs all three conditions, including no other CCP medications not approved for sign-off. Otherwise the CCP continues care.", src:"CPG 6.4"}
      ]}
     ]},
     {title:"Module check", lessons:[{id:"ca-x", title:"Cardiac Check", mode:"exit", bank:"cardiac"}]}

@@ -18,11 +18,11 @@ COURSES.push(
       {type:"input", label:"Score it", scope:"AP", visual:"race", prompt:"Left-sided stroke. Mild facial droop, moderate arm weakness, normal leg, no gaze deviation, recognises the arm and the weakness. Total RACE?", answer:"2", unit:"/ 9",
        explain:"Face 1 + arm 1 + leg 0 + gaze 0 + agnosia 0 = 2.", src:"CPG 3.1 p.63"},
       {type:"choice", label:"Decide", scope:"AP", prompt:"That second patient was last known well 11 hours ago. Where do they go?",
-       options:["P1 to HGH ED","P2 to the nearest appropriate ED","No transport"], answer:1,
+       options:["P1 to HGH ED with prenotification","P2 to the nearest appropriate ED","P2 to HGH ED with prenotification"], answer:1,
        explain:">8 and <24 hours with RACE <5: P2 to the nearest appropriate ED.", src:"CPG 3.1 p.64"},
       {type:"choice", label:"Check", scope:"AP", prompt:"BEFAST positive, onset 3 hours ago. Do you need a RACE score to decide the destination?",
-       options:["Yes, RACE decides every stroke destination","No. ≤8 hours is P1 to HGH ED; RACE is only used for >8 to <24 hours","Only if the BP is high"], answer:1,
-       explain:"RACE is used only in the >8 to <24-hour window. You can still include it in the prenotification if done.", src:"CPG 3.1 p.64"}
+       options:["Yes, RACE decides every stroke destination","No, RACE is only used for >8 to <24 hours","Only if the blood pressure is also high"], answer:1,
+       explain:"≤8 hours is P1 to HGH ED. RACE is used only in the >8 to <24-hour window. You can still include it in the prenotification if done.", src:"CPG 3.1 p.64"}
      ]}
     ]},
     {title:"Transport", lessons:[
@@ -36,13 +36,13 @@ COURSES.push(
               e:{end:"P1 to HGH ED with prenotification via CC:E.",tone:"p1"}},
        src:"CPG 3.1 p.64"},
       {type:"choice", label:"Case", scope:"AP", prompt:"BEFAST positive, last known well 7 hours ago. Which branch applies?",
-       options:["P1 to HGH ED with prenotification via CC:E","P2 to the nearest appropriate ED","RACE decides the branch"], answer:0,
-       explain:"7 hours is within the ≤8-hour branch.", src:"CPG 3.1 p.64"},
+       options:["P1 to HGH ED with prenotification","P2 to the nearest appropriate ED","RACE decides the destination here"], answer:0,
+       explain:"7 hours is within the ≤8-hour branch: P1 to HGH ED with prenotification via CC:E.", src:"CPG 3.1 p.64"},
       {type:"choice", label:"Case", scope:"AP", prompt:"BEFAST positive, last known well 10 hours ago, RACE 4. Where do they go?",
-       options:["P1 to HGH ED, since it's under 24 hours","P2 to the nearest appropriate ED","No transport"], answer:1,
+       options:["P1 to HGH ED, since it's under 24 hours","P2 to the nearest appropriate ED","P2 to HGH ED with prenotification"], answer:1,
        explain:"In the >8 to <24-hour window, RACE <5 means P2 to the nearest appropriate ED.", src:"CPG 3.1 p.64"},
       {type:"choice", label:"Case", scope:"AP", prompt:"BEFAST positive, last known well 30 hours ago. Which branch applies?",
-       options:["P1 to HGH ED","P2 to the nearest appropriate ED","The old 15-hour branch"], answer:1,
+       options:["P1 to HGH ED with prenotification","P2 to the nearest appropriate ED","P1 or P2, depending on the RACE score"], answer:1,
        explain:"≥24 hours: P2 to the nearest appropriate ED.", src:"CPG 3.1 p.64"}
      ]},
      {id:"st-4", title:"Prenotification & Care", steps:[
@@ -52,7 +52,7 @@ COURSES.push(
       {type:"read", title:"Stroke management", scope:"AP", body:"Stroke is time critical. Manage symptomatically and transport rapidly:",
        points:["Lateral or semi-Fowler's position if consciousness is reduced","<b>Oxygen only as required</b>","<b>Paracetamol</b> and an <b>antiemetic</b> if required","<b>Penthrox has been removed</b> from stroke management","Don't lower a high BP with nitrates","Rule out mimics such as hypoglycaemia and seizures","APs don't need a CCP unless there's haemodynamic or airway compromise. Don't wait on scene; meet the CCP en route"], src:"CPG 3.1 pp.61–65"},
       {type:"choice", label:"Case", scope:"AP", prompt:"A stroke patient has a headache and SpO₂ 97% on room air. What's appropriate?",
-       options:["Penthrox and high-flow oxygen","Paracetamol if required; no oxygen needed at this SpO₂","Wait on scene for a CCP before treating"], answer:1,
+       options:["Penthrox if required; high-flow oxygen","Paracetamol if required; no oxygen","Wait on scene for a CCP before treating"], answer:1,
        explain:"Penthrox is removed; oxygen only as required; paracetamol if required. Don't delay transport waiting for a CCP.", src:"CPG 3.1 pp.63, 65"}
      ]}
     ]},

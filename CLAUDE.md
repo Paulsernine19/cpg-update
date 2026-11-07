@@ -29,6 +29,7 @@ Plain HTML/CSS/JS with no build step and no framework. Users open `index.html` b
 - Keep the `src` / "CPG x.y p.N" citations next to the content they support. Update the citation whenever you change the content.
 - Unverified items go in the step's pending-verification list, not into the main content.
 - Audience: APs and CCPs. The `scope` field marks each item: `"AP"` shows as "AP & CCP" (both act), `"CCP"` as "CCP only" (APs recognise and escalate). Write in plain, clear English.
+- Question options: keep all options a similar length so the longest is not a clue. Put the reasoning in the feedback or explanation, not in the correct option. Wrong options must be plausible and clinically wrong.
 - Learner-facing tone: professional, concise and factual, like an official HMCAS course. No chatty or self-evident instructions ("Everyone starts here", "Tap your answer", "help it stick"), no cheerleading, no filler.
 
 ## Working conventions
