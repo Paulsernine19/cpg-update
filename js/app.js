@@ -213,7 +213,7 @@ function openLesson(lid,opts={}){
   resetStep();
   document.getElementById("player").hidden=false;document.body.style.overflow="hidden";drawPlayer();
 }
-function resetStep(){P.watchDone=false;P.sx=null;P.chartOpen=false;P.sel=null;P.val="";P.multi=[];P.sort={};P.status="idle";P.firstTry=true;P.conf=null;P.tries=0;P.cur=null;P.trail=[];P.why=null;P.whyIdx=null;P.walkMiss=false;}
+function resetStep(){P.watchDone=false;P.sx=null;P.chartOpen=false;P.sel=null;P.val="";P.multi=[];P.sort={};P.ord=[];P.ordMix=null;P.status="idle";P.firstTry=true;P.conf=null;P.tries=0;P.cur=null;P.trail=[];P.why=null;P.whyIdx=null;P.walkMiss=false;}
 let simOpen=false;
 function openSim(){
   const w=document.getElementById("simwrap");simOpen=true;w.hidden=false;
@@ -257,6 +257,9 @@ function stepBody(s){
       const on=P.multi.includes(i),inKey=s.answer.includes(i);let cls="";
       if(locked()) cls=inKey?"right":""; else if(P.status==="wrong"&&on!==inKey) cls="wrong";
       return `<button class="opt ${cls}" role="checkbox" aria-checked="${locked()?inKey:on}" data-multi="${i}" ${locked()?"disabled":""}><span class="k">${(locked()?inKey:on)?I.check:""}</span>${o}</button>`}).join("")}</div>${srcLine(s)}`;
+  if(s.type==="order"){const L=locked(),mix=P.ordMix||(P.ordMix=shuffle(s.items.map((_,i)=>i))),seq=L?s.items.map((_,i)=>i):P.ord; // items are stored in the correct order
+    return `${badges(s)}${lab}<h2>${s.prompt}</h2><p class="note">Select in order.</p><ol class="ord">${seq.map((i,k)=>`<li><button class="opt ${L?"right":P.status==="wrong"?(i===k?"right":"wrong"):""}" data-unord="${k}" ${L?"disabled":""}><span class="k">${k+1}</span>${s.items[i]}</button></li>`).join("")}</ol>
+     ${L?"":`<div class="opts">${mix.filter(i=>!P.ord.includes(i)).map(i=>`<button class="opt" data-ord="${i}"><span class="k"></span>${s.items[i]}</button>`).join("")}</div>`}${srcLine(s)}`;}
   if(s.type==="sort") return `${badges(s)}${lab}<h2>${s.prompt}</h2><div class="sort">${s.cards.map((cd,ci)=>{
       const pick=locked()?cd.b:P.sort[ci];let cls="";if(locked())cls="right";else if(P.status==="wrong")cls=P.sort[ci]===cd.b?"right":"wrong";
       return `<div class="srow ${cls}"><div class="ct">${cd.t}</div><div class="bins" role="group" aria-label="${cd.t}">${s.bins.map((bn,bi)=>`<button class="bin" data-card="${ci}" data-bin="${bi}" aria-pressed="${pick===bi}" ${locked()?"disabled":""}>${bn}</button>`).join("")}</div></div>`}).join("")}</div>${srcLine(s)}`;
@@ -287,7 +290,7 @@ function walkPick(i){
   P.trail.push({q:n.q,a:o.t});P.cur=o.to;P.why=null;P.whyIdx=null;
   drawPlayer(s.nodes[o.to].end?".p-foot .btn":'[data-walk="0"]');
 }
-const QTYPES=["choice","multi","sort","input"];
+const QTYPES=["choice","multi","sort","input","order"];
 const needConf=()=>P.mode==="exit"||P.mode==="final";
 const canCheck=s=>isReady(s)&&(!needConf()||P.conf);
 function confNote(ok){
@@ -320,6 +323,7 @@ function isReady(s){
   if(s.type==="choice") return P.sel!==null;
   if(s.type==="multi") return P.multi.length>0;
   if(s.type==="sort") return Object.keys(P.sort).length===s.cards.length;
+  if(s.type==="order") return P.ord.length===s.items.length;
   if(s.type==="input") return P.val.trim()!=="";
   return true;
 }
@@ -332,9 +336,9 @@ function footHTML(s){
   if(P.status==="idle"&&P.mode==="diag") return "";
   if(P.status==="idle"){const conf=P.mode!=="diag"&&QTYPES.includes(s.type)?`<div class="conf" role="group" aria-label="How sure are you?"><span class="label">How sure are you?${needConf()?"":" · optional"}</span>${CONF.map(([k,t])=>`<button class="cbtn" data-conf="${k}" aria-pressed="${P.conf===k}">${t}</button>`).join("")}</div>`:"";
     return `${conf}<button class="btn wide" data-act="check" ${canCheck(s)?"":"disabled"}>${assessMode()?"Submit answer":"Check"}</button>`;}
-  const fbText=s.fb&&P.sel!==null&&s.fb[P.sel]?s.fb[P.sel]:"Have another look and try again.";
+  const fbText=s.fb&&P.sel!==null&&s.fb[P.sel]?s.fb[P.sel]:s.type==="order"?"Items in red are in the wrong position.":"Have another look and try again.";
   if(P.status==="right") return `<div class="fb"><h3>${I.check.replace('<svg','<svg width="22" height="22"')} Correct</h3>${vsHTML(s)}<p>${s.explain||""}</p>${confNote(true)}${s.src?`<p class="src">Source: ${s.src}</p>`:""}</div><button class="btn good wide" data-act="next">Continue</button>`;
-  if(P.status==="wrong") return `<div class="fb"><h3>Not quite</h3><p>${fbText}</p>${confNote(false)}</div><div class="foot-btns"><button class="btn ghost" data-act="reveal">Show answer</button><button class="btn bad" data-act="retry">Try again</button></div>`;
+  if(P.status==="wrong") return `<div class="fb"><h3>Incorrect</h3><p>${fbText}</p>${confNote(false)}</div><div class="foot-btns"><button class="btn ghost" data-act="reveal">Show answer</button><button class="btn bad" data-act="retry">Try again</button></div>`;
   if(P.status==="revealed") return `<div class="fb">${P.mode==="diag"?"<h3>Incorrect</h3>":`<h3 style="color:var(--ink)">Answer</h3>`}${vsHTML(s)}<p>${s.explain||""}</p>${s.src?`<p class="src">Source: ${s.src}</p>`:""}</div><button class="btn wide" data-act="next">Continue</button>`;
 }
 function drawPlayer(keepFocus){
@@ -366,6 +370,7 @@ function evaluate(s){
   if(s.type==="choice") return P.sel===s.answer;
   if(s.type==="multi") return P.multi.length===s.answer.length&&s.answer.every(i=>P.multi.includes(i));
   if(s.type==="sort") return s.cards.every((cd,ci)=>P.sort[ci]===cd.b);
+  if(s.type==="order") return P.ord.every((v,k)=>v===k);
   if(s.type==="input"){const v=P.val.trim().replace(/,/g,"").replace(/\s*[a-zµ]+$/i,"");return v===String(s.answer)||(v!==""&&!isNaN(+v)&&Math.abs(+v-(+s.answer))<1e-9);}
   return true;
 }

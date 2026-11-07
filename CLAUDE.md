@@ -21,7 +21,7 @@ Plain HTML/CSS/JS with no build step and no framework. Users open `index.html` b
 
 ## How the code fits together
 - These are classic `<script>` files that share one global scope. **Load order in `index.html` matters**: content → `app.js` → hands-on → `tour.js` → `events.js`. A file can't call a function from a later file at load time. Don't switch to ES modules, because they break on file://.
-- Lesson step types: `read`, `choice`, `multi`, `sort`, `input`, `walk`, `watch`, `video`, `lookup`, `stage` (a hands-on stage, handled by `TXS[...]`), `tour` (closes the player and runs the app tour).
+- Lesson step types: `read`, `choice`, `multi`, `sort`, `order` (put items in sequence; `items` stored in the correct order), `input`, `walk`, `watch`, `video`, `lookup`, `stage` (a hands-on stage, handled by `TXS[...]`), `tour` (closes the player and runs the app tour).
 - Progress is saved in localStorage under the key `stepwise-cpg26-v1`. If you change the state shape, keep old saves loading (`S={...blank(),...saved}`).
 
 ## Clinical content rules (important)

@@ -29,11 +29,13 @@ document.addEventListener("click",e=>{
   if(t.dataset.walk!==undefined){walkPick(+t.dataset.walk);return}
   if(t.dataset.opt&&!locked()){P.sel=+t.dataset.opt;P.status="idle";if(P.mode==="diag"){check();return}drawPlayer(`[data-opt="${P.sel}"]`);return}
   if(t.dataset.multi&&!locked()){const i=+t.dataset.multi;P.multi=P.multi.includes(i)?P.multi.filter(x=>x!==i):[...P.multi,i];P.status="idle";drawPlayer(`[data-multi="${i}"]`);return}
+  if(t.dataset.ord!==undefined&&!locked()){P.ord.push(+t.dataset.ord);P.status="idle";drawPlayer(P.ord.length<P.steps[P.i].items.length?"[data-ord]":"[data-act=check]");return}
+  if(t.dataset.unord!==undefined&&!locked()){P.ord.splice(+t.dataset.unord,1);P.status="idle";drawPlayer("[data-ord]");return}
   if(t.dataset.bin!==undefined&&!locked()){P.sort[t.dataset.card]=+t.dataset.bin;P.status="idle";drawPlayer(`[data-card="${t.dataset.card}"][data-bin="${t.dataset.bin}"]`);return}
   const a=t.dataset.act;if(!a)return;
   if(a==="watched"){P.watched=!P.watched;drawPlayer('[data-act="watched"]');return}
   if(a==="check")check(); if(a==="next")nextStep();
-  if(a==="retry"){const s=P.steps[P.i];if(s.type==="sort"){for(const k in P.sort){if(P.sort[k]!==s.cards[k].b)delete P.sort[k]}}else{P.sel=null;P.val="";P.multi=[]}P.status="idle";drawPlayer()}
+  if(a==="retry"){const s=P.steps[P.i];if(s.type==="sort"){for(const k in P.sort){if(P.sort[k]!==s.cards[k].b)delete P.sort[k]}}else if(s.type==="order"){let k=0;while(k<P.ord.length&&P.ord[k]===k)k++;P.ord=P.ord.slice(0,k)}else{P.sel=null;P.val="";P.multi=[]}P.status="idle";drawPlayer()}
   if(a==="reveal"){P.status="revealed";drawPlayer()}
   if(a==="close"||a==="finish")closeLesson();
   if(a==="retake"){const id=P.l.id,m=P.l.txRun?P.txMode:undefined;closeLesson();openLesson(id,{txMode:m});}

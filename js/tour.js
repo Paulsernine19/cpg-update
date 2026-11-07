@@ -7,7 +7,7 @@ const TOUR=[
  {go:"reference",sel:'.tab[data-go="reference"]',t:"Reference",b:"Key v2.6 changes, one screen per module. Available at any time, including on shift."},
  {go:"reference",sel:'#main .quick.docs',t:"Your documents",b:"CPG v2.6 and the list of changes from Circular AS/SC 26-56."},
  {go:"profile",sel:'.tab[data-go="profile"]',t:"Progress",b:"Completed lessons, assessment results and time remaining."},
- {go:"home",home:"intro",sel:'#main .path .node[data-lesson="in-3"]',t:"Start Here",b:"Orientation ends with a short warm-up: ten statements, each either still true or changed in v2.6.",end:true}
+ {go:"home",home:"intro",sel:'#main .path .node[data-lesson="in-3"]',t:"Start Here",b:"Orientation ends with a short warm-up: eleven statements, each either still true or changed in v2.6.",end:true}
 ];
 let TR=null;
 const tourTarget=()=>TR&&[...document.querySelectorAll(TOUR[TR.i].sel)].find(x=>{const r=x.getBoundingClientRect();return r.width&&r.height});
