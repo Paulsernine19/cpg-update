@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Newborn Care module icon">
+<defs>
+<linearGradient id="tile" x1=".08" y1="0" x2=".92" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#37B9E6"/><stop offset="1" stop-color="#1362B0"/></linearGradient>
+<linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff" stop-opacity=".24"/><stop offset="1" stop-color="#fff" stop-opacity=".015"/></linearGradient>
+<linearGradient id="white" x1="0" y1="0" x2=".6" y2="1"><stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#DDE8FC"/></linearGradient>
+<filter id="shadow" x="-30%" y="-30%" width="160%" height="180%"><feGaussianBlur stdDeviation="2.8"/></filter>
+</defs>
+<rect x="5" y="7" width="110" height="110" rx="30" fill="#121D39" opacity=".18" filter="url(#shadow)"/>
+<rect x="4" y="3" width="112" height="112" rx="29" fill="url(#tile)"/>
+<path d="M33 4h51c18 0 32 14 32 32v21C109 24 74 11 33 4Z" fill="#fff" opacity=".09"/>
+<rect x="5" y="4" width="110" height="110" rx="28" fill="none" stroke="#fff" stroke-opacity=".32" stroke-width="1.5"/>
+<ellipse cx="60" cy="102" rx="34" ry="5" fill="#101828" opacity=".16"/>
+<!-- swaddled newborn with face in halo and wrap folds -->
+<path d="M60 94c-16-7-29-20-30-38 0-19 12-33 30-33s30 14 30 33C89 74 76 87 60 94Z" fill="#0B4A8C" opacity=".32" transform="translate(0 3)"/>
+<path d="M60 94c-16-7-29-20-30-38 0-19 12-33 30-33s30 14 30 33C89 74 76 87 60 94Z" fill="#DEF7FF"/>
+<path d="M60 94c-16-7-29-20-30-38l29 14 31-14C89 74 76 87 60 94Z" fill="#A2D7F5"/>
+<path d="M30 56 60 73l30-17M38 71l22 12 21-12" stroke="#6FADE0" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+<circle cx="60" cy="45" r="21" fill="#F5C7A7" stroke="#FFFFFF" stroke-width="4"/>
+<path d="M45 36c0-10 11-17 20-13 8 2 13 10 13 18-5-5-10-8-18-7-8 0-11 3-15 6Z" fill="#724F65"/>
+<path d="M55 26c7-8 16-3 14 4" stroke="#724F65" stroke-width="4" stroke-linecap="round" fill="none"/>
+<path d="M49 46h3m17 0h3" stroke="#694C4A" stroke-width="3.3" stroke-linecap="round"/>
+<path d="M57 54q3 3 6 0" stroke="#B06B68" stroke-width="2" stroke-linecap="round" fill="none"/>
+<circle cx="83" cy="25" r="4" fill="#B9F5FF"/>
+
+</svg>

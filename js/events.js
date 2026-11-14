@@ -1,18 +1,20 @@
 /* ============================ EVENTS ============================ */
 let mdrag=null,mSkip=false;
+document.addEventListener("toggle",e=>{const k=e.target.dataset&&e.target.dataset.fold;if(k)FOLD.set(k,e.target.open)},true);
 document.addEventListener("click",e=>{
   if(mSkip){mSkip=false;return}
   const t=e.target.closest("button");if(!t)return;
   if(t.dataset.go){go(t.dataset.go);return}
   if(t.dataset.tx&&P&&P.steps){txClick(t);return}
   if(t.dataset.deck){if(P)closeLesson();openDeck(t.dataset.deck);return}
-  if(t.dataset.ref){if(P)closeLesson();refMod=t.dataset.ref;go("reference");return}
-  if(t.dataset.refmod){refMod=t.dataset.refmod;render();return}
+  if(t.dataset.ref){if(P)closeLesson();refMod=refGrp=t.dataset.ref;RS.pendingIdx=RS_ITEMS.findIndex(x=>x.m===refMod);go("reference");return}
+  if(t.dataset.refview){S.refView=t.dataset.refview;save();render();return}
   if(t.dataset.courseOpen){go("course",t.dataset.courseOpen);return}
   if(t.dataset.revisit){const id=t.dataset.revisit;closeLesson();openLesson(id);return}
   if(t.dataset.lesson){if(t.getAttribute("aria-disabled"))return;openLesson(t.dataset.lesson);return}
   if(t.dataset.filter){filter=t.dataset.filter;render();return}
   if(!P){const a=t.dataset.act;
+    if(a==="review"){openReview();return}
     if(a==="reset"){confirmReset=true;render()} if(a==="reset-no"){confirmReset=false;render()}
     if(a==="reset-yes"){S=blank();save();confirmReset=false;render()}
     if(a==="theme"){const r=document.documentElement;const dark=r.dataset.theme?r.dataset.theme==="dark":matchMedia("(prefers-color-scheme: dark)").matches;r.dataset.theme=dark?"light":"dark";}
@@ -38,12 +40,14 @@ document.addEventListener("click",e=>{
     if(sl&&P.matchSel===i){delete P.match[sl.dataset.k];P.matchSel=null;P.status="idle";drawPlayer();return}
     P.matchSel=P.matchSel===i?null:i;drawPlayer(`[data-mcard="${i}"]`);return}
   if(t.dataset.mslot!==undefined&&!locked()){if(P.matchSel!==null)matchPlace(+t.dataset.mslot,P.matchSel);return}
+  if(t.dataset.rb&&!locked()){P.rbPick[t.dataset.rb]=+t.dataset.rbv;P.status="idle";drawPlayer(`[data-rb="${t.dataset.rb}"][data-rbv="${t.dataset.rbv}"]`);return}
   if(t.dataset.bin!==undefined&&!locked()){P.sort[t.dataset.card]=+t.dataset.bin;P.status="idle";drawPlayer(`[data-card="${t.dataset.card}"][data-bin="${t.dataset.bin}"]`);return}
   const a=t.dataset.act;if(!a)return;
   if(a==="watched"){P.watched=!P.watched;drawPlayer('[data-act="watched"]');return}
   if(a==="check")check(); if(a==="next")nextStep();
-  if(a==="retry"){const s=P.steps[P.i];if(s.type==="match"){for(const k in P.match){if(P.match[k]!==+k)delete P.match[k]}P.matchSel=null}else if(s.type==="sort"){for(const k in P.sort){if(P.sort[k]!==s.cards[k].b)delete P.sort[k]}}else if(s.type==="order"){let k=0;while(k<P.ord.length&&P.ord[k]===k)k++;P.ord=P.ord.slice(0,k)}else{P.sel=null;P.val="";P.multi=[]}P.status="idle";drawPlayer()}
+  if(a==="retry"){const s=P.steps[P.i];if(s.type==="match"){for(const k in P.match){if(P.match[k]!==+k)delete P.match[k]}P.matchSel=null}else if(s.type==="sort"){for(const k in P.sort){if(P.sort[k]!==s.cards[k].b)delete P.sort[k]}}else if(s.type==="racebench"){for(const k in P.rbPick){if(P.rbPick[k]!==P.rb[k])delete P.rbPick[k]}}else if(s.type==="order"){let k=0;while(k<P.ord.length&&P.ord[k]===k)k++;P.ord=P.ord.slice(0,k)}else{P.sel=null;P.val="";P.multi=[]}P.status="idle";drawPlayer()}
   if(a==="reveal"){P.status="revealed";drawPlayer()}
+  if(a==="review-more"){closeLesson();openReview();return}
   if(a==="close"||a==="finish")closeLesson();
   if(a==="retake"){const id=P.l.id,m=P.l.txRun?P.txMode:undefined;closeLesson();openLesson(id,{txMode:m});}
   if(a==="tx-pressure"){const id=P.l.id;closeLesson();openLesson(id,{txMode:"pressure"});}

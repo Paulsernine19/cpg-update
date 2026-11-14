@@ -9,19 +9,26 @@ Plain HTML/CSS/JS with no build step and no framework. Users open `index.html` b
 | Page shell + script load order | `index.html` (keep it small) |
 | All styling | `css/style.css` (image paths are relative to `css/`, so use `../tx/...`) |
 | Module check bank (`QB`), final-only questions (`FQ`), diagnostic (`DQ`), module names (`MODS`), critical items (`CRITICAL`) | `js/content/questions.js` |
-| Text visuals (`V`), "what changed" flip cards (`CHANGES`), quick reference (`REF`) | `js/content/changes-reference.js` |
+| Text visuals (`V`), "what changed" flip cards (`CHANGES`), quick reference (`REF`), reference shelf books (`REF_BOOKS`) | `js/content/changes-reference.js` |
+| Interactive diagrams for the `scrub` step (`SCRUB`: arrest, txa, stroke, newborn) | `js/content/scrubs.js` |
 | Lessons for each module | `js/content/courses/01-intro.js` … `06-final.js` (each one does `COURSES.push({...})`) |
 | State/progress, icons, views (home, modules, reference, progress), lesson player | `js/app.js` |
 | TXA hands-on simulation (also the shared stage engine `TXS`, sounds, voice) | `js/hands-on/txa.js` |
 | Newborn thermal care hands-on (`scene:"thermo"`) | `js/hands-on/thermal.js` |
 | Newborn resus (`nbr`), code clock (`code`), stretcher/SMR (`smr`) hands-on | `js/hands-on/resus.js` |
+| RACE practice (`racebench` step: random patient, score each item, choose destination) | `js/hands-on/race.js` |
+| Quick reference 3D tape shelf + detail sheet (Reference tab; pictures from each REF item's `img`; deep link `#reference/trauma-7` = 7th trauma item) | `js/refshelf.js` |
 | App tour coach marks (started by a `{type:"tour"}` step in Start Here) | `js/tour.js` |
 | Click/key/input handlers, startup | `js/events.js` |
-| Images: brand logos / TXA + avatar / thermal / resus equipment | `brand/`, `tx/`, `th/`, `rx/` |
+| Trauma scene pictures (`SCENES`: key → image, alt text, crop position) | `js/content/scenes.js` |
+| Images: brand logos / TXA + avatar / thermal / resus equipment / trauma scenes | `brand/`, `tx/`, `th/`, `rx/`, `sc/` |
 
 ## How the code fits together
-- These are classic `<script>` files that share one global scope. **Load order in `index.html` matters**: content → `app.js` → hands-on → `tour.js` → `events.js`. A file can't call a function from a later file at load time. Don't switch to ES modules, because they break on file://.
-- Lesson step types: `read`, `choice`, `multi`, `sort`, `match` (drag definitions onto terms; `pairs` of `term` and `def`), `order` (put items in sequence; `items` stored in the correct order), `input`, `walk`, `watch`, `video`, `lookup`, `stage` (a hands-on stage, handled by `TXS[...]`), `tour` (closes the player and runs the app tour).
+- These are classic `<script>` files that share one global scope. **Load order in `index.html` matters**: content (incl. `scrubs.js`, `scenes.js`) → `app.js` → hands-on (incl. `race.js`) → `refshelf.js` → `tour.js` → `events.js`. A file can't call a function from a later file at load time. Don't switch to ES modules, because they break on file://.
+- Lesson step types: `read`, `choice`, `multi`, `sort`, `match` (drag definitions onto terms; `pairs` of `term` and `def`), `order` (put items in sequence; `items` stored in the correct order), `input`, `walk`, `watch`, `video`, `lookup`, `stage` (a hands-on stage, handled by `TXS[...]`), `tour` (closes the player and runs the app tour), `scrub` (slider-driven diagram from `SCRUB`, optional task to unlock Continue), `racebench` (RACE practice).
+- Any step can set `pic:"key"` to show a scene picture from `SCENES` above it, plus `after:"key"` and `afterCap` to swap in the next scene once answered correctly (walk steps: at the outcome; walk nodes can also set `pic`/`cap`). Scene pictures are clinical content: they must show correct v2.6 practice and must not give the answer away.
+- Any step can set `story:"…"` to show a case strip that stays on the following steps (`story:""` ends it). Choice steps can set `fb` (one line per option, `null` for the correct one).
+- Review queue: first-try misses (from `S.conf`) are asked again from the home card / Progress until answered correctly (`S.fixed`).
 - Progress is saved in localStorage under the key `stepwise-cpg26-v1`. If you change the state shape, keep old saves loading (`S={...blank(),...saved}`).
 
 ## Clinical content rules (important)

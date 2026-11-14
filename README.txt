@@ -16,6 +16,7 @@ brand/     HMCAS logos
 tx/         TXA preparation activity photos, avatar and video
 th/         Newborn thermal care activity photos
 rx/         Newborn resuscitation, code clock and spinal stretcher equipment photos
+sc/         Trauma scene pictures
 
 Notes
 -----

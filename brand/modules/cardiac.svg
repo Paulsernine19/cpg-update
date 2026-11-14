@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Cardiac Arrest module icon">
+<defs>
+<linearGradient id="tile" x1=".08" y1="0" x2=".92" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#ED528E"/><stop offset="1" stop-color="#8E2058"/></linearGradient>
+<linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff" stop-opacity=".24"/><stop offset="1" stop-color="#fff" stop-opacity=".015"/></linearGradient>
+<linearGradient id="white" x1="0" y1="0" x2=".6" y2="1"><stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#DDE8FC"/></linearGradient>
+<filter id="shadow" x="-30%" y="-30%" width="160%" height="180%"><feGaussianBlur stdDeviation="2.8"/></filter>
+</defs>
+<rect x="5" y="7" width="110" height="110" rx="30" fill="#121D39" opacity=".18" filter="url(#shadow)"/>
+<rect x="4" y="3" width="112" height="112" rx="29" fill="url(#tile)"/>
+<path d="M33 4h51c18 0 32 14 32 32v21C109 24 74 11 33 4Z" fill="#fff" opacity=".09"/>
+<rect x="5" y="4" width="110" height="110" rx="28" fill="none" stroke="#fff" stroke-opacity=".32" stroke-width="1.5"/>
+<ellipse cx="60" cy="102" rx="34" ry="5" fill="#101828" opacity=".16"/>
+<!-- anatomical-ish heart with clinical electrical bolt -->
+<path d="M60 94C46 84 23 68 23 48c0-13 9-22 21-22 7 0 13 4 16 10 4-6 10-10 17-10 12 0 21 9 21 22 0 20-23 36-38 46Z" fill="#551536" opacity=".32" transform="translate(0 3)"/>
+<path d="M60 93C46 83 23 67 23 47c0-13 9-22 21-22 7 0 13 4 16 10 4-6 10-10 17-10 12 0 21 9 21 22 0 20-23 36-38 46Z" fill="url(#white)"/>
+<path d="M60 86C48 77 30 64 30 48c0-9 5-16 14-16 7 0 12 4 16 12 4-8 9-12 17-12 9 0 14 7 14 16 0 16-19 29-31 38Z" fill="#F58AAF"/>
+<path d="M60 44c4-8 9-12 17-12 9 0 14 7 14 16 0 16-19 29-31 38Z" fill="#E3548D" opacity=".55"/>
+<path d="M21 59h19l8-13 10 27 10-19 5 5h26" fill="none" stroke="#7D2154" stroke-opacity=".22" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" transform="translate(0 2)"/>
+<path d="M21 59h19l8-13 10 27 10-19 5 5h26" fill="none" stroke="white" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="93" cy="25" r="4" fill="#FFC0DB"/>
+
+</svg>

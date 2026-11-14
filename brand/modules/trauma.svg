@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Trauma module icon">
+<defs>
+<linearGradient id="tile" x1=".08" y1="0" x2=".92" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#FB7459"/><stop offset="1" stop-color="#A72927"/></linearGradient>
+<linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff" stop-opacity=".24"/><stop offset="1" stop-color="#fff" stop-opacity=".015"/></linearGradient>
+<linearGradient id="white" x1="0" y1="0" x2=".6" y2="1"><stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#DDE8FC"/></linearGradient>
+<filter id="shadow" x="-30%" y="-30%" width="160%" height="180%"><feGaussianBlur stdDeviation="2.8"/></filter>
+</defs>
+<rect x="5" y="7" width="110" height="110" rx="30" fill="#121D39" opacity=".18" filter="url(#shadow)"/>
+<rect x="4" y="3" width="112" height="112" rx="29" fill="url(#tile)"/>
+<path d="M33 4h51c18 0 32 14 32 32v21C109 24 74 11 33 4Z" fill="#fff" opacity=".09"/>
+<rect x="5" y="4" width="110" height="110" rx="28" fill="none" stroke="#fff" stroke-opacity=".32" stroke-width="1.5"/>
+<ellipse cx="60" cy="102" rx="34" ry="5" fill="#101828" opacity=".16"/>
+<!-- dimensional emergency shield with diagonal adhesive bandage, no cross -->
+<path d="M60 19 91 31v22c0 24-16 37-31 45C45 90 29 77 29 53V31Z" fill="#661E1D" opacity=".32" transform="translate(0 3)"/>
+<path d="M60 18 91 30v22c0 24-16 37-31 45C45 89 29 76 29 52V30Z" fill="url(#white)"/>
+<path d="M60 27 82 35v17c0 18-12 28-22 34-10-6-22-16-22-34V35Z" fill="#F5A084"/>
+<path d="M60 28 81 36v16c0 17-11 27-21 33V28Z" fill="#EE735F" opacity=".65"/>
+<!-- bandage is diagonal and contains perforation marks; not a medical cross -->
+<g transform="rotate(-38 60 55)">
+ <rect x="39" y="46" width="43" height="19" rx="7" fill="#9D4136" opacity=".24" transform="translate(0 2)"/>
+ <rect x="39" y="46" width="43" height="19" rx="7" fill="#FFF8F1" stroke="#F9DED0" stroke-width="1"/>
+ <rect x="54" y="48" width="13" height="15" rx="3" fill="#ECC4B2"/>
+ <g fill="#D88C78" opacity=".8">
+ <circle cx="45" cy="51" r="1"/><circle cx="49" cy="51" r="1"/><circle cx="45" cy="59" r="1"/><circle cx="49" cy="59" r="1"/>
+ <circle cx="72" cy="51" r="1"/><circle cx="76" cy="51" r="1"/><circle cx="72" cy="59" r="1"/><circle cx="76" cy="59" r="1"/>
+ </g>
+</g>
+<path d="M26 46h-8m7 8h-11m85-8h7m-7 8h11" stroke="#FFD5BA" stroke-width="3" stroke-linecap="round" opacity=".92"/>
+<circle cx="94" cy="26" r="4" fill="#FFD3A5"/>
+
+</svg>

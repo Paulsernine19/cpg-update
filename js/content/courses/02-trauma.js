@@ -5,7 +5,8 @@ COURSES.push(
    units:[
     {title:"Extrication", lessons:[
      {id:"tr-1", title:"Trapped Patient Case", steps:[
-      {type:"choice", label:"Case · before the update", scope:"AP", prompt:"Road traffic collision. The driver is alert, has neck pain, follows instructions and says they can stand. You find no neurological deficit. What is your first-choice extrication approach?",
+      {type:"read", pic:"arrival", title:"Two-car collision", scope:"AP", body:"You arrive at a two-car collision on a main road. Civil Defence are on scene. One driver is still seated in the vehicle."},
+      {type:"choice", pic:"driver-window", after:"self-extrication", afterCap:"Self-extrication: guided by voice, supported only if needed.", label:"Case · before the update", scope:"AP", prompt:"Road traffic collision. The driver is alert, has neck pain, follows instructions and says they can stand. You find no neurological deficit. What is your first-choice extrication approach?",
        options:["Full immobilised extraction because of the neck pain","Self-extrication or minimally assisted extrication","Leave the patient in the vehicle until the pain settles"], answer:1,
        fb:["Neck or back pain is no longer a reason for an immobilised extraction. Self-extrication is now first line unless there's a contraindication.",null,"Trapped patients are time critical. Extricate as soon as possible."],
        explain:"Self-extrication or minimal assistance is now the standard first-line technique for patients without contraindications, including those with neck or back pain.", src:"CPG 10.13 p.200"},
@@ -22,25 +23,25 @@ COURSES.push(
               c:{q:"Any hard neurological signs (loss of motor and sensory function)?",opts:[{t:"No",to:"e"},{t:"Yes",why:"Check the case: no neurological deficit was found."}]},
               e:{end:"Self-extrication or minimal assistance. Use U-STEP Out to guide it. Stop if any clinical concern appears.",tone:"p1"}},
        src:"CPG 10.13 pp.200–201"},
-      {type:"choice", label:"Case changes", scope:"AP", prompt:"A different driver can't move or feel either leg. Which approach?",
+      {type:"choice", pic:"cant-feel-legs", label:"Case changes", scope:"AP", prompt:"A different driver can't move or feel either leg. Which approach?",
        options:["Self-extrication with verbal guidance","Rapid extrication with gentle handling","Leave them until a full set of observations is done"], answer:1,
        fb:["Hard neurological signs rule out self-extrication. They need a rapid extrication with gentle handling.",null,"Keep monitoring to a minimum while the patient is trapped. Hard signs mean a rapid extrication with gentle handling."],
        explain:"Hard neurological signs (loss of motor and sensory function) mean rapid extrication with gentle handling.", src:"CPG 10.13 p.200"},
-      {type:"choice", label:"Case", scope:"AP", prompt:"While Civil Defence cut the door, an alert driver with no neurological deficit waits in the vehicle. Do you hold manual in-line stabilisation?",
+      {type:"choice", pic:"door-cut", label:"Case", scope:"AP", prompt:"While Civil Defence cut the door, an alert driver with no neurological deficit waits in the vehicle. Do you hold manual in-line stabilisation?",
        options:["Yes, until a collar is applied","No, not while they stay in the vehicle","Only if they report neck pain"], answer:1,
        fb:["Manual in-line stabilisation isn't required in the vehicle for a fully conscious patient with no neurological deficit.",null,"Neck pain alone doesn't change this. What matters is full consciousness and no neurological deficit."],
        explain:"Patients who are fully conscious with no neurological deficit don't require manual in-line stabilisation while still in the vehicle.", src:"CPG 10.13 p.200"},
-      {type:"multi", label:"While trapped", scope:"AP", prompt:"The patient is trapped while Civil Defence cut the car. Which interventions belong in the vehicle?",
+      {type:"multi", pic:"door-cut", label:"While trapped", scope:"AP", prompt:"The patient is trapped while Civil Defence cut the car. Which interventions belong in the vehicle?",
        options:["Haemorrhage control","TXA if indicated","Analgesia (Penthrox or ketamine) to help extrication","Full head-to-toe assessment","Repeated full sets of vital signs","Psychological support, with an extrication buddy if possible"], answer:[0,1,2,5],
        explain:"Limit care to critical interventions: haemorrhage control, TXA if indicated and analgesia to facilitate extrication, plus psychological support. Keep monitoring minimal; do the full head-to-toe once they're out.", src:"CPG 10.13 pp.200–202"}
      ]},
      {id:"tr-2", title:"U-STEP Out", steps:[
-      {type:"choice", label:"Case", scope:"AP", intro:"<b>U-STEP Out</b> is the CPG 10.13 tool for guiding self-extrication decisions. Trapped patients are at higher risk of serious illness and death than those able to self-extricate, so the aim is to keep entrapment time as short as possible. The tool gives a structured way to decide whether a patient can safely get out with guidance.", prompt:"You're about to guide a trapped driver out with U-STEP Out. When you reach them, they're unconscious with ineffective breathing. What now?",
+      {type:"choice", pic:"unconscious", label:"Case", scope:"AP", intro:"<b>U-STEP Out</b> is the CPG 10.13 tool for guiding self-extrication decisions. Trapped patients are at higher risk of serious illness and death than those able to self-extricate, so the aim is to keep entrapment time as short as possible. The tool gives a structured way to decide whether a patient can safely get out with guidance.", prompt:"You're about to guide a trapped driver out with U-STEP Out. When you reach them, they're unconscious with ineffective breathing. What now?",
        options:["Continue with U-STEP Out, slowly","Immediate (snatch) extrication","Wait for them to regain consciousness"], answer:1,
        fb:["U-STEP Out is only for suitable, cooperative casualties. Unconscious with ineffective breathing means immediate extrication.",null,"An unconscious patient with ineffective breathing needs immediate extrication, not observation in the vehicle."],
        explain:"Immediate threat to life, or unconscious with absent or ineffective breathing: perform an immediate extrication. U-STEP Out is only for suitable, cooperative casualties.", src:"CPG 10.13 pp.200–201"},
       {type:"read", title:"The U-STEP Out tool", scope:"AP", visual:"ustep", body:"U-STEP Out guides self-extrication: <b>U</b>nderstand · <b>S</b>upport · <b>T</b>ry moving · <b>E</b>gress · <b>P</b>lan · <b>Out</b>. Stop at any clinical concern or contraindication.", src:"CPG 10.13 p.201"},
-      {type:"walk", label:"Guide the casualty", title:"Talk them out, step by step", scope:"AP",
+      {type:"walk", pic:"driver-window", after:"to-stretcher", afterCap:"Out of the vehicle and seated on the stretcher.", label:"Guide the casualty", title:"Talk them out, step by step", scope:"AP",
        case:"Alert driver, neck pain, no contraindications. Civil Defence have the door open.", start:"u",
        nodes:{u:{q:"Step 1. What do you check first?",opts:[{t:"Whether they understand you",to:"s"},{t:"Ask them to step out",why:"Check understanding first. A casualty who can't follow instructions isn't suitable."},{t:"Ask them to move their legs",why:"That's step 3. Start by checking they understand."}]},
               s:{q:"Step 2. Support. What do you do?",opts:[{t:"Reassure them and explain how they'll be kept safe",to:"t"},{t:"Apply a collar and lift them out of the vehicle",why:"Self-extrication doesn't involve lifting. Support means reassurance and explanation."}]},
@@ -97,7 +98,8 @@ COURSES.push(
        fb:[null,"For children aged 8 and over or over 30 kg, draw out the chart volume and give the remainder through the set. The remainder includes a 10 mL administration-set compensation.","The whole bag is 1 g, far more than this child's 550 mg dose."],
        explain:"Draw out and discard 35 mL. The 55 mL dose plus 10 mL set compensation remain, and you give that over 10 minutes.", src:"HMCAS Paediatric IV TXA poster"},
       {type:"read", title:"Aged 8 and over, or over 30 kg", scope:"AP", body:"Don't draw the dose up. Add 1 g to the bag, <b>draw out and discard</b> the chart volume, then give the <b>remaining volume</b> over 10 minutes. The remainder includes 10 mL to compensate for the administration set.", src:"HMCAS Paediatric IV TXA poster"},
-      {type:"input", label:"Practice · chart", scope:"AP", visual:"txachart", prompt:"A 12-year-old meets the criteria. How much do you draw out and discard?", answer:"26", unit:"mL", explain:"Draw out 26 mL, then give the remaining volume (64 mL dose) over 10 minutes.", src:"HMCAS Paediatric IV TXA poster"}
+      {type:"input", label:"Practice · chart", scope:"AP", visual:"txachart", prompt:"A 12-year-old meets the criteria. How much do you draw out and discard?", answer:"26", unit:"mL", explain:"Draw out 26 mL, then give the remaining volume (64 mL dose) over 10 minutes.", src:"HMCAS Paediatric IV TXA poster"},
+      {type:"scrub", scrub:"txa", label:"Explore", scope:"AP"}
      ]},
     ]},
     {title:"TXA preparation: hands-on", lessons:[
@@ -114,7 +116,7 @@ COURSES.push(
     ]},
     {title:"Destination and spinal", lessons:[
      {id:"tr-5", title:"Seat Belt Sign Bypass", steps:[
-      {type:"choice", label:"Case", scope:"AP", prompt:"A restrained driver has bruising across the abdomen from the seat belt. Vital signs are currently within normal limits. What does v2.6 add to your destination decision?",
+      {type:"choice", pic:"seatbelt-sign", label:"Case", scope:"AP", prompt:"A restrained driver has bruising across the abdomen from the seat belt. Vital signs are currently within normal limits. What does v2.6 add to your destination decision?",
        options:["It is now a bypass criterion: apply CPG 10.10","It only matters if the patient becomes hypotensive","Nothing: seat belt injuries are managed as before"], answer:0,
        fb:[null,"Normal vital signs don't remove the new criterion. Check the bypass criteria in CPG 10.10.","The abdominal seat belt sign is a new bypass criterion in v2.6."],
        explain:"The abdominal seat belt sign is now a bypass criterion. The full destination decision follows approved CPG 10.10.", src:"Circular row 19 · Summary p.4"}
@@ -137,9 +139,9 @@ COURSES.push(
       {type:"sort", label:"Try it", scope:"AP", prompt:"On the stretcher: keep the combi-carrier, or consider removing it?", bins:["Keep the combi-carrier","Consider removing it"],
        cards:[{t:"Unconscious after a rollover",b:0},{t:"Alert, neck pain, distressed lying on the board",b:1},{t:"GCS 15 after self-extrication, on the stretcher",b:1},{t:"GCS 6, intubated by CCP",b:0}],
        explain:"Consider removing the board once the patient is on the stretcher, particularly if it causes distress. Keep unconscious trauma patients on it. Head blocks either way.", src:"CPG 10.3 p.178"},
-      {type:"read", title:"Spinal motion restriction", scope:"AP",
+      {type:"read", pic:"stretcher-blocks", title:"Spinal motion restriction", scope:"AP",
        points:["Rigid collar: size it correctly, and remove it if it causes discomfort or distress","Combi-carrier: mainly for extrication or carrying. Consider removing it on the stretcher; keep the unconscious patient on it","<b>Head blocks always</b>, on the board or the stretcher"], src:"CPG 10.3 p.178"},
-      {type:"choice", label:"Case", scope:"AP", prompt:"An alert patient with a suspected spinal injury is distressed lying flat on the stretcher. What can you do while maintaining SMR?",
+      {type:"choice", pic:"distressed-flat", label:"Case", scope:"AP", prompt:"An alert patient with a suspected spinal injury is distressed lying flat on the stretcher. What can you do while maintaining SMR?",
        options:["Raise the stretcher up to 30° and keep the head blocks","Sit them fully upright and remove the head blocks","Nothing: they must stay flat for the whole journey"], answer:0,
        fb:[null,"Elevation is limited to 30°, and head blocks stay on, whether on the board or the stretcher.","The stretcher may be raised up to 30° if lying flat causes distress."],
        explain:"The stretcher may be elevated no more than 30° if lying flat causes distress, while maintaining SMR. Head blocks stay on.", src:"CPG 10.3 p.178"}

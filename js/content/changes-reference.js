@@ -68,52 +68,84 @@ const CHANGES={
 };
 
 /* ---------- Quick reference: one screen per module ---------- */
+/* img: picture used on the Reference shelf (tape cover + spine). Replace freely. */
 const REF={
  trauma:{visual:"txachart",items:[
-  {t:"<b>Extrication:</b> self-extrication or minimal assistance is first line, including children who follow instructions, neck/back pain, soft neuro signs such as tingling that doesn't follow a nerve pathway (non-dermatomal tingling), and weakness or burning pain in the arms and hands, worse than in the legs (signs of central cord syndrome). Not if unable to follow instructions or stand on at least one leg. Hard neuro signs: rapid extrication, gentle handling.",scope:"AP",src:"CPG 10.13 p.200"},
-  {t:"<b>U-STEP Out:</b> Understand · Support · Try moving · Egress · Plan · Out. Snatch rescue first if immediate threat to life or unconscious with absent/ineffective breathing.",scope:"AP",src:"CPG 10.13 p.201"},
-  {t:"<b>While trapped:</b> minimal monitoring; only haemorrhage control, TXA if indicated and analgesia (Penthrox or ketamine). No MILS needed if conscious with no neuro deficit. Extrication buddy via Civil Defence.",scope:"AP",src:"CPG 10.13 pp.200–202"},
-  {t:"<b>Paediatric TXA indications (AP &amp; CCP):</b> child under 14, major trauma under 3 hours, with suspected or confirmed major haemorrhage or isolated TBI with GCS ≤12.",scope:"AP",src:"HMCAS Paediatric IV TXA poster"},
-  {t:"<b>TXA contraindications:</b> hypersensitivity to TXA · injury over 3 hours old · significant blood loss unlikely.",scope:"AP",src:"HMCAS Paediatric IV TXA poster"},
-  {t:"<b>TXA dose:</b> 15 mg/kg using the chart weight (0–12 months: months × 0.5 + 4). At 10 mg/mL, volume (mL) = dose (mg) ÷ 10.",scope:"AP",src:"HMCAS Paediatric IV TXA poster"},
-  {t:"<b>TXA preparation:</b> draw out 10 mL saline from the 100 mL bag → add 1 g (2 × 500 mg = 10 mL) → label immediately → mix gently → calculate the dose → cross-check the 5 Rights → draw out the calculated volume → give over 10 minutes → document the time.",scope:"AP",src:"HMCAS Paediatric IV TXA poster"},
-  {t:"<b>≥8 years or &gt;30 kg:</b> draw out and discard the chart volume, then give the remaining volume over 10 minutes (includes 10 mL administration-set compensation).",scope:"AP",src:"HMCAS Paediatric IV TXA poster"},
-  {t:"<b>Bag label must show:</b> drug name, correct dose, correct route, date and time. Cross-check everything before giving.",scope:"AP",src:"HMCAS Paediatric IV TXA poster"},
-  {t:"<b>Obstetric TXA:</b> postpartum haemorrhage only. Removed from ectopic pregnancy, miscarriage, abruption and praevia.",scope:"AP",src:"CPG 12.1–12.4 · Circular rows 22–25, 29"},
-  {t:"<b>Bypass:</b> abdominal seat belt sign is now a trauma bypass criterion.",scope:"AP",src:"CPG 10.10 · Circular row 19"},
-  {t:"<b>Neurogenic shock MAP:</b> isolated 85–90 mmHg; with haemorrhagic shock ≥65 mmHg. Avoid hypotension; fluids judiciously.",scope:"AP",src:"CPG 10.3 p.178"},
-  {t:"<b>Neurogenic shock treatment:</b> noradrenaline is preferred (adults); add adrenaline infusion if bradycardia and hypotension persist. Early intubation for C1–4 injury with airway/breathing compromise.",scope:"CCP",src:"CPG 10.3 pp.177–178"},
-  {t:"<b>SMR:</b> consider removing the combi-carrier on the stretcher (keep for unconscious); head blocks always; stretcher up to 30° if lying flat causes distress; remove a rigid collar if causing distress.",scope:"AP",src:"CPG 10.3 p.178"}]},
+  {t:"<b>Extrication:</b> self-extrication or minimal assistance is first line, including children who follow instructions, neck/back pain, soft neuro signs such as tingling that doesn't follow a nerve pathway (non-dermatomal tingling), and weakness or burning pain in the arms and hands, worse than in the legs (signs of central cord syndrome). Not if unable to follow instructions or stand on at least one leg. Hard neuro signs: rapid extrication, gentle handling.",scope:"AP",src:"CPG 10.13 p.200",img:"tx/hero-ambulance-prep.webp"},
+  {t:"<b>U-STEP Out:</b> Understand · Support · Try moving · Egress · Plan · Out. Snatch rescue first if immediate threat to life or unconscious with absent/ineffective breathing.",scope:"AP",src:"CPG 10.13 p.201",img:"tx/avatar-pointing-half.webp"},
+  {t:"<b>While trapped:</b> minimal monitoring; only haemorrhage control, TXA if indicated and analgesia (Penthrox or ketamine). No MILS needed if conscious with no neuro deficit. Extrication buddy via Civil Defence.",scope:"AP",src:"CPG 10.13 pp.200–202",img:"tx/avatar-urgent-half.webp"},
+  {t:"<b>Paediatric TXA indications (AP &amp; CCP):</b> child under 14, major trauma under 3 hours, with suspected or confirmed major haemorrhage or isolated TBI with GCS ≤12.",scope:"AP",src:"HMCAS Paediatric IV TXA poster",img:"tx/eq-txa-one-ampoule.webp"},
+  {t:"<b>TXA contraindications:</b> hypersensitivity to TXA · injury over 3 hours old · significant blood loss unlikely.",scope:"AP",src:"HMCAS Paediatric IV TXA poster",img:"tx/avatar-warning-half.webp"},
+  {t:"<b>TXA dose:</b> 15 mg/kg using the chart weight (0–12 months: months × 0.5 + 4). At 10 mg/mL, volume (mL) = dose (mg) ÷ 10.",scope:"AP",src:"HMCAS Paediatric IV TXA poster",img:"tx/eq-10ml-syringe-needle.webp"},
+  {t:"<b>TXA preparation:</b> draw out 10 mL saline from the 100 mL bag → add 1 g (2 × 500 mg = 10 mL) → label immediately → mix gently → calculate the dose → cross-check the 5 Rights → draw out the calculated volume → give over 10 minutes → document the time.",scope:"AP",src:"HMCAS Paediatric IV TXA poster",img:"tx/mix-bag.webp"},
+  {t:"<b>≥8 years or &gt;30 kg:</b> draw out and discard the chart volume, then give the remaining volume over 10 minutes (includes 10 mL administration-set compensation).",scope:"AP",src:"HMCAS Paediatric IV TXA poster",img:"tx/eq-nacl-100ml-bag.webp"},
+  {t:"<b>Bag label must show:</b> drug name, correct dose, correct route, date and time. Cross-check everything before giving.",scope:"AP",src:"HMCAS Paediatric IV TXA poster",img:"tx/label.webp"},
+  {t:"<b>Obstetric TXA:</b> postpartum haemorrhage only. Removed from ectopic pregnancy, miscarriage, abruption and praevia.",scope:"AP",src:"CPG 12.1–12.4 · Circular rows 22–25, 29",img:"tx/eq-txa-two-ampoules.webp"},
+  {t:"<b>Bypass:</b> abdominal seat belt sign is now a trauma bypass criterion.",scope:"AP",src:"CPG 10.10 · Circular row 19",img:"tx/avatar-thinking-half.webp"},
+  {t:"<b>Neurogenic shock MAP:</b> isolated 85–90 mmHg; with haemorrhagic shock ≥65 mmHg. Avoid hypotension; fluids judiciously.",scope:"AP",src:"CPG 10.3 p.178",img:"rx/monitor.webp"},
+  {t:"<b>Neurogenic shock treatment:</b> noradrenaline is preferred (adults); add adrenaline infusion if bradycardia and hypotension persist. Early intubation for C1–4 injury with airway/breathing compromise.",scope:"CCP",src:"CPG 10.3 pp.177–178",img:"tx/eq-50ml-syringe.webp"},
+  {t:"<b>SMR:</b> consider removing the combi-carrier on the stretcher (keep for unconscious); head blocks always; stretcher up to 30° if lying flat causes distress; remove a rigid collar if causing distress.",scope:"AP",src:"CPG 10.3 p.178",img:"rx/headblocks.webp"}]},
  newborn:{visual:"ways",items:[
-  {t:"<b>Normal ranges:</b> RR 40–60 · HR 100–160 · temperature 36–37.5 °C · flexed tone · centrally pink mucous membranes.",scope:"AP",src:"CPG 12.13 pp.246–247"},
-  {t:"<b>Thermal care (mandatory):</b> warm room/ambulance, doors closed, AC off or lowest · dry thoroughly, especially the head · warm hat · wrap in blankets/thermal foil · keep ≥36.5 °C. Preterm &lt;37 weeks: thermal mattress and plastic bag wrap too.",scope:"AP",src:"CPG 12.13 p.247"},
-  {t:"<b>Temperature checks:</b> soon after birth, during transport and on arrival; record in the ePCR.",scope:"AP",src:"CPG 12.13 p.248"},
-  {t:"<b>Cord:</b> intact ≥60 s, then clamp ~5 cm from the umbilicus. Don't delay if resuscitation is needed.",scope:"AP",src:"CPG 12.13 p.247"},
-  {t:"<b>Glucose:</b> routine care RBS &lt;2.6 mmol/L → pea-sized buccal glucose, repeat as required; no glucagon. Resuscitation → dextrose 10% 2 ml/kg.",scope:"AP",src:"CPG 12.13 p.249 · CPG 2.5 p.52"},
-  {t:"<b>&lt;20 weeks:</b> not viable; resuscitation not required. False signs of life are possible. If in doubt, resuscitate.",scope:"AP",src:"CPG 12.13 p.247"},
-  {t:"<b>Airway:</b> neutral head position; jaw thrust preferred; suction only for obstruction under direct vision (mouth then nose).",scope:"AP",src:"CPG 2.5 p.51"},
-  {t:"<b>Breaths:</b> 5 inflation breaths of 2–3 s, ideally within 60 s, with PEEP 6 cmH₂O. ≥32 weeks room air; &lt;32 weeks 30% oxygen.",scope:"AP",src:"CPG 2.5 p.51"},
-  {t:"<b>Compressions:</b> HR &lt;60 after 30 s of ventilation → 3:1, two-thumb, 100% oxygen; reassess HR and breathing every 30 s.",scope:"AP",src:"CPG 2.5 p.52"},
-  {t:"<b>Targets:</b> SpO₂ &gt;80% and HR &gt;100 by 5 minutes; temperature 36.5–37.5 °C. Fluids NS 10 ml/kg (repeat once). Defib 4 J/kg, pads anterior-posterior.",scope:"AP",src:"CPG 2.5 p.52"}]},
+  {t:"<b>Normal ranges:</b> RR 40–60 · HR 100–160 · temperature 36–37.5 °C · flexed tone · centrally pink mucous membranes.",scope:"AP",src:"CPG 12.13 pp.246–247",img:"th/final.webp"},
+  {t:"<b>Thermal care (mandatory):</b> warm room/ambulance, doors closed, AC off or lowest · dry thoroughly, especially the head · warm hat · wrap in blankets/thermal foil · keep ≥36.5 °C. Preterm &lt;37 weeks: thermal mattress and plastic bag wrap too.",scope:"AP",src:"CPG 12.13 p.247",img:"th/5wraped.webp"},
+  {t:"<b>Temperature checks:</b> soon after birth, during transport and on arrival; record in the ePCR.",scope:"AP",src:"CPG 12.13 p.248",img:"th/checkingtemp.webp"},
+  {t:"<b>Cord:</b> intact ≥60 s, then clamp ~5 cm from the umbilicus. Don't delay if resuscitation is needed.",scope:"AP",src:"CPG 12.13 p.247",img:"th/1wet.webp"},
+  {t:"<b>Glucose:</b> routine care RBS &lt;2.6 mmol/L → pea-sized buccal glucose, repeat as required; no glucagon. Resuscitation → dextrose 10% 2 ml/kg.",scope:"AP",src:"CPG 12.13 p.249 · CPG 2.5 p.52",img:"tx/eq-glucose-10.webp"},
+  {t:"<b>&lt;20 weeks:</b> not viable; resuscitation not required. False signs of life are possible. If in doubt, resuscitate.",scope:"AP",src:"CPG 12.13 p.247",img:"tx/avatar-thinking-half.webp"},
+  {t:"<b>Airway:</b> neutral head position; jaw thrust preferred; suction only for obstruction under direct vision (mouth then nose).",scope:"AP",src:"CPG 2.5 p.51",img:"rx/bvm-neo.webp"},
+  {t:"<b>Breaths:</b> 5 inflation breaths of 2–3 s, ideally within 60 s, with PEEP 6 cmH₂O. ≥32 weeks room air; &lt;32 weeks 30% oxygen.",scope:"AP",src:"CPG 2.5 p.51",img:"rx/flowmeter.webp"},
+  {t:"<b>Compressions:</b> HR &lt;60 after 30 s of ventilation → 3:1, two-thumb, 100% oxygen; reassess HR and breathing every 30 s.",scope:"AP",src:"CPG 2.5 p.52",img:"rx/o2-bag.webp"},
+  {t:"<b>Targets:</b> SpO₂ &gt;80% and HR &gt;100 by 5 minutes; temperature 36.5–37.5 °C. Fluids NS 10 ml/kg (repeat once). Defib 4 J/kg, pads anterior-posterior.",scope:"AP",src:"CPG 2.5 p.52",img:"rx/monitor.webp"}]},
  cardiac:{visual:"timeline",items:[
-  {t:"<b>Adult medical shockable:</b> adrenaline after the 3rd shock, then every 4 minutes. Amiodarone 300 mg after the 3rd, 150 mg after the 5th. Non-shockable: adrenaline as soon as IV/IO is in.",scope:"AP",src:"CPG 2.1 · Summary p.1"},
-  {t:"<b>Adult energy:</b> LP15 200, 300, 360 J · Zoll 150, 200, 200 J. Maximum 3 DSEDs, then standard anterior-posterior pads at maximum joules.",scope:"AP",src:"CPG 2.1 p.37 · Summary p.1"},
-  {t:"<b>Adult CPR:</b> 100–120/min, 5–6 cm, pauses &lt;5 s; waveform capnography with any advanced airway, aim EtCO₂ ≈25 mmHg; gastric tube via SGA (APs and CCPs).",scope:"AP",src:"CPG 2.1–2.2 · Summary p.1"},
-  {t:"<b>Adult trauma arrest:</b> HOTT first, minimum scene time. Adrenaline only after reversible causes and ≥500 ml NS, then every 4 minutes.",scope:"AP",src:"CPG 2.2 p.35"},
-  {t:"<b>Paediatric arrest:</b> 5 ventilations, then 15:2. Adrenaline 0.01 mg/kg (max 1 mg): non-shockable ASAP; shockable after 4 min of CPR; every 4 min. Amiodarone 5 mg/kg after the 3rd (max 300 mg) and 5th (max 150 mg) shock. 4 J/kg.",scope:"AP",src:"CPG 2.3 pp.42–43"},
-  {t:"<b>Paediatric details:</b> AP pads first choice &lt;25 kg · two-thumb for infants &lt;1 year · fluids 10 ml/kg × 3 · D10 2 ml/kg · ventilation &lt;1 y 25, 1–8 y 20, 8–12 y 15, &gt;12 y 10 per min. Trauma: adrenaline only after reversible causes and a 10 ml/kg NS bolus.",scope:"AP",src:"CPG 2.3–2.4 pp.43–47"},
-  {t:"<b>Paediatric CCP:</b> energy escalation after 5 shocks in 2 J steps to max 8 J/kg; ETI may be considered after ~10 min; needle decompression (trauma) CCP only.",scope:"CCP",src:"CPG 2.3–2.4 · Summary p.2"},
-  {t:"<b>Post-ROSC:</b> SpO₂ 94–98%, avoid hyperoxaemia. Adult SBP &gt;90 / MAP &gt;65. Comatose adult after medical arrest: ice packs to axillae and groin, not below 33 °C, tell the hospital.",scope:"AP",src:"CPG 2.6 pp.54–55"},
-  {t:"<b>Special circumstances:</b> hypothermia: transport all without undeniable death; no adrenaline &lt;30 °C, every 6–10 min at 30–35 °C. Hyperthermia: cool to &lt;39 °C. Drowning: 5 BVM ventilations with 100% O₂. Dialysis: stop, return blood volume, disconnect before defib.",scope:"AP",src:"CPG 2.8 pp.58–59"},
-  {t:"<b>Synchronised cardioversion (CCP only):</b> adult broad-complex 150 J; narrow-complex regular 120 J, irregular 200 J; escalate stepwise. Paediatric 1–2 J/kg, max 4 J/kg. AP: 12-lead, pads on, request CCP early.",scope:"CCP",src:"CPG 4.3–4.4 pp.77, 79"},
-  {t:"<b>Antiemetic sign-off:</b> CCP may sign off to APs only if the patient is stable, has no adverse effects, and had no other CCP medications not approved for sign-off.",scope:"CCP",src:"CPG 6.4 · ondansetron formulary"}]},
+  {t:"<b>Adult medical shockable:</b> adrenaline after the 3rd shock, then every 4 minutes. Amiodarone 300 mg after the 3rd, 150 mg after the 5th. Non-shockable: adrenaline as soon as IV/IO is in.",scope:"AP",src:"CPG 2.1 · Summary p.1",img:"tx/eq-adrenaline.webp"},
+  {t:"<b>Adult energy:</b> LP15 200, 300, 360 J · Zoll 150, 200, 200 J. Maximum 3 DSEDs, then standard anterior-posterior pads at maximum joules.",scope:"AP",src:"CPG 2.1 p.37 · Summary p.1",img:"rx/pad-sternum.webp"},
+  {t:"<b>Adult CPR:</b> 100–120/min, 5–6 cm, pauses &lt;5 s; waveform capnography with any advanced airway, aim EtCO₂ ≈25 mmHg; gastric tube via SGA (APs and CCPs).",scope:"AP",src:"CPG 2.1–2.2 · Summary p.1",img:"rx/bvm-adult.webp"},
+  {t:"<b>Adult trauma arrest:</b> HOTT first, minimum scene time. Adrenaline only after reversible causes and ≥500 ml NS, then every 4 minutes.",scope:"AP",src:"CPG 2.2 p.35",img:"tx/eq-nacl-500ml-bag.webp"},
+  {t:"<b>Paediatric arrest:</b> 5 ventilations, then 15:2. Adrenaline 0.01 mg/kg (max 1 mg): non-shockable ASAP; shockable after 4 min of CPR; every 4 min. Amiodarone 5 mg/kg after the 3rd (max 300 mg) and 5th (max 150 mg) shock. 4 J/kg.",scope:"AP",src:"CPG 2.3 pp.42–43",img:"rx/pad-apex.webp"},
+  {t:"<b>Paediatric details:</b> AP pads first choice &lt;25 kg · two-thumb for infants &lt;1 year · fluids 10 ml/kg × 3 · D10 2 ml/kg · ventilation &lt;1 y 25, 1–8 y 20, 8–12 y 15, &gt;12 y 10 per min. Trauma: adrenaline only after reversible causes and a 10 ml/kg NS bolus.",scope:"AP",src:"CPG 2.3–2.4 pp.43–47",img:"rx/bvm-neo.webp"},
+  {t:"<b>Paediatric CCP:</b> energy escalation after 5 shocks in 2 J steps to max 8 J/kg; ETI may be considered after ~10 min; needle decompression (trauma) CCP only.",scope:"CCP",src:"CPG 2.3–2.4 · Summary p.2",img:"tx/avatar-urgent-half.webp"},
+  {t:"<b>Post-ROSC:</b> SpO₂ 94–98%, avoid hyperoxaemia. Adult SBP &gt;90 / MAP &gt;65. Comatose adult after medical arrest: ice packs to axillae and groin, not below 33 °C, tell the hospital.",scope:"AP",src:"CPG 2.6 pp.54–55",img:"rx/icepack.webp"},
+  {t:"<b>Special circumstances:</b> hypothermia: transport all without undeniable death; no adrenaline &lt;30 °C, every 6–10 min at 30–35 °C. Hyperthermia: cool to &lt;39 °C. Drowning: 5 BVM ventilations with 100% O₂. Dialysis: stop, return blood volume, disconnect before defib.",scope:"AP",src:"CPG 2.8 pp.58–59",img:"tx/avatar-warning-half.webp"},
+  {t:"<b>Synchronised cardioversion (CCP only):</b> adult broad-complex 150 J; narrow-complex regular 120 J, irregular 200 J; escalate stepwise. Paediatric 1–2 J/kg, max 4 J/kg. AP: 12-lead, pads on, request CCP early.",scope:"CCP",src:"CPG 4.3–4.4 pp.77, 79",img:"rx/monitor.webp"},
+  {t:"<b>Antiemetic sign-off:</b> CCP may sign off to APs only if the patient is stable, has no adverse effects, and had no other CCP medications not approved for sign-off.",scope:"CCP",src:"CPG 6.4 · ondansetron formulary",img:"tx/eq-10ml-syringe-needle.webp"}]},
  stroke:{visual:"tree",items:[
-  {t:"<b>15-hour threshold:</b> removed.",scope:"AP",src:"CPG 3.1 p.64"},
-  {t:"<b>RACE:</b> only for BEFAST-positive patients last known well &gt;8 and &lt;24 hours. Score 0–9; ≥5 suggests LVO.",scope:"AP",src:"CPG 3.1 pp.63–64"},
-  {t:"<b>Prenotification:</b> age, last seen well, BEFAST, RACE if done, RBS, BP, anticoagulant status, ETA.",scope:"AP",src:"CPG 3.1 p.62"},
-  {t:"<b>Management:</b> position appropriately; oxygen as required; paracetamol and antiemetic if required. Penthrox removed. Don't lower BP with nitrates.",scope:"AP",src:"CPG 3.1 pp.63, 65"},
-  {t:"<b>CCP:</b> not needed unless haemodynamic or airway compromise. Don't wait on scene; meet the CCP en route.",scope:"AP",src:"CPG 3.1 p.63"},
-  {t:"<b>RACE competence:</b> the circular's RACE video is required; accurate scoring still needs an observed check.",scope:"AP",src:"Circular p.2"}]}
+  {t:"<b>15-hour threshold:</b> removed.",scope:"AP",src:"CPG 3.1 p.64",img:"tx/avatar-sad-half.webp"},
+  {t:"<b>RACE:</b> only for BEFAST-positive patients last known well &gt;8 and &lt;24 hours. Score 0–9; ≥5 suggests LVO.",scope:"AP",src:"CPG 3.1 pp.63–64",img:"tx/avatar-thinking-half.webp"},
+  {t:"<b>Prenotification:</b> age, last seen well, BEFAST, RACE if done, RBS, BP, anticoagulant status, ETA.",scope:"AP",src:"CPG 3.1 p.62",img:"tx/avatar-pointing-half.webp"},
+  {t:"<b>Management:</b> position appropriately; oxygen as required; paracetamol and antiemetic if required. Penthrox removed. Don't lower BP with nitrates.",scope:"AP",src:"CPG 3.1 pp.63, 65",img:"tx/avatar-ampoule-half.webp"},
+  {t:"<b>CCP:</b> not needed unless haemodynamic or airway compromise. Don't wait on scene; meet the CCP en route.",scope:"AP",src:"CPG 3.1 p.63",img:"tx/hero-ambulance-prep.webp"},
+  {t:"<b>RACE competence:</b> the circular's RACE video is required; accurate scoring still needs an observed check.",scope:"AP",src:"Circular p.2",img:"tx/double-check-poster.jpg"}]}
+};
+
+/* ---------- Reference shelf books (js/refshelf.js) ----------
+   Each book groups REF items: `items` are 0-based indexes into REF[from].items (from defaults to the group key),
+   so the text and CPG citations stay in one place. An item may appear in more than one book.
+   spine: short label for the book spine; icon: spine icon key (RS_ICON in js/refshelf.js).
+   Optional: visual (key of V), img (cover picture; defaults to the first item's img). */
+const BOOK_GROUPS={trauma:"Trauma",newborn:"Newborn",cardiac:"Cardiac arrest",stroke:"Stroke",other:"Others"};
+const REF_BOOKS={
+ trauma:[
+  {title:"Spinal trauma",spine:"Spinal trauma",icon:"spine",items:[11,12]},
+  {title:"Spinal motion restriction",spine:"Spinal MR",icon:"smr",items:[13]},
+  {title:"Vehicle extrication and care for the trapped patient",spine:"Extrication",icon:"car",items:[0,1,2]},
+  {title:"Trauma bypass criteria",spine:"Bypass",icon:"bypass",items:[10]},
+  {title:"Paediatric TXA for AP scope of practice",spine:"Paed TXA",icon:"syringe",items:[3,4,5,6,7,8],visual:"txachart"}],
+ newborn:[
+  {title:"Thermoregulation",spine:"Thermoregulation",icon:"thermo",items:[0,1,2]},
+  {title:"Newborn resuscitation guidelines",spine:"Newborn resus",icon:"newborn",items:[5,3,6,7,8,9,4],visual:"ways"}],
+ cardiac:[
+  {title:"Cardiac arrest algorithm",spine:"Arrest algorithm",icon:"heart",items:[0,2,3,4,8],visual:"timeline"},
+  {title:"Pads placement",spine:"Pads placement",icon:"pads",items:[1,5],img:"rx/pad-sternum.webp"},
+  {title:"Paediatric defibrillation",spine:"Paed defib",icon:"bolt",items:[4,5,6]},
+  {title:"DSED",spine:"DSED",icon:"dsed",items:[1]},
+  {title:"ROSC management",spine:"ROSC",icon:"rosc",items:[7]}],
+ stroke:[
+  {title:"Transport decision tree",spine:"Decision tree",icon:"tree",items:[2,4],visual:"tree"},
+  {title:"New stroke window",spine:"Stroke window",icon:"clock",items:[0,1]},
+  {title:"Large vessel occlusion screening tool (RACE)",spine:"LVO · RACE",icon:"brain",items:[1,5]}],
+ other:[
+  {title:"Tachyarrhythmias",spine:"Tachyarrhythmias",icon:"ecg",from:"cardiac",items:[9]},
+  {title:"Antiemetics",spine:"Antiemetics",icon:"pill",from:"cardiac",items:[10]}]
 };
 
 

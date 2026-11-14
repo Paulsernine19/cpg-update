@@ -10,25 +10,34 @@ COURSES.push(
      ]},
      {id:"st-2", title:"RACE Scoring", steps:[
       {type:"read", title:"The RACE scale", scope:"AP", visual:"race", body:"RACE (Rapid Arterial oCclusion Evaluation) is used with BEFAST to spot a likely <b>large vessel occlusion</b>. Use it only for BEFAST-positive patients last known well <b>more than 8 and less than 24 hours</b> ago.", src:"CPG 3.1 pp.63–64"},
-      {type:"choice", label:"Check", scope:"AP", prompt:"The patient's weakness is on the right side. Which cortical test do you score?",
+      {type:"choice", label:"Check", scope:"AP", story:"Patient A · right-sided weakness", prompt:"The patient's weakness is on the right side. Which cortical test do you score?",
        options:["Aphasia: \"Close your eyes\" and \"Make a fist\"","Agnosia: \"Whose arm is this?\" and \"Lift both arms and clap\"","Both"], answer:0,
+       fb:[null,"Agnosia is scored for left hemiparesis. Right-sided weakness means aphasia.","Score one test only: aphasia for right hemiparesis, agnosia for left."],
        explain:"Right hemiparesis → aphasia. Left hemiparesis → agnosia. Score one or the other.", src:"CPG 3.1 p.63"},
       {type:"input", label:"Score it", scope:"AP", visual:"race", prompt:"Right-sided stroke. Moderate facial droop, can't lift the right arm against gravity (severe), moderate leg weakness, eyes deviated to the left, and does only one of the two commands. Total RACE?", answer:"7", unit:"/ 9",
        explain:"Face 2 + arm 2 + leg 1 + gaze 1 + aphasia 1 = 7. RACE ≥5 suggests LVO.", src:"CPG 3.1 p.63"},
-      {type:"input", label:"Score it", scope:"AP", visual:"race", prompt:"Left-sided stroke. Mild facial droop, moderate arm weakness, normal leg, no gaze deviation, recognises the arm and the weakness. Total RACE?", answer:"2", unit:"/ 9",
+      {type:"input", label:"Score it", scope:"AP", visual:"race", story:"Patient B · left-sided weakness", prompt:"Left-sided stroke. Mild facial droop, moderate arm weakness, normal leg, no gaze deviation, recognises the arm and the weakness. Total RACE?", answer:"2", unit:"/ 9",
        explain:"Face 1 + arm 1 + leg 0 + gaze 0 + agnosia 0 = 2.", src:"CPG 3.1 p.63"},
       {type:"choice", label:"Decide", scope:"AP", prompt:"That second patient was last known well 11 hours ago. Where do they go?",
        options:["P1 to HGH ED with prenotification","P2 to the nearest appropriate ED","P2 to HGH ED with prenotification"], answer:1,
+       fb:["In this window, P1 to HGH ED needs RACE ≥5. This patient's RACE is 2.",null,"With RACE below 5 in the >8 to <24-hour window, the patient goes P2 to the nearest appropriate ED."],
        explain:">8 and <24 hours with RACE <5: P2 to the nearest appropriate ED.", src:"CPG 3.1 p.64"},
-      {type:"choice", label:"Check", scope:"AP", prompt:"BEFAST positive, onset 3 hours ago. Do you need a RACE score to decide the destination?",
+      {type:"choice", label:"Check", scope:"AP", story:"", prompt:"BEFAST positive, onset 3 hours ago. Do you need a RACE score to decide the destination?",
        options:["Yes, RACE decides every stroke destination","No, RACE is only used for >8 to <24 hours","Only if the blood pressure is also high"], answer:1,
+       fb:["RACE decides the destination only in the >8 to <24-hour window.",null,"Blood pressure doesn't change the branch. At ≤8 hours it's P1 to HGH ED."],
        explain:"≤8 hours is P1 to HGH ED. RACE is used only in the >8 to <24-hour window. You can still include it in the prenotification if done.", src:"CPG 3.1 p.64"}
+     ]},
+     {id:"st-rb", title:"RACE Practice", steps:[
+      {type:"racebench", label:"Patient 1 of 3", scope:"AP"},
+      {type:"racebench", label:"Patient 2 of 3", scope:"AP"},
+      {type:"racebench", label:"Patient 3 of 3", scope:"AP"}
      ]}
     ]},
     {title:"Transport", lessons:[
      {id:"st-3", title:"Route Decisions", steps:[
       {type:"read", title:"The updated decision tree", scope:"AP", visual:"tree", body:"Destination depends on when the patient was last known well and, in the 8 to 24-hour window, on RACE. The old 15-hour threshold has been removed. Wake-up or unknown-onset stroke is treated as acute.",
        src:"CPG 3.1 p.64"},
+      {type:"scrub", scrub:"stroke", label:"Explore", scope:"AP"},
       {type:"walk", label:"Interactive algorithm", title:"Route this patient", scope:"AP",
        case:"BEFAST positive. Last known well 10 hours ago. RACE 6.", start:"a",
        nodes:{a:{q:"When was the patient last known well?",opts:[{t:"≤ 8 hours",why:"10 hours is more than 8."},{t:"Wake-up / unknown onset",why:"The onset time is known: 10 hours ago."},{t:"> 8 to < 24 hours",to:"b"},{t:"≥ 24 hours",why:"10 hours is less than 24."}]},
@@ -37,12 +46,15 @@ COURSES.push(
        src:"CPG 3.1 p.64"},
       {type:"choice", label:"Case", scope:"AP", prompt:"BEFAST positive, last known well 7 hours ago. Which branch applies?",
        options:["P1 to HGH ED with prenotification","P2 to the nearest appropriate ED","RACE decides the destination here"], answer:0,
+       fb:[null,"7 hours is in the ≤8-hour branch: P1 to HGH ED.","RACE decides the destination only in the >8 to <24-hour window."],
        explain:"7 hours is within the ≤8-hour branch: P1 to HGH ED with prenotification via CC:E.", src:"CPG 3.1 p.64"},
       {type:"choice", label:"Case", scope:"AP", prompt:"BEFAST positive, last known well 10 hours ago, RACE 4. Where do they go?",
        options:["P1 to HGH ED, since it's under 24 hours","P2 to the nearest appropriate ED","P2 to HGH ED with prenotification"], answer:1,
+       fb:["Under 24 hours isn't enough. In the >8 to <24-hour window, P1 needs RACE ≥5.",null,"RACE below 5 in this window means P2 to the nearest appropriate ED, not HGH."],
        explain:"In the >8 to <24-hour window, RACE <5 means P2 to the nearest appropriate ED.", src:"CPG 3.1 p.64"},
       {type:"choice", label:"Case", scope:"AP", prompt:"BEFAST positive, last known well 30 hours ago. Which branch applies?",
        options:["P1 to HGH ED with prenotification","P2 to the nearest appropriate ED","P1 or P2, depending on the RACE score"], answer:1,
+       fb:["At ≥24 hours the patient goes P2 to the nearest appropriate ED.",null,"RACE isn't used at ≥24 hours: P2 to the nearest appropriate ED."],
        explain:"≥24 hours: P2 to the nearest appropriate ED.", src:"CPG 3.1 p.64"}
      ]},
      {id:"st-4", title:"Prenotification & Care", steps:[
@@ -53,6 +65,7 @@ COURSES.push(
        points:["Lateral or semi-Fowler's position if consciousness is reduced","<b>Oxygen only as required</b>","<b>Paracetamol</b> and an <b>antiemetic</b> if required","<b>Penthrox has been removed</b> from stroke management","Don't lower a high BP with nitrates","Rule out mimics such as hypoglycaemia and seizures","APs don't need a CCP unless there's haemodynamic or airway compromise. Don't wait on scene; meet the CCP en route"], src:"CPG 3.1 pp.61–65"},
       {type:"choice", label:"Case", scope:"AP", prompt:"A stroke patient has a headache and SpO₂ 97% on room air. What's appropriate?",
        options:["Penthrox if required; high-flow oxygen","Paracetamol if required; no oxygen","Wait on scene for a CCP before treating"], answer:1,
+       fb:["Penthrox has been removed from stroke management, and oxygen is given only as required.",null,"Don't wait on scene for a CCP. Meet the CCP en route if needed."],
        explain:"Penthrox is removed; oxygen only as required; paracetamol if required. Don't delay transport waiting for a CCP.", src:"CPG 3.1 pp.63, 65"}
      ]}
     ]},
