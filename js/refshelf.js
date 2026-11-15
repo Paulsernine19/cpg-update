@@ -33,10 +33,12 @@ const rsShortSrc=its=>{const n=[];its.forEach(x=>{for(const m of x.src.matchAll(
 const RS_ITEMS=[];
 Object.keys(REF_BOOKS).forEach(m=>REF_BOOKS[m].forEach((b,k)=>{const mod=b.from||m,its=b.items.map(i=>REF[mod].items[i]).filter(Boolean);
   RS_ITEMS.push({m,mod,k,key:`${m}-${k+1}`,title:b.title,its,visual:b.visual,scope:its.some(x=>x.scope==="AP")?"AP":its.some(x=>x.scope==="CCP")?"CCP":"",
-    src:[...new Set(its.map(x=>x.src))].join(" · "),srcShort:rsShortSrc(its),spine:b.spine||b.title,icon:b.icon,pend:its.some(x=>x.pend),img:b.img||(its[0]&&its[0].img)||"tx/avatar-thinking-half.webp",
+    src:[...new Set(its.map(x=>x.src))].join(" · "),srcShort:rsShortSrc(its),spine:b.spine||b.title,icon:b.icon,pend:its.some(x=>x.pend),img:b.img||(its[0]&&its[0].img)||"tx/avatar-thinking-half.webp",photo:(b.img||"").startsWith("sc/"),
     hay:rsPlain(`${b.title} ${its.map(x=>x.t+" "+x.src).join(" ")} ${BOOK_GROUPS[m]} ${MODS[mod]}`).toLowerCase()})}));
 // one REF item as a list entry (detail sheet + list view)
-const rsItemHTML=x=>`<li><p>${x.t}</p><div class="rsd-tags">${refScope(x.scope)}${x.pend?`<span class="badge pend">Details pending</span>`:""}<span class="rsd-src">${x.src}</span></div></li>`;
+const RS_NUM=/((?:(?:[≤≥<>]|&lt;|&gt;)\s?)?\d+(?:[.,]\d+)?(?:\s?[–-]\s?\d+(?:[.,]\d+)?)?\s?(?:mg\/kg|ml\/kg|mL\/kg|J\/kg|mmol\/L|cmH₂O|mmHg|\/min|mg|ml|mL|cm|J|kg|g|°C|%|min(?:utes)?|hours?|h|s)(?![A-Za-z]))/g;
+const rsNums=h=>h.split(/(<[^>]+>)/).map(p=>p.startsWith("<")?p:p.replace(RS_NUM,'<b class="kv">$1</b>')).join("");
+const rsItemHTML=x=>`<li><p>${rsNums(x.t)}</p><div class="rsd-tags">${refScope(x.scope)}${x.pend?`<span class="badge pend">Details pending</span>`:""}<span class="rsd-src">${x.src}</span></div></li>`;
 const RM=matchMedia("(prefers-reduced-motion: reduce)").matches, EASE="cubic-bezier(.2,.8,.2,1)", SHEET_EASE="cubic-bezier(.76,0,.18,1)";
 const rsScope=x=>x==="AP"?"AP &amp; CCP":x==="CCP"?"CCP only":"Scope to verify";
 const rsSmooth=x=>x*x*(3-2*x), rsB=r=>Math.abs(r)<1?(r+Math.sin(Math.PI*r)/Math.PI)/2:Math.sign(r)*.5, rsMod=(a,n)=>((a%n)+n)%n;
@@ -44,13 +46,13 @@ const RS={N:RS_ITEMS.length,s:0,T:0,act:-1,hov:-1,mx:-1e4,my:-1e4,cx:-1e4,cy:-1e
   lastMod:null,inited:false,pendingIdx:null,openOnMount:false,wheelT:0,saveT:0,lift:null,G:{},query:"",q:[],mi:0,vis:false};
 
 const rsSpine=(it,v)=>`<div class="rs-sp v${v%3}" style="--c:${RS_COL[it.m]}"><span class="rs-ic">${RS_ICON[it.icon]||""}</span><span class="rs-st${it.spine.length>16?" long":""}">${it.spine}</span><span class="rs-sl">CPG 2.6</span></div>`;
-const rsCover=it=>`<div class="rs-cv" style="--c:${RS_COL[it.m]}"><span class="rs-ck">HMCAS · ${BOOK_GROUPS[it.m]}</span><b class="rs-ct${it.title.split(" ").some(w=>w.length>12)?" long":""}">${it.title}</b><div class="rs-ci"><img src="${it.img}" alt="" draggable="false"></div><div class="rs-cf"><span>${rsScope(it.scope)}</span><span class="rs-cb">v2.6</span></div></div>`;
+const rsCover=it=>`<div class="rs-cv" style="--c:${RS_COL[it.m]}"><span class="rs-ck">HMCAS · ${BOOK_GROUPS[it.m]}</span><b class="rs-ct${it.title.split(" ").some(w=>w.length>12)?" long":""}">${it.title}</b><div class="rs-ci${it.photo?" photo":""}"><img src="${it.img}" alt="" draggable="false"></div><div class="rs-cf"><span>${rsScope(it.scope)}</span><span class="rs-cb">v2.6</span></div></div>`;
 const RS_ARROW=d=>`<svg width="18" height="10" viewBox="0 0 18 10" fill="none" stroke="currentColor" stroke-width="1.2">${d<0?'<path d="M5 1 L1 5 L5 9 M1 5 H17"/>':'<path d="M13 1 L17 5 L13 9 M17 5 H1"/>'}</svg>`;
 
 function rsKick(){if(!RS.raf&&RS.el&&RS.el.isConnected){RS.lt=0;RS.idle=0;RS.raf=requestAnimationFrame(rsFrame)}else RS.idle=0;}
 const rsGo=T=>{RS.T=T;rsKick()};
 function rsGeom(){const el=RS.el,W=el.clientWidth;
-  let H=W<600?Math.min(W*.62,innerHeight*.42):Math.min(innerHeight*.5,W*.36,440);H=Math.max(180,Math.round(H));
+  let H=W<600?Math.min(W*.5,innerHeight*.32):Math.min(innerHeight*.5,W*.36,440);H=Math.max(180,Math.round(H));
   const g=RS.G;g.W=W;g.H=H;g.ws=H*142/840;g.d=H*474/900;g.gap=H*.03;
   el.style.setProperty("--H",H+"px");el.style.setProperty("--ws",g.ws+"px");el.style.setProperty("--d",g.d+"px");}
 const rsInd=()=>{const on=RS.el&&RS.el.querySelector(".rs-tab.on");if(on){RS.ind.style.width=on.offsetWidth+"px";RS.ind.style.transform=`translateX(${on.offsetLeft}px)`}};
@@ -65,7 +67,7 @@ function rsMount(){
   <section class="rs-shelf" aria-label="Reference shelf"><div class="rs-stage" aria-hidden="true">${Array.from({length:3*N},(_,v)=>{const it=RS_ITEMS[v%N];return `<div class="rs-tape" data-v="${v}">${rsSpine(it,v)}${rsCover(it)}</div>`}).join("")}</div></section>
   <div class="rs-capwrap"><button class="rs-arrow l" aria-label="Previous item">${RS_ARROW(-1)}</button>
    <div class="rs-cap" aria-live="polite"><div class="rs-m rs-t"></div><div class="rs-m rs-sub lbl"></div><div class="rs-m rs-yr"></div></div>
-   <button class="rs-arrow r" aria-label="Next item">${RS_ARROW(1)}</button></div>`;
+   <button class="rs-arrow r" aria-label="Next item">${RS_ARROW(1)}</button></div><div class="rs-openw"><button class="btn sm rs-open">Open book</button></div>`;
   RS.tapes=[...el.querySelectorAll(".rs-tape")].map(t=>({t,sp:t.firstChild,cv:t.lastChild}));
   RS.shelf=el.querySelector(".rs-shelf");RS.ind=el.querySelector(".rs-ind");
   rsGeom();
@@ -86,6 +88,7 @@ function rsWire(el){
   el.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
     if(b.dataset.rsmod){rsJump(RS_ITEMS.findIndex(i=>i.m===b.dataset.rsmod));return}
     if(b.dataset.rsfind){rsFindStep(1);return}
+    if(b.classList.contains("rs-open")){rsOpen();return}
     if(b.classList.contains("rs-arrow"))rsGo(Math.round(RS.T)+(b.classList.contains("l")?-1:1));});
   const q=el.querySelector(".rs-q");
   q.addEventListener("input",()=>rsFind(q.value));
@@ -129,7 +132,7 @@ function rsSetActive(i,dir,first){if(i===RS.act)return;RS.act=i;const it=RS_ITEM
   clearTimeout(RS.saveT);RS.saveT=setTimeout(()=>{if(S.refItem!==it.key){S.refItem=it.key;save()}},600);
   if(it.m!==refGrp||it.mod!==refMod||first){refGrp=it.m;refMod=it.mod;RS.lastMod=refGrp;
     const dk=document.getElementById("rsDeck"),om=document.getElementById("rsMod");
-    if(dk){dk.dataset.deck=refMod;dk.querySelector("span").textContent=`Flip cards · ${MODS[refMod]} (${CHANGES[refMod].length})`}
+    if(dk){dk.dataset.deck=refMod;dk.querySelector("span").textContent=deckLabel(refMod)}
     if(om)om.dataset.courseOpen=refMod;}
 }
 function rsSwap(m,html,dir,instant){
@@ -177,9 +180,8 @@ function rsSheet(){let d=document.getElementById("rsd");if(d)return d;
   <div class="rsd-nav"><button class="rs-box lbl" data-rsd="prev" aria-label="Previous item">${RS_ARROW(-1)}</button><span class="lbl rsd-pos"></span><button class="rs-box lbl" data-rsd="next" aria-label="Next item">${RS_ARROW(1)}</button></div>
   <div class="rsd-grid"><div class="rsd-txt">
    <div class="rsd-m"><span class="lbl rsd-sub"></span></div><div class="rsd-m"><h2 id="rsdT"></h2></div><div class="rsd-m"><span class="lbl rsd-meta"></span></div>
-   <div class="rsd-m"><ul class="rsd-body"></ul></div><div class="rsd-m"><p class="rsd-cred"></p></div>
-   <div class="rsd-m rsd-acts"><button class="rs-box lbl rsd-go" data-rsd="deck"></button><button class="rs-box lbl rsd-go ghost" data-rsd="mod">Open module</button><button class="rs-box lbl rsd-go ghost rsd-vt" data-rsd="vis" aria-expanded="false"></button></div>
-   <div class="rsd-vbox visual" hidden></div></div>
+   <div class="rsd-vbox visual" hidden></div><div class="rsd-m"><ul class="rsd-body"></ul></div><div class="rsd-m"><p class="rsd-cred"></p></div>
+   <div class="rsd-m rsd-acts"><button class="rs-box lbl rsd-go" data-rsd="deck"></button><button class="rs-box lbl rsd-go ghost" data-rsd="mod">Open module</button></div></div>
    <div class="rsd-poster"><svg viewBox="0 0 474 900" aria-hidden="true"><defs><filter id="rsInk" x="-30%" y="-30%" width="160%" height="160%"><feTurbulence type="fractalNoise" baseFrequency=".011" numOctaves="3" seed="7"/><feDisplacementMap in="SourceGraphic" scale="120" xChannelSelector="R" yChannelSelector="G"/></filter>
     <mask id="rsMask" maskUnits="userSpaceOnUse" x="-200" y="-200" width="874" height="1300"><g filter="url(#rsInk)">${RS_BLOBS.map(b=>`<circle cx="${b[0]}" cy="${b[1]}" r="0" fill="#fff"/>`).join("")}</g></mask>
     <pattern id="rsDots" width="9" height="9" patternUnits="userSpaceOnUse"><circle cx="4.5" cy="4.5" r="1.3" fill="rgba(255,255,255,.16)"/></pattern><clipPath id="rsClip"><rect width="474" height="900" rx="4"/></clipPath></defs>
@@ -189,16 +191,14 @@ function rsSheet(){let d=document.getElementById("rsd");if(d)return d;
      <text x="30" y="830" class="rsd-ps"></text><rect class="rsd-pbx" x="364" y="796" width="80" height="46" rx="4" fill="none" stroke-width="3"/><text x="404" y="828" text-anchor="middle" class="rsd-pb">v2.6</text></g></svg></div></div>`;
   document.body.appendChild(d);
   d.addEventListener("click",e=>{const b=e.target.closest("[data-rsd]");if(!b)return;const a=b.dataset.rsd;
-    if(a==="close"){rsClose();return}
+    if(a==="close"){if(RS.peek){rsPeekClose();return}rsClose();return}
     if(a==="prev"||a==="next"){rsStep(a==="prev"?-1:1);return}
-    if(a==="vis"){RS.vis=!RS.vis;rsVis(RS_ITEMS[RS.act]);if(RS.vis&&!RM)d.querySelector(".rsd-vbox").animate([{transform:"translateY(14px) scale(.98)"},{transform:"none"}],{duration:450,easing:EASE});return}
     rsClose(true);if(a==="deck")openDeck(refMod);else go("course",refMod);});
   return d;
 }
-function rsVis(it){const d=rsSheet(),v=it.visual,b=d.querySelector(".rsd-vt"),box=d.querySelector(".rsd-vbox");
-  b.hidden=!v;if(!v){box.hidden=true;return}
-  b.textContent=`${RS.vis?"Hide":"Show"} · ${RS_VIS[v]||"module chart"}`;b.setAttribute("aria-expanded",RS.vis);
-  if(box.dataset.v!==v){box.innerHTML=V[v];box.dataset.v=v}box.hidden=!RS.vis;}
+function rsVis(it){const d=rsSheet(),v=it.visual,box=d.querySelector(".rsd-vbox");d.classList.toggle("hasvis",!!v);
+  if(!v){box.hidden=true;return}
+  if(box.dataset.v!==v){box.innerHTML=`<span class="lbl rsd-vl">${RS_VIS[v]||"Chart"}</span>`+V[v];box.dataset.v=v}box.hidden=false;}
 // book title on the poster: wrapped into up to 3 lines (SVG text does not wrap), smaller type for longer titles
 function rsPosterTitle(t,title){const max=title.length>34?24:title.length>16?20:16,lines=[];
   title.toUpperCase().split(" ").forEach(w=>{const l=lines[lines.length-1];if(l&&(l+" "+w).length<=max)lines[lines.length-1]=l+" "+w;else lines.push(w)});
@@ -209,8 +209,8 @@ function rsFill(it){const d=rsSheet();
   d.querySelector("#rsdT").innerHTML=it.title;d.querySelector(".rsd-meta").innerHTML=`${rsScope(it.scope)} · sources listed under each point`;
   d.querySelector(".rsd-body").innerHTML=it.its.map(rsItemHTML).join("");d.querySelector(".rsd-cred").textContent=`HMCAS Clinical Practice Guidelines v2.6 · ${BOOK_GROUPS[it.m]}`;
   d.querySelector(".rsd-pos").textContent=`${BOOK_GROUPS[it.m]} ${String(it.k+1).padStart(2,"0")} / ${REF_BOOKS[it.m].length}`;
-  d.querySelector('[data-rsd="deck"]').textContent=`Flip cards · ${MODS[it.mod]}`;
-  d.querySelector(".rsd-band").setAttribute("fill",RS_COL[it.m]);d.querySelector(".rsd-img").setAttribute("href",it.img);
+  d.querySelector('[data-rsd="deck"]').textContent=deckLabel(it.mod);
+  d.querySelector(".rsd-band").setAttribute("fill",RS_COL[it.m]);const pi=d.querySelector(".rsd-img");pi.setAttribute("href",it.img);pi.setAttribute("preserveAspectRatio",it.photo?"xMidYMid slice":"xMidYMid meet");
   rsPosterTitle(d.querySelector(".rsd-pm"),it.title);d.querySelector(".rsd-pk").textContent=`HMCAS · ${BOOK_GROUPS[it.m].toUpperCase()}`;d.style.setProperty("--g",RS_COL[it.m]);d.querySelector(".rsd-ps").textContent=rsScope(it.scope).replace("&amp;","&").toUpperCase();
   rsVis(it);}
 function rsReveal(textDelay,inkDelay){const d=rsSheet(),circles=[...d.querySelectorAll("#rsMask circle")];circles.forEach(c=>c.setAttribute("r",0));
@@ -232,6 +232,13 @@ function rsOpen(){if(RS.open||!RS.el)return;RS.T=Math.round(RS.T);const i=rsMod(
   rsReveal(620,520);
   setTimeout(()=>d.querySelector(".rsd-close").focus({preventScroll:true}),RM?0:400);
 }
+// open one book's sheet on top of a lesson (no shelf, no leaving the lesson); Close returns to the same step
+function rsPeek(key){const it=RS_ITEMS.find(x=>x.key===key);if(!it)return;const d=rsSheet();rsFill(it);d.classList.add("peek","show");RS.open=true;RS.peek=true;d.scrollTop=0;
+  d.getAnimations().forEach(a=>a.cancel());if(!RM)d.animate([{opacity:0,transform:"translateY(24px)"},{opacity:1,transform:"none"}],{duration:380,easing:EASE});rsReveal(0,60);
+  setTimeout(()=>d.querySelector(".rsd-close").focus({preventScroll:true}),RM?0:200);}
+function rsPeekClose(){const d=document.getElementById("rsd");if(!d)return;RS.open=false;RS.peek=false;d.classList.remove("show","peek");d.getAnimations({subtree:true}).forEach(a=>a.cancel());
+  const b=document.querySelector("[data-refpeek]");if(b)b.focus({preventScroll:true});}
+addEventListener("keydown",e=>{if(RS.peek&&e.key==="Escape"){e.preventDefault();e.stopImmediatePropagation();rsPeekClose()}},true);
 function rsStep(dir){rsGo(Math.round(RS.T)+dir);if(!RS.open)return;const it=RS_ITEMS[rsMod(RS.T,RS.N)];
   rsFill(it);rsHash("reference/"+it.key);rsSheet().scrollTop=0;rsReveal(0,60);}
 function rsClose(instant){const d=document.getElementById("rsd");if(!d||!RS.open)return;RS.open=false;rsKick();document.body.style.overflow="";

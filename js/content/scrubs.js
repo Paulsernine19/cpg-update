@@ -35,6 +35,26 @@ const SCRUB={
   goal:{text:"Find the youngest age where the method changes to draw out and discard.",test:(v,C)=>C[0].rows[v.i].age===8,done:"From 8 years (or over 30 kg) you draw out and discard the chart volume, then give the rest."},
   src:"HMCAS Paediatric IV TXA poster"},
 
+ // aged 8+ or over 30 kg: the learner sets how much to draw out of the 1 g / 100 mL bag; what stays in is the dose plus 10 mL set compensation
+ txabag:{title:"Aged 8 and over: draw out and discard",
+  intro:"Don't draw the dose up. With 1 g in the 100 mL bag, <b>draw out and discard</b> the chart volume, then give the <b>remaining volume</b> over 10 minutes. The remainder includes 10 mL to compensate for the administration set.",
+  controls:()=>[{k:"x",label:"Drawn out and discarded",min:0,max:60,step:1,val:0,row:TX_CHART.find(r=>r.age===10),fmt:v=>`${v} mL`}],
+  view:(v,C,res)=>{const r=C[0].row,left=100-v.x,dose=Math.max(0,left-10)*10,y=ml=>20+200*(1-ml/100),ok=res==="ok";
+   return `<div class="bagv"><svg viewBox="0 0 200 250" class="bag-svg" aria-hidden="true">
+     <rect x="58" y="6" width="84" height="12" rx="4" class="bag-top"/>
+     <rect x="50" y="${y(left)}" width="100" height="${200*left/100}" class="bag-dose"/>
+     <rect x="50" y="${y(10)}" width="100" height="20" class="bag-set"/>
+     <rect x="50" y="20" width="100" height="200" rx="14" class="bag-out"/>
+     ${[20,40,60,80].map(m=>`<path d="M50 ${y(m)}h10" class="bag-tick"/><text x="44" y="${y(m)+4}" text-anchor="end" class="bag-t">${m}</text>`).join("")}
+     <text x="100" y="${y(5)+4}" text-anchor="middle" class="bag-l">10 mL set</text>
+     ${left>16?`<text x="100" y="${(y(left)+y(10))/2+4}" text-anchor="middle" class="bag-l w">${left-10} mL</text>`:""}
+     <path d="M92 220v18h16v-18" class="bag-port"/></svg>
+    <div class="sc-cards">${scCard("Child","10 years · 37 kg")}${scCard("Chart dose",`${r.dose} mg`)}${scCard("Left in the bag",`${left} mL`)}${res?scCard("Dose given",`${dose} mg`,ok?"good":"bad"):""}</div></div>
+    ${res?`<div class="sc-due on ${ok?"":"alt"}"><span class="label">${ok?"Correct volume":"Not the right volume"}</span><b>${ok?`${left} mL left: the ${r.volume} mL dose plus 10 mL for the set. Give over 10 minutes.`:`${left} mL left gives ${dose} mg once the 10 mL set compensation is allowed for. The dose is ${r.dose} mg. Draw out ${dose>r.dose?"more":"less"}, then confirm again.`}</b></div>`:`<p class="note">Set the volume to draw out, then confirm.</p>`}`},
+  confirm:true,
+  goal:{text:"A 10-year-old needs 550 mg. Set how much to draw out and discard, then confirm.",test:(v,C)=>v.x===C[0].row.drawOut,done:"35 mL drawn out and discarded. The remaining 65 mL is the 55 mL dose plus 10 mL to compensate for the administration set."},
+  src:"HMCAS Paediatric IV TXA poster"},
+
  stroke:{title:"Route the stroke patient",
   intro:"BEFAST positive. Set when the patient was last known well and the RACE score, and see which branch of the decision tree applies.",
   controls:[{k:"h",label:"Last known well",min:0,max:30,step:1,val:4,fmt:v=>`${v} hour${v===1?"":"s"} ago`},{k:"r",label:"RACE score",min:0,max:9,step:1,val:6,fmt:v=>`${v} / 9`}],

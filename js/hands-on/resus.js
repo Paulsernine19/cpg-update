@@ -464,6 +464,8 @@ function txClick(t){
    case "open-first": txErr("Opened ampoules before double-checking","Always double-check the drug name, strength, clarity and expiry with a colleague before opening.","An unchecked ampoule could be the wrong drug, cloudy or out of date — and once snapped open it cannot be returned.");return;
    case "dq-start": txSound("click");st.phase="dq";drawPlayer('[data-tx="dq"]');return;
    case "dq": { const o=st.dq[i]; if(o.ok){txSound("click");st.phase="video";drawPlayer("#txvid");} else txErr("Expected the wrong double-check read-back",o.why,o.outcome);return; }
+   case "chk": { const k=t.dataset.k;if(!st.chk)st.chk={};if(!st.chk[k]){st.chk[k]=true;txSound("click");}st.watched=TX_AMPCHK.every(x=>st.chk[x.k]);drawPlayer(`[data-tx="chk"][data-k="${k}"]`);return; }
+   case "vidshow": st.vid=!st.vid;drawPlayer('[data-tx="vidshow"]');return;
    case "vid-ok": if(st.watched) txOk("Medication double-checked: name, strength, clarity and expiry.",{next:"snap"});return;
    case "snap-done": txOk("Opened both TXA ampoules.",{quiet:true,next:"draw"});return;
    case "amp2": st.amp=1;txSound("click");drawPlayer("#txrig");return;
@@ -483,6 +485,7 @@ function txClick(t){
      else{const j=c.large?(90-v)*10:v*10;txErr("Wrong volume drawn",c.large?`For ${r.age} years draw out ${r.drawOut} mL (chart), leaving ${r.volume} mL to give.`:`${r.dose} mg ÷ 10 mg/mL = ${r.volume} mL.`,j>0?txNs(j,r.dose):undefined);}
      return; }
    case "rate": { const n=+t.dataset.n; if(n===10) txOk("Rate set: over 10 minutes.",{quiet:true,next:"infuse"}); else txErr("Incorrect administration rate","TXA is given slowly over 10 minutes.",TX_RATE[n]);return; }
+   case "infq": { const n=[1,10,60][i]; if(n===10) txOk("Rate held at 10 minutes. TXA is given slowly, even when asked to speed up.",{next:"doc"}); else txErr("Incorrect administration rate","TXA is given slowly over 10 minutes.",TX_RATE[n]);return; }
    case "inf-run": st.run=!st.run;txInfTimer(st,c);drawPlayer('[data-tx="inf-run"]');return;
    case "inf-speed": st.speed=st.speed===1?30:1;drawPlayer('[data-tx="inf-speed"]');return;
    case "time-now": { const d=new Date();st.time=d.toTimeString().slice(0,5);drawPlayer('[data-tx="doc"]');return; }

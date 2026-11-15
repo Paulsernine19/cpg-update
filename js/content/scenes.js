@@ -4,8 +4,12 @@
 const SCENE_LAYOUT=(()=>{try{return new URLSearchParams(location.search).get("scene")||"overlay"}catch(e){return "overlay"}})();
 // Module cover pictures for the Modules tab cards (module id → image, crop position). Modules without one show their icon.
 const MOD_COVERS={
+ intro:{img:"sc/cover-orientation.webp",pos:"41% 35%"},
  trauma:{img:"sc/scene-01-arrival.webp",pos:"55% 55%"},
- newborn:{img:"th/5wraped.webp",pos:"30% 30%"}
+ newborn:{img:"sc/cover-newborn.webp",pos:"50% 6%"},
+ cardiac:{img:"sc/cover-cardiac.webp",pos:"50% 62%"},
+ stroke:{img:"sc/cover-stroke.webp",pos:"55% 35%"},
+ final:{img:"sc/cover-final.webp",pos:"58% 42%"}
 };
 const SCENES={
  arrival:{img:"sc/scene-01-arrival.webp",pos:"55% 50%",alt:"Two HMCAS paramedics walk towards a two-car collision on a main road. Civil Defence are on scene and one driver is still seated in the white car."},

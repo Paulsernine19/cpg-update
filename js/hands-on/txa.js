@@ -17,7 +17,7 @@ const TX_LABEL=[{key:"conc",left:50.6,top:31.6,w:8.6,h:5.8,ans:()=>10,name:"Fina
 const TX_TECH=[["Read the dose from the chart",/Dose calculation error|Wrong chart row/],["Drew out exactly 10 mL of saline",/Wrong volume drawn out/],["Discarded the drawn saline",/NSS not discarded/],["Double-checked the ampoules before opening",/before double-checking|double-check read-back/],["Added all 10 mL TXA to the bag",/Incorrect action after drawing TXA/],["Labelled the bag",/label/i],["Mixed gently: slow turns, no shaking",/Shook the bag|Inadequate mixing/],["Drew the correct volume from the bag",/^Wrong volume drawn$/],["Gave it over 10 minutes",/administration rate/],["Documented the time given",/not documented/]];
 const TX_CRIT=/before double-checking|Wrong volume|Dose calculation error|Wrong chart row|administration rate|Shook the bag|Inadequate mixing|NSS not discarded|wrong bin/;
 const TX_STAGE_NAMES={equip:"Equipment",room:"Make room",drawup:"Check & draw up",label:"Label the bag",mix:"Mix",dose:"Dose from chart",give:"Administer"};
-const TX_STAGE_LESSON={equip:"tx-2",dose:"tx-3",room:"tx-4",drawup:"tx-5",label:"tx-6",mix:"tx-7",give:"tx-8",dispose:"tx-9"};
+const TX_STAGE_LESSON={equip:"tx-g",dose:"tx-g",room:"tx-g",drawup:"tx-g",label:"tx-g",mix:"tx-g",give:"tx-g",dispose:"tx-g"}; // all stages are practised on the one guided bench
 const TX_TARGET=480;
 const TX_GUIDE={
  intro:[["welcome","Welcome. I’ll be your crew mate through this case."],["pointing","Your objective: safely prepare and give tranexamic acid (TXA) to a paediatric patient who meets the criteria, the way the poster sets it out."]],
@@ -278,6 +278,23 @@ function txBindRig(limitFn){
 }
 
 /* ---------- stages ---------- */
+/* ampoule double-check: the learner taps each part of the label (placeholder drawing until a close-up photo is supplied) */
+const TX_AMPCHK=[{k:"name",lab:"Drug name",rb:"Tranexamic acid",x:82,y:42.5},{k:"strength",lab:"Strength",rb:"500 mg in 5 mL",x:82,y:54.5},{k:"expiry",lab:"Expiry",rb:"In date, not expired",x:82,y:65},{k:"clarity",lab:"Clarity",rb:"Clear and colourless, no particles",x:50,y:84}];
+const TX_AMPSVG=`<svg viewBox="0 0 200 300" class="ampsvg" aria-hidden="true"><defs><linearGradient id="ampGl" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset=".25" stop-color="#E8F1FB" stop-opacity=".6"/><stop offset=".8" stop-color="#CFDDEE" stop-opacity=".5"/><stop offset="1" stop-color="#fff" stop-opacity=".8"/></linearGradient></defs>
+ <path d="M88 8h24v30q0 6 6 12l2 3q-4 6-4 12v8q12 10 12 28v180q0 12-12 12H84q-12 0-12-12V101q0-18 12-28v-8q0-6-4-12l2-3q6-6 6-12z" fill="url(#ampGl)" stroke="#9FB2C8" stroke-width="2"/>
+ <path d="M78 196h44v86q0 8-8 8H86q-8 0-8-8z" fill="#EAF4FF" opacity=".9"/>
+ <path d="M84 60h32" stroke="#C0392B" stroke-width="3"/>
+ <rect x="66" y="108" width="68" height="94" rx="3" fill="#fff" stroke="#C9D2E3"/>
+ <rect x="66" y="108" width="68" height="14" fill="#1E6FD9"/>
+ <text x="100" y="128" text-anchor="middle" font-size="9" font-weight="800" fill="#131933" font-family="Arial,sans-serif">Tranexamic acid</text>
+ <text x="100" y="164" text-anchor="middle" font-size="12" font-weight="800" fill="#131933" font-family="Arial,sans-serif">500 mg/5 mL</text>
+ <text x="100" y="176" text-anchor="middle" font-size="6.5" fill="#5A6284" font-family="Arial,sans-serif">Solution for injection · IV</text>
+ <text x="100" y="196" text-anchor="middle" font-size="7.5" font-weight="700" fill="#131933" font-family="Arial,sans-serif">EXP 06/2028 · LOT T4471</text></svg>`;
+function txAmpCheckHTML(st){const chk=st.chk||(st.chk={}),n=TX_AMPCHK.filter(x=>chk[x.k]).length,run=P.l&&P.l.txRun;
+  return `<h3 class="q3">Your colleague holds up the ampoule. Tap each part of it to check it before you open it.</h3>
+   <div class="ampchk"><div class="amp-stage">${TX_AMPSVG}${TX_AMPCHK.map(x=>`<button class="amp-hot ${chk[x.k]?"ok":""}" data-tx="chk" data-k="${x.k}" style="left:${x.x}%;top:${x.y}%" aria-label="Check ${x.lab}" aria-pressed="${!!chk[x.k]}">${chk[x.k]?I.check:""}</button>`).join("")}</div>
+   <div class="readlist"><span class="label">Read-back · ${n} of 4 checked</span><ul>${TX_AMPCHK.map(x=>`<li class="${chk[x.k]?"ok":"todo"}">${chk[x.k]?I.check:"<i></i>"}<span><b>${x.lab}:</b> ${chk[x.k]?x.rb:"not checked yet"}</span></li>`).join("")}</ul></div></div>
+   ${run?"":`<button class="btn ghost sm" data-tx="vidshow" aria-expanded="${!!st.vid}">${st.vid?"Hide the example":"Watch an example (7 s)"}</button>${st.vid?`<div class="vid"><video id="txvid" poster="${TXM("double-check-poster.jpg")}" controls playsinline preload="metadata" aria-label="Medication double-check example"><source src="${TXM("double-check.mp4")}" type='video/mp4; codecs="avc1.64001F, mp4a.40.2"'><source src="${TXM("double-check.webm")}" type='video/webm; codecs="vp9, opus"'></video></div>`:""}`}`;}
 const TXS={
  intro:{phases:["intro"],
   body:(st,c)=>`${txHero("hero-ambulance-prep.webp","Paediatric TXA · hands-on","Prepare and give it right")}
@@ -318,9 +335,7 @@ const TXS={
    const amps=`<div class="amps">${[0,1].map(i=>`<button class="amp ${st.snapped[i]?"snapped":""}" data-amp="${i}" ${st.phase!=="snap"||st.snapped[i]?"disabled":""} aria-label="${st.snapped[i]?"Ampoule "+(i+1)+" opened":"Press and hold to snap ampoule "+(i+1)+" open"}"><span class="amp-top" style="--pos:${i?"100%":"0%"}"></span><span class="amp-body" style="--pos:${i?"100%":"0%"}"></span><svg class="ring" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17"/></svg></button>`).join("")}</div>`;
    if(st.phase==="start") return `<div class="split"><div class="photo"><img src="${TXM("eq-txa-two-ampoules.webp")}" alt="Two TXA 500 mg/5 mL ampoules"></div><div><h3 class="q3">Two TXA 500 mg/5 mL ampoules. What first?</h3><div class="opts"><button class="opt" data-tx="dq-start"><span class="k">A</span>Double-check the medication with my colleague</button><button class="opt" data-tx="open-first"><span class="k">B</span>Open the ampoules</button></div></div></div>`;
    if(st.phase==="dq") return `<div class="split"><div class="photo"><img src="${TXM("eq-txa-two-ampoules.webp")}" alt="Two TXA ampoules"></div><div><h3 class="q3">Your colleague is about to read the ampoule label back to you. What should you expect to hear before you open it?</h3>${txOptsHTML("dq",st.dq,st)}</div></div>`;
-   if(st.phase==="video") return `<div class="vid"><video id="txvid" src="${TXM("double-check.mp4")}" poster="${TXM("double-check-poster.jpg")}" controls playsinline preload="metadata" aria-label="Medication double-check video"></video></div>
-     <div class="readlist"><span class="label">AP reads back</span><ul><li>${I.check}Drug name: Tranexamic acid 500 mg in 5 mL</li><li>${I.check}Clarity: clear and colourless, no particles</li><li>${I.check}Expiry: in date, not expired</li></ul></div>
-     <p class="note" id="txvidnote">${st.watched?"Video watched.":"Watch the video to the end to confirm."}</p>`;
+   if(st.phase==="video") return txAmpCheckHTML(st);
    if(st.phase==="snap") return `<h3 class="q3">Press and hold each ampoule to snap it open.</h3>${amps}<p class="note" style="text-align:center">Keyboard: focus an ampoule and hold Space.</p>`;
    if(st.phase==="draw") return `<h3 class="q3">Draw up 1 g TXA (2 × 5 mL = 10 mL) into the 50 mL syringe.</h3>
      ${txBench(st,{mode:"needle",fluid:"txa",target:st.amp===0?5:10,max:10,mg:v=>`${Math.round(v*100)} mg TXA`,gauge:v=>({t:`TXA in the syringe: <b>${Math.round(v*100)} mg</b> of 1000 mg`,ok:v>=10,pct:v*10,zone:94})})}
@@ -328,12 +343,11 @@ const TXS={
    if(st.phase==="inject") return `<div class="split"><div class="photo"><img src="${TXM("eq-50ml-syringe-10ml.jpg")}" alt="50 mL syringe holding 10 mL"></div><div><h3 class="q3">The 50 mL syringe now holds 10 mL (1 g) of TXA. What next?</h3>${txOptsHTML("inj",st.inj,st)}</div></div>`;
    return `<h3 class="q3">Push all 10 mL of TXA into the 90 mL bag through the medication port.</h3>
      ${txBench(st,{mode:"bag",fluid:"txa",push:true,bagOf:v=>100-v,streakOf:v=>(10-v)/10,target:0,max:10,gauge:v=>({t:v<=.05?"1 g TXA in 100 mL: <b>10 mg/mL</b>. Label it now, before mixing.":`TXA in the bag: <b>${Math.round((10-v)*100)} mg</b> of 1000 mg`,ok:v<=.05,pct:(10-v)*10,zone:94})})}`;},
-  foot:(st)=>st.phase==="video"?`<button class="btn wide" id="txvidok" data-tx="vid-ok" ${st.watched?"":"disabled"}>Confirmed · back to the ampoules</button>`
+  foot:(st)=>st.phase==="video"?`<button class="btn wide" id="txvidok" data-tx="vid-ok" ${st.watched?"":"disabled"}>Checked · open the ampoules</button>`
    :st.phase==="snap"?(st.snapped[0]&&st.snapped[1]?`<button class="btn wide" data-tx="snap-done">Continue</button>`:"")
    :st.phase==="draw"?`<button class="btn wide" id="txconfirm" data-tx="draw-confirm" ${st.v>=10?"":"disabled"}>${st.confirmLabel(st.v)}</button>`
    :st.phase==="push"?`<button class="btn wide" id="txconfirm" data-tx="inj-done" ${st.v<=.05?"":"disabled"}>Continue to labelling</button>`:"",
   after:(st)=>{
-   if(st.phase==="video"){const v=document.getElementById("txvid");if(v)v.addEventListener("ended",()=>{st.watched=true;const b=document.getElementById("txvidok");if(b)b.disabled=false;const n=document.getElementById("txvidnote");if(n)n.textContent="Video watched.";});}
    if(st.phase==="draw") txBindRig(()=>Math.min(10,(10-st.rem[0]-st.rem[1])+st.rem[st.amp]));
    if(st.phase==="push") txBindRig();
    if(st.phase==="snap") document.querySelectorAll(".amp:not([disabled])").forEach(b=>txBindHold(b,()=>{const i=+b.dataset.amp;st.snapped[i]=true;txSound("snap");drawPlayer(st.snapped[0]&&st.snapped[1]?".p-foot .btn":`.amp:not([disabled])`);}));
@@ -378,11 +392,16 @@ const TXS={
      ${txBench(st,{mode:"bag",fluid:"txa",label:lab,bagOf:v=>100-v,target:tg,max:50,mg:c.large?(v=>`Bag left: ${(100-v).toFixed(1)} mL`):(v=>`${Math.round(v*10)} mg TXA`),
        gauge:c.large?(v=>({t:`Left to give after set compensation: <b>${Math.round(Math.max(0,90-v)*10)} mg</b> · dose ${dose} mg`,ok:Math.abs(v-tg)<.6,pct:50+(v-tg)/tg*50})):(v=>({t:`${v.toFixed(1)} mL = <b>${Math.round(v*10)} mg</b> · dose ${dose} mg`,ok:Math.abs(v-tg)<.6,pct:50+(v-tg)/tg*50}))})}`;}
    if(st.phase==="rate") return `<h3 class="q3">Over what duration should the ${give} mL be given?</h3><div class="rates">${[1,10,30,60].map(n=>`<button class="btn ghost" data-tx="rate" data-n="${n}">${n} min</button>`).join("")}</div>`;
-   if(st.phase==="infuse"){const del=Math.round(give*(1-st.left/600)*10)/10;
-    return `<div class="pump"><span class="label">Infusion · TXA 10 mg/mL · ${give} mL over 10 min</span><div class="pumpscreen"><b id="txclockbig">${txFmt(st.left)}</b><span id="txdel">Delivered ${del} / ${give} mL (${Math.round(del*10)} mg)</span><div class="bar"><i id="txinfbar" style="width:${(1-st.left/600)*100}%"></i></div></div>
-     <div class="two"><button class="btn" data-tx="inf-run">${st.run?"Pause":st.left===600?"Start infusion":"Resume"}</button><button class="btn ghost" data-tx="inf-speed">Speed ${st.speed}×</button></div></div>`;}
-   return `<div class="pump done"><span class="label">Infusion complete</span><p class="q3">Document the administration time on the PCR.</p><label class="fld">Time administered<span><input data-txin="time" value="${txEsc(st.time)}" placeholder="hh:mm"><em></em></span></label><button class="btn ghost sm" data-tx="time-now" style="justify-self:start">Use the current time</button></div>`;},
-  foot:(st)=>st.phase==="draw"?`<button class="btn wide" id="txconfirm" data-tx="give-confirm">${P.txMode==="guided"?`Confirm ${st.v.toFixed(1)} mL`:"Confirm volume"}</button>`:st.phase==="doc"?`<button class="btn wide" data-tx="doc">Document &amp; continue</button>`:"",
+   // infusion: a short animation while the crew mate tests the rate (TX_INTERRUPT item, TX_RATE consequences)
+   if(st.phase==="infuse"){const q=TX_INTERRUPT[3];
+    return `<div class="pump run"><span class="label">Infusing · TXA 10 mg/mL · ${give} mL over 10 min</span><div class="pumpscreen"><b>Running</b><span>${give} mL (${dose} mg) over 10 minutes</span><div class="bar"><i class="pump-fill"></i></div></div></div>
+     <div class="mate"><img src="${txBust("thinking")}" alt="" width="64" height="64"><div class="bubble"><p>${q.q.replace("Crew mate: ","<b>Crew mate:</b> ")}</p></div></div>
+     <div class="opts">${q.opts.map((x,i)=>`<button class="opt" data-tx="infq" data-i="${i}"><span class="k">${String.fromCharCode(65+i)}</span>${x}</button>`).join("")}</div>`;}
+   // documentation: confirm the record (drug, dose, route, duration, time)
+   if(!st.time){const d=new Date();st.time=String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");}
+   return `<div class="pump done"><span class="label">Infusion complete</span><p class="q3">Document the administration on the PCR.</p>
+    <div class="docline"><span><b>Drug</b>Tranexamic acid</span><span><b>Dose</b>${dose} mg</span><span><b>Route</b>IV</span><span><b>Duration</b>Over 10 minutes</span><span><b>Time</b>${txEsc(st.time)}</span></div></div>`;},
+  foot:(st)=>st.phase==="draw"?`<button class="btn wide" id="txconfirm" data-tx="give-confirm">${P.txMode==="guided"?`Confirm ${st.v.toFixed(1)} mL`:"Confirm volume"}</button>`:st.phase==="doc"?`<button class="btn wide" data-tx="doc">Confirm &amp; document</button>`:"",
   after:(st)=>{ if(st.phase==="draw") txBindRig(); }},
 
  dispose:{phases:["bin"],

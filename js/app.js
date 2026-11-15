@@ -79,10 +79,25 @@ const GLOSS=[["AP","Ambulance Paramedic"],["CCP","Critical Care Paramedic"],["CP
 const NAV=[["home","Learn"],["courses","Modules"],["reference","Reference"],["profile","Progress"]];
 let view="home", courseView=null, filter="All", confirmReset=false, refMod="trauma", refGrp="trauma";
 
+// filled versions of the menu icons, shown on the active tab
+const NAV_FILL={
+  home:'<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path fill-rule="evenodd" d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>',
+  courses:'<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>',
+  reference:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z" fill="currentColor"/><path d="M4 21V5"/><path d="M9 8h6" stroke="var(--nav-cut,#fff)"/></svg>',
+  profile:'<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6z" stroke-linejoin="round"/></svg>'};
+const navActive=k=>view===k||(view==="course"&&k==="courses");
+const navBadge=k=>{const n=k==="profile"?reviewCount():0;return n?`<b class="tab-badge" aria-hidden="true">${n>9?"9+":n}</b>`:""};
+const navLabel=(k,t)=>{const n=k==="profile"?reviewCount():0;return n?`${t}, ${n} question${n>1?"s":""} to review`:t};
+const tabHTML=(k,t)=>`<button class="tab" data-go="${k}" aria-label="${navLabel(k,t)}" ${navActive(k)?'aria-current="page"':''}><i class="tab-ic"><span class="ic-o">${I[k]}</span><span class="ic-f">${NAV_FILL[k]}</span>${navBadge(k)}</i><span class="tab-t">${t}</span></button>`;
 function renderNav(){
-  const html=NAV.map(([k,t])=>{const active=(view===k)||(view==="course"&&k==="courses");return `<button class="tab" data-go="${k}" aria-label="${t}" ${active?'aria-current="page"':''}>${I[k]}<span>${t}</span></button>`}).join("");
-  document.getElementById("sideTabs").innerHTML=html;
-  document.getElementById("bottomTabs").innerHTML=html;
+  document.getElementById("sideTabs").innerHTML=NAV.map(([k,t])=>tabHTML(k,t)).join("");
+  // bottom menu (phone/tablet): built once, then updated in place so the highlight slides between tabs
+  const bt=document.getElementById("bottomTabs");
+  if(!bt.querySelector(".tab-ind")){bt.innerHTML=`<i class="tab-ind" aria-hidden="true"></i>`+NAV.map(([k,t])=>tabHTML(k,t)).join("");
+    bt.addEventListener("pointerdown",e=>{if(e.target.closest(".tab")&&navigator.vibrate)try{navigator.vibrate(8)}catch(x){}},{passive:true});}
+  else NAV.forEach(([k,t])=>{const b=bt.querySelector(`[data-go="${k}"]`);if(navActive(k))b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");
+    b.setAttribute("aria-label",navLabel(k,t));const ic=b.querySelector(".tab-ic"),old=ic.querySelector(".tab-badge"),nb=navBadge(k);if(old)old.remove();if(nb)ic.insertAdjacentHTML("beforeend",nb);});
+  const ai=NAV.findIndex(([k])=>navActive(k));bt.style.setProperty("--i",ai);bt.classList.toggle("noind",ai<0);
   document.getElementById("sideBrand").innerHTML=BRAND;
 }
 function topbar(){
@@ -99,28 +114,39 @@ function nodeSub(l,done,open){
   if(done) return "Completed"; if(!open) return "Locked";
   return l.mode==="exit"?"Module check":l.mode==="final"?FINAL_BANK.length+" questions":l.mode==="diag"?"Ungraded":stepCount(l)+" steps";
 }
-function pathHTML(c){
+function pathHTML(c,compact){
   const offs=[0,48,72,48,0,-48,-72,-48];let n=0;const nxt=reqMet(c)?nextLesson(c):null;
-  return `<div class="path">`+c.units.map((u,ui)=>`<div class="unit"><span class="label">${c.units.length>1?"Part "+(ui+1)+" · ":""}${u.title}</span></div>`+u.lessons.map(l=>{
+  const nodes=u=>u.lessons.map(l=>{
     const done=S.done[l.id],open=isUnlocked(c,l),isNext=nxt&&nxt.id===l.id;const off=offs[n++%offs.length];
     const cls=done?"done":open?(isNext?"next":""):"locked";
     return `<button class="node ${cls}" style="--hue:var(${c.hue});transform:translateX(${off}px)" data-lesson="${l.id}" ${open?"":'aria-disabled="true"'}>
-      <span class="disc">${nodeIcon(l,done,open,isNext)}</span><span class="t">${l.title}</span><span class="s">${nodeSub(l,done,open)}</span></button>`}).join("")).join("")+`</div>`;
+      <span class="disc">${nodeIcon(l,done,open,isNext)}</span><span class="t">${l.title}</span><span class="s">${nodeSub(l,done,open)}</span></button>`}).join("");
+  const name=(u,ui)=>(c.units.length>1?"Part "+(ui+1)+" · ":"")+u.title;
+  // current part: the one holding the next lesson (or the first unfinished one)
+  const cur=c.units.findIndex(u=>u.lessons.some(l=>nxt&&l.id===nxt.id));
+  return `<div class="path">`+c.units.map((u,ui)=>{
+    if(!compact||ui===cur||cur<0) return `<div class="unit"><span class="label">${name(u,ui)}</span></div>`+nodes(u);
+    const d=u.lessons.filter(l=>S.done[l.id]).length,t=u.lessons.length,fin=d===t,k="path-"+c.id+"-"+ui,op=FOLD.has(k)?FOLD.get(k):false;
+    const body=nodes(u);
+    return `<details class="pfold ${fin?"fin":""}" data-fold="${k}"${op?" open":""}><summary><span class="pf-ic">${fin?I.check:I.lock}</span><span class="pf-t">${name(u,ui)}</span><span class="pf-m">${fin?"Completed":d?d+" of "+t+" done":t+" lesson"+(t>1?"s":"")}</span>${FOLD_CHEV}</summary><div class="pf-b">${body}</div></details>`;}).join("")+`</div>`;
 }
 function lockText(c){const m=(c.requires||[]).filter(id=>!courseDone(courseById(id))).map(id=>courseById(id).title);return m.length?"Complete "+(m.length>2?"all four modules":m.join(" and "))+" first":"";}
 const reviewCard=()=>{const n=reviewCount();return n?`<div class="revcard"><div class="icon" style="background:var(--bad)">${I.warn}</div><div><div class="label">Review</div><h3>${n} question${n>1?"s":""} to review</h3><p>Questions answered incorrectly on the first try. Each one clears when answered correctly.</p></div><button class="btn" data-act="review">Start review</button></div>`:""};
 function homeView(){
-  const c=activeCourse(),nl=nextLesson(c),h=new Date().getHours();
+  const c=activeCourse(),nl=nextLesson(c),h=new Date().getHours(),d=doneCount(c),t=allLessons(c).length;
   const greet=h<12?"Good morning":h<18?"Good afternoon":"Good evening";
-  const others=COURSES.filter(x=>x.id!==c.id);
-  return topbar()+`<div class="org"><img src="brand/hmcas-wordmark.webp" alt="Hamad Medical Corporation Ambulance Service"><span>Clinical Education · CPG v2.6</span></div><div class="hello"><h1>${greet}</h1><p>HMCAS CPG v2.6 update training for Ambulance Paramedics and Critical Care Paramedics. Four modules, about 3 hours in total.</p></div>
-  <div class="resume">${iconBox(c)}<div><div class="label">${c.category} · ${c.title}</div>
-    <h2>${nl?nl.title:"All modules complete"}</h2><p>${doneCount(c)} of ${allLessons(c).length} lessons done</p>
-    ${nl?`<button class="btn" data-lesson="${nl.id}">${I.play.replace('<svg','<svg width="18" height="18"')} ${doneCount(c)?"Continue":"Start"}</button>`:`<button class="btn ghost" data-go="profile">See your results</button>`}</div></div>
-  ${reviewCard()}
-  <div class="quick"><button class="qbtn" data-ref="${CHANGES[c.id]?c.id:"trauma"}">${I.book}<span><b>Quick reference</b><small>Every v2.6 change, one screen per module</small></span></button><button class="qbtn" data-deck="${CHANGES[c.id]?c.id:"trauma"}">${I.cards}<span><b>Flip cards</b><small>Habits to unlearn · ${CHANGES[c.id]?c.title:"Trauma"}</small></span></button></div>
-  <div class="section"><div class="section-head"><h2>${c.title}</h2><button class="link" data-course-open="${c.id}">Module overview</button></div>${pathHTML(c)}</div>
-  <div class="section"><div class="section-head"><h2>All modules</h2><button class="link" data-go="courses">View all</button></div><div class="grid">${others.map(courseCard).join("")}</div></div>`;
+  const cv=typeof MOD_COVERS!=="undefined"&&MOD_COVERS[c.id],dm=CHANGES[c.id]?c.id:"trauma",rv=reviewCount(),due=deckDue(dm);
+  const hero=`<div class="ccard ${cv?"pic":""}">${cv?`<img class="hero-img" src="${cv.img}" alt="" style="object-position:${cv.pos||"50% 50%"}">`:""}
+    <div class="hero-in"><span class="label">${c.category} · ${c.title}</span><h2>${nl?nl.title:"All modules complete"}</h2>
+    <div class="hero-prog"><div class="bar"><i style="width:${t?d/t*100:0}%"></i></div><span>${d} of ${t} lessons</span></div>
+    ${nl?`<button class="btn" data-lesson="${nl.id}">${I.play.replace('<svg','<svg width="18" height="18"')} ${d?"Continue":"Start"}</button>`:`<button class="btn" data-go="profile">See your results</button>`}</div></div>`;
+  const tile=(on,attrs,icon,title,sub)=>`<button class="stile ${on?"on":""}" ${attrs}>${icon}<b>${title}</b><small>${sub}</small></button>`;
+  const tiles=`<div class="stiles">${tile(rv,rv?'data-act="review"':'aria-disabled="true"',I.warn,"Review",rv?rv+" to review":"Nothing to review")}
+    ${tile(due,`data-deck="${dm}"`,I.cards,"Flip cards",due?due+" to revisit":CHANGES[dm].length+" cards")}
+    ${tile(false,`data-ref="${dm}"`,I.book,"Reference","Key v2.6 changes")}</div>`;
+  const path=`<div class="section"><div class="section-head"><h2>${c.title}</h2><button class="link" data-course-open="${c.id}">Module overview</button></div>${pathHTML(c,true)}</div>`;
+  return topbar()+`<div class="hello compact"><h1>${greet}</h1></div>
+  <div class="homegrid"><div class="hg-main">${hero}<div class="hg-mob">${tiles}</div>${path}</div><aside class="hg-side">${tiles}</aside></div>`;
 }
 function courseCard(c){
   const d=doneCount(c),t=allLessons(c).length,locked=!reqMet(c);
@@ -132,7 +158,7 @@ function coursesView(){
   const st=c=>{const d=doneCount(c),t=allLessons(c).length;return d===0?"Not started":d===t?"Completed":"In progress"};
   const list=COURSES.filter(c=>filter==="All"||st(c)===filter);
   const lastId=S.lastMod||activeCourse().id;
-  return topbar()+`<div class="hello"><h1>Modules</h1><p>Start with orientation, then take the four modules in any order. The final assessment unlocks when all four are complete.</p></div>
+  return topbar()+`<div class="hello compact"><h1>Modules</h1></div>
   <div class="section"><div class="chips scrollx" role="group" aria-label="Filter by status">${cats.map(k=>`<button class="chip" data-filter="${k}" aria-pressed="${filter===k}">${k}</button>`).join("")}</div>
   ${list.length?`<div class="modwrap"><button class="modnav prev" id="modPrev" aria-label="Previous module">${I.left}</button><div class="modrail" id="modRail" tabindex="0" aria-label="Modules, use the arrow keys to move between them">${list.map(c=>modCard(c,c.id===lastId)).join("")}</div><button class="modnav next" id="modNext" aria-label="Next module">${I.left}</button></div>${list.length>1?`<div class="modots" id="modDots">${list.map((c,i)=>`<button aria-label="Show ${c.title}" data-mdot="${i}"></button>`).join("")}</div>`:""}`:`<p class="note">Nothing here yet.</p>`}</div>`;
 }
@@ -142,7 +168,7 @@ function modCard(c,last){
   const act=locked?"":nl?`<button class="btn sm" data-lesson="${nl.id}">${d?"Continue":"Start"}</button>`:`<button class="btn sm" data-course-open="${c.id}">Review</button>`;
   return `<article class="modc ${locked?"locked":""} ${last?"is-last":""}" aria-label="${c.title}">
    ${(()=>{const cv=typeof MOD_COVERS!=="undefined"&&MOD_COVERS[c.id],top=`<div class="modc-top"><span class="label">${c.category}</span>${last?`<span class="modc-tag">Last visited</span>`:""}</div>`;
-     return cv?`<div class="modc-panel cover"><img class="modc-img" src="${cv.img}" alt="" style="object-position:${cv.pos||"50% 50%"}" draggable="false">${top}<div class="modc-badge">${iconBox(c,44)}</div></div>`:`<div class="modc-panel">${top}${iconBox(c,96)}</div>`})()}
+     return cv?`<div class="modc-panel cover"><img class="modc-img" src="${cv.img}" alt="" style="object-position:${cv.pos||"50% 50%"}" draggable="false">${top}</div>`:`<div class="modc-panel">${top}${iconBox(c,96)}</div>`})()}
    <h3>${c.title}</h3><p>${c.desc}</p>
    <div class="modc-stats"><div><span>Lessons</span><b>${d} / ${t}</b></div><div><span>Time</span><b>${c.minutes} min</b></div></div>
    ${locked?`<div class="lockline">${I.lock}${lockText(c)}</div>`:`<div class="bar"><i style="width:${t?d/t*100:0}%"></i></div>`}
@@ -222,33 +248,44 @@ function referenceView(){const list=S.refView==="list";
   return topbar()+`<div class="hello rvhead"><div><h1>Quick reference</h1><p>Key v2.6 changes grouped by topic. Available at any time, including on shift.</p></div>
    <div class="vtog" role="group" aria-label="Reference layout">${["books","list"].map(k=>`<button data-refview="${k}" aria-label="${k==="books"?"Books":"List"} view" aria-pressed="${(k==="list")===list}" title="${k==="books"?"Books":"List"} view">${RV_ICON[k]}</button>`).join("")}</div></div>
   ${list?refBooksList():`<div class="rs" id="rs" tabindex="-1"></div>`}
-  <div class="section">${list?"":`<div class="danger"><button class="btn" id="rsDeck" data-deck="${refMod}">${I.cards.replace('<svg','<svg width="18" height="18"')} <span>Flip cards · ${MODS[refMod]} (${CHANGES[refMod].length})</span></button><button class="btn ghost" id="rsMod" data-course-open="${refMod}">Open module</button></div>`}
+  <div class="section">${list?"":`<div class="danger"><button class="btn" id="rsDeck" data-deck="${refMod}">${I.cards.replace('<svg','<svg width="18" height="18"')} <span>${deckLabel(refMod)}</span></button><button class="btn ghost" id="rsMod" data-course-open="${refMod}">Open module</button></div>`}
   ${docLinks()}</div>`;
 }
 function confSection(){
   const E=Object.values(S.conf).filter(e=>e.c);
-  if(!E.length) return fold("conf","Confidence check",`<p class="note">Rate how sure you are when you answer. Your results will show here, including any answers you were certain of but got wrong.</p>`,{meta:"No answers rated yet"});
+  if(!E.length) return fold("conf","Confidence check",`<p class="note">Module checks and the final assessment ask how sure you are of each answer. Your results will show here, including any answers you were certain of but got wrong.</p>`,{meta:"No answers rated yet"});
   const fx=S.fixed||{},open=Object.keys(S.conf).filter(k=>S.conf[k].c==="sure"&&S.conf[k].ok===false&&!fx[k]).map(k=>S.conf[k]);
   const sureOk=E.filter(e=>e.c==="sure"&&e.ok).length, sureNo=E.filter(e=>e.c==="sure"&&!e.ok), guess=E.filter(e=>e.c==="guess").length;
   return fold("conf","Confidence check",`<div class="confgrid"><div class="tile"><b style="color:var(--good)">${sureOk}</b><span>Certain and right</span></div><div class="tile"><b style="color:var(--bad)">${sureNo.length}</b><span>Certain but wrong</span></div><div class="tile"><b style="color:var(--sun)">${guess}</b><span>Guessed</span></div></div>
    ${open.length?`<div class="rows">${open.map(e=>`<div class="row"><div class="icon" style="background:var(--bad)">${I.warn}</div><div style="min-width:0"><b>${e.label}</b><div class="note">You were certain, but this was wrong</div></div><button class="btn ghost sm" data-revisit="${e.lesson}">Revisit</button></div>`).join("")}</div>`:`<p class="note">No confident errors so far.</p>`}`,
    {meta:open.length?`${open.length} certain but wrong`:`${E.length} answers rated`,alert:open.length>0,auto:open.length>0});
 }
-const gateHTML=()=>`<div class="gate-card"><div class="visual">${V.org}</div>
-  <h1 id="gateT">CPG v2.6 Update</h1><p>Ambulance Paramedics and Critical Care Paramedics</p>
-  <span class="label">Orientation · 5 min</span><ol class="gate-steps"><li><b>1</b>Welcome</li><li><b>2</b>App tour</li><li><b>3</b>Warm-up</li></ol>
-  <button class="btn wide" data-lesson="in-1">${I.play.replace('<svg','<svg width="18" height="18"')} Begin orientation</button>
-  <p class="note">4 modules and a final assessment · approx. 3 hours · progress is saved automatically</p></div>`;
+const GATE_AMB="<svg class=\"amb\" viewBox=\"0 0 340 170\" aria-hidden=\"true\"><defs><clipPath id=\"ambClip\"><path d=\"M14 30Q14 20 24 20H222V128H14Z\"/><path d=\"M222 44H268Q278 44 284 52L312 92Q318 98 318 106V128H222Z\"/></clipPath><filter id=\"ambGlow\" x=\"-50%\" y=\"-200%\" width=\"200%\" height=\"500%\"><feGaussianBlur stdDeviation=\"6\"/></filter></defs>\n<ellipse cx=\"170\" cy=\"154\" rx=\"152\" ry=\"7\" fill=\"rgba(19,25,51,.16)\"/>\n<g class=\"amb-body\">\n <g class=\"amb-glow\" filter=\"url(#ambGlow)\"><rect class=\"l1\" x=\"122\" y=\"6\" width=\"36\" height=\"16\" rx=\"6\" fill=\"#2D7BFF\"/><rect class=\"l2\" x=\"162\" y=\"6\" width=\"36\" height=\"16\" rx=\"6\" fill=\"#2D7BFF\"/></g>\n <rect x=\"118\" y=\"10\" width=\"84\" height=\"11\" rx=\"4\" fill=\"#DCE3EE\"/><rect class=\"l1\" x=\"122\" y=\"11\" width=\"36\" height=\"9\" rx=\"3\" fill=\"#2D7BFF\"/><rect class=\"l2\" x=\"162\" y=\"11\" width=\"36\" height=\"9\" rx=\"3\" fill=\"#2D7BFF\"/>\n <path d=\"M14 30Q14 20 24 20H222V128H14Z\" fill=\"#fff\"/><path d=\"M222 44H268Q278 44 284 52L312 92Q318 98 318 106V128H222Z\" fill=\"#fff\"/>\n <g clip-path=\"url(#ambClip)\"><rect x=\"14\" y=\"84\" width=\"16\" height=\"16\" fill=\"#0F8A4B\"/><rect x=\"14\" y=\"100\" width=\"16\" height=\"16\" fill=\"#E5EE2A\"/><rect x=\"30\" y=\"84\" width=\"16\" height=\"16\" fill=\"#E5EE2A\"/><rect x=\"30\" y=\"100\" width=\"16\" height=\"16\" fill=\"#0F8A4B\"/><rect x=\"46\" y=\"84\" width=\"16\" height=\"16\" fill=\"#0F8A4B\"/><rect x=\"46\" y=\"100\" width=\"16\" height=\"16\" fill=\"#E5EE2A\"/><rect x=\"62\" y=\"84\" width=\"16\" height=\"16\" fill=\"#E5EE2A\"/><rect x=\"62\" y=\"100\" width=\"16\" height=\"16\" fill=\"#0F8A4B\"/><rect x=\"78\" y=\"84\" width=\"16\" height=\"16\" fill=\"#0F8A4B\"/><rect x=\"78\" y=\"100\" width=\"16\" height=\"16\" fill=\"#E5EE2A\"/><rect x=\"94\" y=\"84\" width=\"16\" height=\"16\" fill=\"#E5EE2A\"/><rect x=\"94\" y=\"100\" width=\"16\" height=\"16\" fill=\"#0F8A4B\"/><rect x=\"110\" y=\"84\" width=\"16\" height=\"16\" fill=\"#0F8A4B\"/><rect x=\"110\" y=\"100\" width=\"16\" height=\"16\" fill=\"#E5EE2A\"/><rect x=\"126\" y=\"84\" width=\"16\" height=\"16\" fill=\"#E5EE2A\"/><rect x=\"126\" y=\"100\" width=\"16\" height=\"16\" fill=\"#0F8A4B\"/><rect x=\"142\" y=\"84\" width=\"16\" height=\"16\" fill=\"#0F8A4B\"/><rect x=\"142\" y=\"100\" width=\"16\" height=\"16\" fill=\"#E5EE2A\"/><rect x=\"158\" y=\"84\" width=\"16\" height=\"16\" fill=\"#E5EE2A\"/><rect x=\"158\" y=\"100\" width=\"16\" height=\"16\" fill=\"#0F8A4B\"/><rect x=\"174\" y=\"84\" width=\"16\" height=\"16\" fill=\"#0F8A4B\"/><rect x=\"174\" y=\"100\" width=\"16\" height=\"16\" fill=\"#E5EE2A\"/><rect x=\"190\" y=\"84\" width=\"16\" height=\"16\" fill=\"#E5EE2A\"/><rect x=\"190\" y=\"100\" width=\"16\" height=\"16\" fill=\"#0F8A4B\"/><rect x=\"206\" y=\"84\" width=\"16\" height=\"16\" fill=\"#0F8A4B\"/><rect x=\"206\" y=\"100\" width=\"16\" height=\"16\" fill=\"#E5EE2A\"/><rect x=\"222\" y=\"84\" width=\"16\" height=\"16\" fill=\"#E5EE2A\"/><rect x=\"222\" y=\"100\" width=\"16\" height=\"16\" fill=\"#0F8A4B\"/><rect x=\"238\" y=\"84\" width=\"16\" height=\"16\" fill=\"#0F8A4B\"/><rect x=\"238\" y=\"100\" width=\"16\" height=\"16\" fill=\"#E5EE2A\"/><rect x=\"254\" y=\"84\" width=\"16\" height=\"16\" fill=\"#E5EE2A\"/><rect x=\"254\" y=\"100\" width=\"16\" height=\"16\" fill=\"#0F8A4B\"/><rect x=\"270\" y=\"84\" width=\"16\" height=\"16\" fill=\"#0F8A4B\"/><rect x=\"270\" y=\"100\" width=\"16\" height=\"16\" fill=\"#E5EE2A\"/><rect x=\"286\" y=\"84\" width=\"16\" height=\"16\" fill=\"#E5EE2A\"/><rect x=\"286\" y=\"100\" width=\"16\" height=\"16\" fill=\"#0F8A4B\"/><rect x=\"302\" y=\"84\" width=\"16\" height=\"16\" fill=\"#0F8A4B\"/><rect x=\"302\" y=\"100\" width=\"16\" height=\"16\" fill=\"#E5EE2A\"/></g>\n <path d=\"M14 30Q14 20 24 20H222V128H14Z\" fill=\"none\" stroke=\"#C9D2E3\" stroke-width=\"1.5\"/><path d=\"M222 44H268Q278 44 284 52L312 92Q318 98 318 106V128H222Z\" fill=\"none\" stroke=\"#C9D2E3\" stroke-width=\"1.5\"/>\n <path d=\"M232 54H264Q270 54 274 60L294 90H232Z\" fill=\"#BFD8F2\"/><rect x=\"232\" y=\"54\" width=\"10\" height=\"36\" fill=\"#fff\" opacity=\".35\"/>\n <rect x=\"170\" y=\"32\" width=\"44\" height=\"30\" rx=\"4\" fill=\"#BFD8F2\"/>\n <text x=\"122\" y=\"76\" text-anchor=\"middle\" font-family=\"system-ui,Segoe UI,Arial,sans-serif\" font-weight=\"800\" font-size=\"14\" letter-spacing=\"1.5\" fill=\"#0F8A4B\">AMBULANCE</text>\n <rect x=\"20\" y=\"28\" width=\"46\" height=\"94\" rx=\"3\" fill=\"#1E2638\"/>\n <g class=\"amb-door\"><rect x=\"20\" y=\"28\" width=\"46\" height=\"94\" rx=\"3\" fill=\"#fff\" stroke=\"#C9D2E3\" stroke-width=\"1.5\"/><rect x=\"28\" y=\"36\" width=\"30\" height=\"20\" rx=\"3\" fill=\"#BFD8F2\"/><path d=\"M43 64v12M37 70h12\" stroke=\"#2D7BFF\" stroke-width=\"4\" stroke-linecap=\"round\"/><rect x=\"20\" y=\"84\" width=\"16\" height=\"16\" fill=\"#0F8A4B\"/><rect x=\"20\" y=\"100\" width=\"16\" height=\"16\" fill=\"#E5EE2A\"/><rect x=\"36\" y=\"84\" width=\"16\" height=\"16\" fill=\"#E5EE2A\"/><rect x=\"36\" y=\"100\" width=\"16\" height=\"16\" fill=\"#0F8A4B\"/><rect x=\"52\" y=\"84\" width=\"14\" height=\"16\" fill=\"#0F8A4B\"/><rect x=\"52\" y=\"100\" width=\"14\" height=\"16\" fill=\"#E5EE2A\"/></g>\n <rect x=\"10\" y=\"94\" width=\"6\" height=\"14\" rx=\"2\" fill=\"#E5484D\"/><rect x=\"312\" y=\"98\" width=\"8\" height=\"10\" rx=\"2\" fill=\"#FFE29A\"/>\n <rect x=\"10\" y=\"122\" width=\"312\" height=\"9\" rx=\"4\" fill=\"#2B3445\"/>\n</g>\n<g class=\"amb-wheel\" style=\"transform-origin:72px 132px\"><circle cx=\"72\" cy=\"132\" r=\"21\" fill=\"#1E2638\"/><circle cx=\"72\" cy=\"132\" r=\"11\" fill=\"#C9D2E3\"/><path d=\"M61 132h22M72 121v22M64 124l16 16M80 124l-16 16\" stroke=\"#8E9AB3\" stroke-width=\"2\"/><circle cx=\"72\" cy=\"132\" r=\"4\" fill=\"#5B667E\"/></g><g class=\"amb-wheel\" style=\"transform-origin:262px 132px\"><circle cx=\"262\" cy=\"132\" r=\"21\" fill=\"#1E2638\"/><circle cx=\"262\" cy=\"132\" r=\"11\" fill=\"#C9D2E3\"/><path d=\"M251 132h22M262 121v22M254 124l16 16M270 124l-16 16\" stroke=\"#8E9AB3\" stroke-width=\"2\"/><circle cx=\"262\" cy=\"132\" r=\"4\" fill=\"#5B667E\"/></g></svg>";
+// first-launch screen: full-bleed fleet photo with the title and start button on it.
+// GATE_INTRO (the ambulance arrival, GATE_AMB above) is paused until an intro is chosen.
+const GATE_INTRO=false;
+const GATE_ARROW='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>';
+const gateHTML=()=>`<div class="gate-hero">
+  <div class="gh-top"><span class="gh-brand"><img src="brand/hmcas-wordmark.webp" alt="Hamad Medical Corporation Ambulance Service"></span></div>
+  <div class="gh-main"><span class="gh-kicker">HMCAS Training Department · eLearning</span>
+   <h1 id="gateT">CPG v2.6 UPDATE</h1>
+   <p class="gh-sub">Ambulance Paramedics and Critical Care Paramedics</p>
+   <button class="gh-cta" data-lesson="in-1"><span class="gh-pill">Start the course</span><span class="gh-circ">${GATE_ARROW}</span></button>
+   <ul class="gh-steps"><li><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c1-3.6 3.8-5.4 7-5.4s6 1.8 7 5.4"/></svg></b>Learner focused</li><li><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3 16 5-5 4 4 3-3 6 6"/></svg></b>Realistic scenarios</li><li><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg></b>Meaningful practice</li></ul></div>
+  <p class="gh-note gh-quote">“Every guideline learned today is a better decision on tomorrow’s call.”</p></div>`;
 function render(){
   renderNav();
-  const mn=document.getElementById("main");mn.classList.toggle("wide",view==="reference");
+  const mn=document.getElementById("main");mn.classList.toggle("wide",view==="reference");mn.classList.toggle("homewide",view==="home");
   mn.innerHTML=view==="reference"?referenceView():view==="courses"?coursesView():view==="profile"?profileView():view==="course"?courseDetail():homeView();
   if(typeof rsMount==="function"){if(view==="reference")rsMount();else rsUnmount();}
   if(view==="courses")modsMount();
   // first-launch gate: until Welcome is done, the only way in is Start Here (the player sits above it)
   let g=document.getElementById("gate");const need=!S.done["in-1"];
   if(need&&!g){g=document.createElement("div");g.id="gate";g.className="gate";g.setAttribute("role","dialog");g.setAttribute("aria-modal","true");g.setAttribute("aria-labelledby","gateT");document.body.appendChild(g);}
-  if(need){g.innerHTML=gateHTML();if(!P)g.querySelector(".btn").focus();}else if(g)g.remove();
+  if(need&&!g.dataset.built){g.dataset.built=1;g.innerHTML=gateHTML();let seen=false;try{seen=sessionStorage.getItem("cpg26-gate")==="1";sessionStorage.setItem("cpg26-gate","1")}catch(e){}
+    if(GATE_INTRO&&!seen&&!matchMedia("(prefers-reduced-motion: reduce)").matches){g.classList.add("intro");const end=()=>g.classList.remove("intro");g.addEventListener("pointerdown",e=>{if(!e.target.closest(".gh-cta"))end()});setTimeout(end,3200);}
+    if(!P)g.querySelector(".gh-cta").focus({preventScroll:true});}
+  else if(!need&&g)g.remove();
 }
 function go(v,cid){view=v;courseView=cid||null;confirmReset=false;if(v==="course"&&cid&&S.lastMod!==cid){S.lastMod=cid;save();}
   const h=v==="course"?"module-"+cid:v; if(location.hash!=="#"+h){try{history.replaceState(null,"","#"+h)}catch(e){}} render(); window.scrollTo(0,0);}
@@ -262,6 +299,8 @@ let P=null;
 /* ---------- review queue: questions answered incorrectly on the first try, asked again until answered correctly ---------- */
 const missedKeys=()=>Object.keys(S.conf).filter(k=>S.conf[k].ok===false&&!(S.fixed||{})[k]);
 function reviewStep(k){
+  if(k.includes("@")){const [b,node]=k.split("@"),[lid,i]=b.split("#"),L=lessonById(lid),s=L&&L.l.steps&&L.l.steps[+i],n=s&&s.type==="walk"&&s.nodes[node];if(!n||!n.opts)return null;
+    const ord=shuffle(n.opts.map((_,j)=>j)),ok=n.opts.find(x=>x.to);return {type:"choice",label:"Review · "+(s.title||"Algorithm"),scope:s.scope,intro:`<b>Case:</b> ${s.case}`,prompt:n.q,options:ord.map(j=>n.opts[j].t),answer:ord.findIndex(j=>n.opts[j].to),fb:ord.map(j=>n.opts[j].why||null),explain:ok?ok.t+".":"",src:s.src,_key:k};}
   if(k.includes("#")){const [lid,i]=k.split("#"),L=lessonById(lid);if(!L||L.l.bank)return null;const s=L.l.steps[+i];return s&&QTYPES.includes(s.type)?{...s,_key:k}:null;}
   const q=[...QB,...FQ].find(x=>x.id===k);return q?{type:"choice",label:"Review · "+MODS[q.mod],...shuffleOpts(q),_key:k}:null;}
 function openReview(){const steps=missedKeys().map(reviewStep).filter(Boolean).slice(0,5);if(!steps.length)return;
@@ -273,10 +312,10 @@ function openLesson(lid,opts={}){
   S.current=f.c.id;S.lastMod=f.c.id;save();
   P={c:f.c,l:f.l,mode:f.l.mode||"practice",steps:stepsFor(f.l),i:0,answers:[],watched:S.video,right:0,asked:0};
   if(f.l.scene){P.txMode=opts.txMode||(f.l.txRun||f.l.thRun||f.l.rxRun?"independent":"guided");P.thTemp=["th-4","th-5"].includes(f.l.id)?36.0:null;P.thHints={};P.thHintKeys={};P.t0=Date.now();P.txEvents=[];P.runCase=f.l.txRun?txRunCase():null;P.lab=null;txStartRunTimer();}
-  resetStep();
+  benchResume(f);resetStep();
   document.getElementById("player").hidden=false;document.body.style.overflow="hidden";drawPlayer();
 }
-function resetStep(){P.watchDone=false;P.sx=null;P.chartOpen=false;P.sel=null;P.val="";P.multi=[];P.sort={};P.match={};P.matchSel=null;P.matchOrd=null;P.ord=[];P.ordMix=null;P.status="idle";P.firstTry=true;P.conf=null;P.tries=0;P.cur=null;P.trail=[];P.why=null;P.whyIdx=null;P.walkMiss=false;P.sv=null;P.scC=null;P.goalMet=false;P.rb=null;P.rbPick={};}
+function resetStep(){P.watchDone=false;P.sx=null;P.chartOpen=false;P.sel=null;P.val="";P.multi=[];P.sort={};P.match={};P.matchSel=null;P.matchOrd=null;P.ord=[];P.ordMix=null;P.status="idle";P.firstTry=true;P.conf=null;P.tries=0;P.cur=null;P.trail=[];P.why=null;P.whyIdx=null;P.walkMiss=false;P.wOrd={};P.wMiss=[];P.wRun=1;P.sv=null;P.scC=null;P.goalMet=false;P.rb=null;P.rbPick={};P.ci=0;P.chainMiss=false;P.scRes=null;P.scMiss=false;}
 let simOpen=false;
 function openSim(){
   const w=document.getElementById("simwrap");simOpen=true;w.hidden=false;
@@ -292,8 +331,13 @@ window.addEventListener("message",e=>{
     const m=document.getElementById("simmsg");if(m)m.innerHTML=`<div class="simdone" role="status">${I.check}Completion recorded${score!=null?" · score "+score+"%":""}. You can go back to the lesson.</div>`;};
   setTimeout(record,400);
 });
-function openDeck(mod){P={mode:"deck",mod,cards:CHANGES[mod].map((c,i)=>({...c,key:mod+i})),ci:0,flipped:false,known:0,again:[]};document.getElementById("player").hidden=false;document.body.style.overflow="hidden";drawPlayer();}
-function closeLesson(){if(P){clearInterval(P.tick);clearInterval(P.infT);}txHush();const pl=document.getElementById("player");pl.classList.remove("scene");document.getElementById("player").hidden=true;document.body.style.overflow="";P=null;render();}
+// flip cards: S.cards[key] is true (got it) or false (still learning, remembered between sessions); still-learning cards come first, then unseen, then known
+const deckKey=(m,c)=>m+":"+c.f;
+const deckDue=m=>(CHANGES[m]||[]).filter(c=>S.cards[deckKey(m,c)]===false).length;
+const deckLabel=m=>{const d=deckDue(m);return `Flip cards · ${MODS[m]}${d?` · ${d} to revisit`:` (${(CHANGES[m]||[]).length})`}`};
+function openDeck(mod){const rank=c=>{const v=S.cards[deckKey(mod,c)];return v===false?0:v===undefined?1:2};
+  P={mode:"deck",mod,cards:CHANGES[mod].map(c=>({...c,key:deckKey(mod,c)})).map((c,i)=>({c,i})).sort((a,b)=>rank(a.c)-rank(b.c)||a.i-b.i).map(x=>x.c),ci:0,flipped:false,known:0,again:[]};document.getElementById("player").hidden=false;document.body.style.overflow="hidden";drawPlayer();}
+function closeLesson(){if(P){clearInterval(P.tick);clearInterval(P.infT);}txHush();const pl=document.getElementById("player");pl.classList.remove("scene","prepbench");document.getElementById("player").hidden=true;document.body.style.overflow="";P=null;render();}
 const assessMode=()=>P.mode==="diag"||P.mode==="final"||(P.mode==="exit"&&!hasFinalQs(P.l.bank)); // no per-question feedback; a module check gets feedback only once the final no longer reuses its questions
 
 function badges(s){
@@ -312,7 +356,7 @@ const locked=()=>P.status==="right"||P.status==="revealed";
 
 function stepBody(s){
   const lab=s.label?`<span class="label">${s.label}</span>`:"";
-  if(s.type==="read") return `${badges(s)}${s.top&&s.visual?`<div class="visual">${V[s.visual]}</div>`:""}<h2>${s.title}</h2>${s.body?`<p>${s.body}</p>`:""}${s.ptitle?`<span class="label">${s.ptitle}</span>`:""}${s.points?`<ul>${s.points.map(p=>`<li>${p}</li>`).join("")}</ul>`:""}${s.visual&&!s.top?`<div class="visual">${V[s.visual]}</div>`:""}${s.docs?docLinks():""}${s.foot?`<p class="note">${s.foot}</p>`:""}${pendingBox(s.pending)}${srcLine(s)}`;
+  if(s.type==="read") return `${badges(s)}${s.top&&s.visual?`<div class="visual">${V[s.visual]}</div>`:""}<h2>${s.title}</h2>${s.body?`<p>${s.body}</p>`:""}${s.ptitle?`<span class="label">${s.ptitle}</span>`:""}${s.points?`<${s.ol?"ol":"ul"}>${s.points.map(p=>`<li>${p}</li>`).join("")}</${s.ol?"ol":"ul"}>`:""}${s.visual&&!s.top?`<div class="visual">${V[s.visual]}</div>`:""}${s.docs?docLinks():""}${s.foot?`<p class="note">${s.foot}</p>`:""}${pendingBox(s.pending)}${srcLine(s)}`;
   if(s.type==="choice") return `${badges(s)}${s.intro?`<div class="info">${s.intro}</div>`:""}${lab}<h2>${s.prompt}</h2>${s.visual?`<div class="visual">${V[s.visual]}</div>`:""}<div class="opts" role="radiogroup" aria-label="Answer options">${s.options.map((o,i)=>{
       const L=locked(),rv=P.status==="revealed"&&P.sel!==null&&P.sel!==s.answer;if(L&&i!==s.answer&&!(rv&&i===P.sel))return ""; // after answering, keep only the correct option (and the learner's wrong pick when revealed)
       let cls="";if(L&&i===s.answer)cls="right";else if((P.status==="wrong"||P.status==="revealed")&&i===P.sel)cls="wrong";
@@ -346,16 +390,26 @@ function stepBody(s){
       <div><button class="btn" data-act="sim-open">${I.play.replace('<svg','<svg width="18" height="18"')} ${d?"Open simulation again":"Start simulation"}</button></div></div></div>
     <div class="simalt"><span>Prefer a full browser window? <a href="txa-sim/index.html" target="_blank" rel="noopener">Open the simulation in a new tab</a>. Completion in a new tab can't be detected automatically, so mark it below.</span>
       ${d?"":`<button class="tog" data-act="sim-manual" aria-pressed="${!!P.simManual}" style="justify-self:start"><i>${P.simManual?I.check:""}</i>I completed independent mode in a new tab</button>`}</div>${srcLine(s)}`;}
-  if(s.type==="scrub"){const D=SCRUB[s.scrub],C=scrubC(D),v=scrubV(C);if(D.goal&&D.goal.test(v,C))P.goalMet=true;
+  if(s.type==="scrub"){const D=SCRUB[s.scrub],C=scrubC(D),v=scrubV(C);if(D.goal&&!D.confirm&&D.goal.test(v,C))P.goalMet=true;
     return `${badges(s)}<span class="label">${s.label||"Explore"}</span><h2>${D.title}</h2><p>${D.intro}</p>${D.goal?goalHTML(D):""}
     <div class="scrub">${C.map(c=>`<label class="sc-c"><span>${c.label}<b id="scv-${c.k}">${c.fmt(v[c.k])}</b></span><input type="range" min="${c.min}" max="${c.max}" step="${c.step}" value="${v[c.k]}" data-scrub="${c.k}" aria-valuetext="${c.fmt(v[c.k])}"></label>`).join("")}
-    <div class="sc-out" id="scOut">${D.view(v,C)}</div></div>${srcLine({src:D.src})}`;}
+    <div class="sc-out" id="scOut">${D.view(v,C,P.scRes)}</div>${D.confirm&&!P.goalMet?`<button class="btn sc-confirm" data-scconfirm="1">Confirm</button>`:""}</div>${srcLine({src:D.src})}`;}
   if(s.type==="racebench") return raceBody(s);
-  if(s.type==="walk"){const cur=P.cur||s.start,n=s.nodes[cur];
-    return `${badges(s)}<span class="label">${s.label}</span><h2>${s.title}</h2><div class="case"><span class="label">Case</span><p>${s.case}</p></div>
-    ${P.trail.length?`<div class="trail">${P.trail.map(t=>`<div class="crumb">${I.check}<span>${t.q}</span><b>${t.a}</b></div>`).join("")}</div>`:""}
-    ${n.end?`<div class="wend ${n.tone}" role="status"><span class="label">Outcome</span><b>${n.end}</b></div>`
-      :`<div class="wq"><h3>${n.q}</h3><div class="wopts">${n.opts.map((o,i)=>`<button class="opt ${P.whyIdx===i?"wrong":""}" data-walk="${i}">${o.t}</button>`).join("")}</div>${P.why?`<div class="why" role="status"><b>Incorrect.</b> ${P.why}</div>`:""}</div>`}${srcLine(s)}`;}
+  if(s.type==="chartpick") return chartpickBody(s);
+  if(s.type==="chain") return chainBody(s);
+  if(s.type==="walk"){const cur=P.cur||s.start,n=s.nodes[cur],ord=n.opts?(P.wOrd[cur]||(P.wOrd[cur]=shuffle(n.opts.map((_,i)=>i)))):[];
+    const asked=P.trail.length,miss=P.wMiss.length,firstOk=asked-miss,again=walkNeedsRerun(s),ev=P.why&&n.opts?n.opts[P.whyIdx].ev:undefined;
+    const caseBox=s.facts?`<div class="case"><span class="label">Case</span><div class="wfacts">${s.facts.map((t,i)=>`<span class="wfact ${ev===i?"hl":""}">${t}</span>`).join("")}</div></div>`:`<div class="case"><span class="label">Case</span><p>${s.case}</p></div>`;
+    return `${badges(s)}<span class="label">${s.label}</span><h2>${s.title}</h2>${caseBox}
+    ${P.wRun>1?`<p class="note wrun">Second run</p>`:""}
+    <div class="wgrid ${n.end?"ended":""}"><div class="wmapcol">${walkMap(s,!!n.end)}</div><div class="wqcol">
+    ${n.end?`<div class="wend ${n.tone}" role="status"><span class="label">Outcome</span><b>${n.end}</b></div>
+      <div class="wsum ${miss?(again?"bad":"mid"):"good"}" role="status"><span class="label">${P.wRun>1?"Second run":"Result"}</span><b>${firstOk} of ${asked} steps correct first time</b>
+      ${miss?`<ul>${P.wMiss.map(m=>`<li><span>${m.q}</span><b>${m.a}</b></li>`).join("")}</ul>${P.mode==="practice"?`<p class="note">Missed steps are added to the review queue.</p>`:""}`:""}
+      ${again?`<p class="note">2 or more steps were missed. Complete one more run to continue.</p>`:""}</div>
+      ${s.ref?`<button class="wref" data-refpeek="${s.ref}">${I.book} Open this algorithm in Reference</button>`:""}`
+      :`<div class="wq"><span class="label">Step ${walkPath(s).indexOf(cur)+1} of ${walkPath(s).length-1}</span><h3>${n.q}</h3>${P.why?`<div class="why" role="status"><b>Incorrect.</b> <span class="wpick">You chose: ${n.opts[P.whyIdx].t}</span> ${P.why}${ev!==undefined?`<span class="wev">The deciding fact is highlighted in the case.</span>`:""}</div><button class="btn ghost" data-walkretry="1">Try again</button>`
+        :`<div class="wopts">${ord.map(i=>`<button class="opt" data-walk="${i}">${n.opts[i].t}</button>`).join("")}</div>`}</div>`}</div></div>${srcLine(s)}`;}
   return "";
 }
 // interactive diagram helpers (content in js/content/scrubs.js)
@@ -364,8 +418,10 @@ const scrubV=C=>P.sv||(P.sv=Object.fromEntries(C.map(c=>[c.k,c.val])));
 const goalHTML=D=>`<div class="goal ${P.goalMet?"met":""}" id="scGoal" role="status"><span class="gi">${P.goalMet?I.check:I.flag}</span><div><span class="label">${P.goalMet?"Task complete":"Task"}</span><p>${P.goalMet?D.goal.done:D.goal.text}</p></div></div>`;
 function scrubWire(el,s){const D=SCRUB[s.scrub],C=scrubC(D);
   el.querySelectorAll("[data-scrub]").forEach(inp=>inp.addEventListener("input",()=>{const k=inp.dataset.scrub,c=C.find(x=>x.k===k);P.sv[k]=+inp.value;
-    const t=c.fmt(P.sv[k]);el.querySelector("#scv-"+k).textContent=t;inp.setAttribute("aria-valuetext",t);el.querySelector("#scOut").innerHTML=D.view(P.sv,C);
-    if(D.goal&&!P.goalMet&&D.goal.test(P.sv,C)){P.goalMet=true;el.querySelector("#scGoal").outerHTML=goalHTML(D);const b=el.querySelector(".p-foot .btn");if(b){b.disabled=false;b.textContent="Continue";}}}));}
+    const t=c.fmt(P.sv[k]);el.querySelector("#scv-"+k).textContent=t;inp.setAttribute("aria-valuetext",t);if(D.confirm&&!P.goalMet)P.scRes=null;el.querySelector("#scOut").innerHTML=D.view(P.sv,C,P.scRes);
+    if(D.goal&&!D.confirm&&!P.goalMet&&D.goal.test(P.sv,C)){P.goalMet=true;el.querySelector("#scGoal").outerHTML=goalHTML(D);const b=el.querySelector(".p-foot .btn");if(b){b.disabled=false;b.textContent="Continue";}}}));}
+// scrub with confirm:true: nothing is revealed while the slider moves; Confirm checks the setting
+function scrubConfirm(){const s=P.steps[P.i],D=SCRUB[s.scrub],C=scrubC(D),ok=D.goal.test(P.sv,C);P.scRes=ok?"ok":"wrong";if(ok)P.goalMet=true;else P.scMiss=true;drawPlayer(ok?".p-foot .btn":"[data-scconfirm]");}
 // case thread: a step with `story` starts (or, with "", ends) a patient that stays on screen for the following steps
 const storyHTML=s=>{if(["walk","racebench"].includes(s.type)||!P.steps)return "";let t="";for(let k=0;k<=P.i;k++)if(P.steps[k].story!==undefined)t=P.steps[k].story;
   return t?`<div class="story"><span class="label">Case</span><b>${t}</b></div>`:""};
@@ -374,13 +430,53 @@ const picHTML=s=>{let k=s.pic,cap="";if(s.type==="walk"){const n=s.nodes[P.cur||
   const p=k&&typeof SCENES!=="undefined"&&SCENES[k];if(!p)return "";
   if(SCENE_LAYOUT==="overlay") return `<figure class="scenepic full${cap?" after":""}${locked()&&QTYPES.includes(s.type)?" answered":""}"><img src="${p.img}" alt="${p.alt}" style="object-position:${p.pos||"50% 50%"}" draggable="false">${cap?`<span class="sp-cap">${I.check}${cap}</span>`:""}<figcaption class="sp-txt"></figcaption></figure>`;
   return `<figure class="scenepic${cap?" after":""}"><img src="${p.img}" alt="${p.alt}" style="object-position:${p.pos||"50% 50%"}" draggable="false">${cap?`<figcaption>${cap}</figcaption>`:""}</figure>`};
+// algorithm map: the correct route as a flowchart. Decision nodes (short options, or branch:true) show their label (node.short) and
+// the other answers as faint side branches; action steps stay hidden until answered so the map never gives an answer away.
+const walkPath=s=>{const ids=[];let id=s.start;while(id&&!ids.includes(id)){ids.push(id);const n=s.nodes[id];if(!n||n.end)break;const o=n.opts.find(x=>x.to);id=o&&o.to;}return ids};
+const walkDec=n=>n.branch!==undefined?n.branch:!!n.opts&&n.opts.length>1&&n.opts.every(o=>o.t.length<=24);
+function walkMap(s,full){const ids=walkPath(s),cur=P.cur||s.start,ci=ids.indexOf(cur),miss=new Set(P.wMiss.map(m=>m.node));
+  return `<ol class="wmap ${full?"full":""}" aria-label="Algorithm progress">${ids.map((id,i)=>{const n=s.nodes[id],st=i<ci?"done":i===ci?"cur":"todo";
+    if(n.end){const t=n.end.split(/(?<=\.)\s/)[0];return `<li class="wn end ${st} ${n.tone||""}"><span class="wn-b">${st==="cur"?t:"Outcome"}</span></li>`;}
+    const ok=n.opts.find(o=>o.to),dec=walkDec(n),lab=n.short?`<b>${n.short}</b>`:"";
+    const box=st==="done"?`${lab}<span>${ok?ok.t:""}</span>`:n.short?lab:`<span>Step ${i+1}</span>`;
+    const alt=dec?`<span class="wn-alt">${n.opts.filter(o=>!o.to).map(o=>`<i>${o.t}</i>`).join("")}</span>`:"";
+    return `<li class="wn ${st}${miss.has(id)&&st==="done"?" miss":""}${dec?" dec":""}"><span class="wn-b">${box}</span>${alt}</li>`;}).join("")}</ol>`;}
+// step-by-step algorithm (walk): a wrong pick shows why and hides the options until "Try again" (then reshuffled);
+// each node missed on the first try is counted, listed at the end and added to the review queue; 2+ misses = one more run before Continue
+const walkNeedsRerun=s=>P.wRun===1&&P.wMiss.length>=2&&P.mode==="practice"&&!!s.nodes[P.cur||s.start].end;
 function walkPick(i){
-  const s=P.steps[P.i],n=s.nodes[P.cur||s.start],o=n.opts[i];
-  if(o.why){P.why=o.why;P.whyIdx=i;P.walkMiss=true;drawPlayer(`[data-walk="${i}"]`);return;}
-  P.trail.push({q:n.q,a:o.t});P.cur=o.to;P.why=null;P.whyIdx=null;
-  drawPlayer(s.nodes[o.to].end?".p-foot .btn":'[data-walk="0"]');
+  const s=P.steps[P.i],cur=P.cur||s.start,n=s.nodes[cur],o=n.opts[i];
+  if(o.why){P.why=o.why;P.whyIdx=i;P.walkMiss=true;
+    if(!P.wMiss.some(m=>m.node===cur)){const ok=n.opts.find(x=>x.to);P.wMiss.push({node:cur,q:n.q,a:ok?ok.t:""});
+      if(P.wRun===1&&P.mode==="practice"&&P.l){S.conf[P.l.id+"#"+P.i+"@"+cur]={c:null,ok:false,lesson:P.l.id,label:P.l.title+" · "+(s.title||"algorithm")};save();}}
+    drawPlayer("[data-walkretry]");return;}
+  P.trail.push({q:n.q,a:o.t,miss:P.wMiss.some(m=>m.node===cur)});P.cur=o.to;P.why=null;P.whyIdx=null;
+  drawPlayer(s.nodes[o.to].end?".p-foot .btn":".wopts .opt");
 }
-const QTYPES=["choice","multi","sort","match","input","order","racebench"];
+function walkRetry(){const s=P.steps[P.i],cur=P.cur||s.start;P.why=null;P.whyIdx=null;P.wOrd[cur]=shuffle(s.nodes[cur].opts.map((_,i)=>i));drawPlayer(".wopts .opt");}
+function walkRerun(){P.cur=null;P.trail=[];P.why=null;P.whyIdx=null;P.wOrd={};P.wMiss=[];P.wRun=2;drawPlayer(".wopts .opt");}
+// numeric answers: "24", "24 mL", "1,000" all compare as numbers
+const numKey=v=>String(v||"").trim().replace(/,/g,"").replace(/\s*[a-zµ/]+$/i,"");
+const numEq=(v,a)=>{const k=numKey(v);return k!==""&&!isNaN(+k)&&Math.abs(+k-(+a))<1e-9};
+/* ---------- chartpick: tap the row of the paediatric TXA chart (s.age, s.col = dose | volume | drawOut) ---------- */
+const CP_COLS={weight:["Weight","kg"],dose:["Dose","mg"],volume:["Volume","mL"],drawOut:["Draw out","mL"]};
+function chartpickBody(s){const L=locked(),rows=TX_CHART.filter(r=>r.age<14),lab=s.label?`<span class="label">${s.label}</span>`:"";
+  const cell=(r,c)=>r[c]==null?"–":r[c]+" "+CP_COLS[c][1];
+  return `${badges(s)}${lab}<h2>${s.prompt}</h2><div class="cpick" role="radiogroup" aria-label="Paediatric TXA dose chart">
+   <div class="cp-row cp-head"><span>Age</span>${Object.keys(CP_COLS).map(c=>`<span class="${c===s.col?"on":""}">${CP_COLS[c][0]}</span>`).join("")}</div>
+   <div class="cp-row cp-inf"><span>0–12 mo</span><span class="cp-span">(months × 0.5) + 4 kg · 15 mg/kg · ÷ 10 mg/mL</span></div>
+   ${rows.map(r=>{const st=L&&r.age===s.age?"right":(P.status==="wrong"||P.status==="revealed")&&r.age===P.sel?"wrong":"";
+     return `<button class="cp-row ${st} ${r.age>=8?"big":""}" role="radio" aria-checked="${P.sel===r.age}" data-cpick="${r.age}" ${L?"disabled":""}><span>${r.age} y</span>${Object.keys(CP_COLS).map(c=>`<span class="${c===s.col?"on":""}">${cell(r,c)}</span>`).join("")}</button>`}).join("")}
+  </div><p class="note">From 8 years (or over 30 kg) draw out and discard the chart volume, then give the remainder.</p>${srcLine(s)}`;}
+function cpickFb(s){const r=TX_CHART.find(x=>x.age===P.sel);if(s.col==="drawOut"&&r&&r.drawOut==null)return `You chose the ${P.sel}-year row. Under 8 years there is no draw-out volume: the dose is drawn up from the bag. Check the child's age again.`;
+  return `You chose the ${P.sel}-year row. Check the child's age in the question and use that row.`;}
+/* ---------- chain: a calculation in linked lines; each line opens once the one before it is correct ---------- */
+function chainBody(s){const L=locked(),lab=s.label?`<span class="label">${s.label}</span>`:"";
+  return `${badges(s)}${s.intro?`<div class="info">${s.intro}</div>`:""}${lab}<h2>${s.prompt}</h2><ol class="chain">${s.fields.map((f,i)=>{
+    const done=L||i<P.ci,cur=!L&&i===P.ci,st=done?"ok":cur?(P.status==="wrong"?"wrong":"cur"):"todo";
+    return `<li class="ch-l ${st}"><span class="ch-k">${f.lab}</span><span class="ch-e">${f.expr} =</span>
+     ${done?`<b class="ch-v">${f.answer} ${f.unit}</b>`:cur?`<span class="ans ch-in"><input id="ansInput" inputmode="decimal" autocomplete="off" aria-label="${f.lab}" value="${P.val}"><span>${f.unit}</span></span>`:`<span class="ch-v ch-q">… ${f.unit}</span>`}</li>`}).join("")}</ol>${srcLine(s)}`;}
+const QTYPES=["choice","multi","sort","match","input","order","racebench","chartpick","chain"];
 const needConf=()=>P.mode==="exit"||P.mode==="final";
 const canCheck=s=>isReady(s)&&(!needConf()||P.conf);
 function confNote(ok){
@@ -397,7 +493,7 @@ function deckHTML(){
   const n=P.cards.length;
   if(P.ci>=n){
     return `<div></div><div class="p-body"><div class="done"><div class="burst">${I.cards}</div><h1 style="font-size:2rem">Deck complete</h1><p class="note">${MODS[P.mod]} · what changed in v2.6</p>
-     <div class="tiles" style="grid-template-columns:1fr 1fr"><div class="tile"><b style="color:var(--good)">${P.known}</b><span>Got it</span></div><div class="tile"><b style="color:var(--sun)">${P.again.length}</b><span>Still learning</span></div></div></div></div>
+     <div class="tiles" style="grid-template-columns:1fr 1fr"><div class="tile"><b style="color:var(--good)">${P.known}</b><span>Got it</span></div><div class="tile"><b style="color:var(--sun)">${P.again.length}</b><span>Still learning</span></div></div>${P.again.length?`<p class="note">Cards marked Still learning come first the next time you open this deck.</p>`:""}</div></div>
      <div class="p-foot"><div class="foot-in"><div class="foot-btns">${P.again.length?`<button class="btn ghost" data-act="deck-again">Review ${P.again.length} again</button>`:""}<button class="btn" data-act="finish">Done</button></div></div></div>`;
   }
   const c=P.cards[P.ci];
@@ -417,6 +513,8 @@ function isReady(s){
   if(s.type==="order") return P.ord.length===s.items.length;
   if(s.type==="input") return P.val.trim()!=="";
   if(s.type==="racebench") return rbReady();
+  if(s.type==="chartpick") return P.sel!==null;
+  if(s.type==="chain") return P.val.trim()!=="";
   return true;
 }
 function footHTML(s){
@@ -425,11 +523,12 @@ function footHTML(s){
   if(s.type==="watch") return `<button class="btn wide" data-act="next" ${!s.src||P.watchDone?"":"disabled"}>Continue</button>`;
   if(s.type==="sim"){const ok=(S.sim&&S.sim.done)||P.simManual;return `<button class="btn wide" data-act="next" ${ok?"":"disabled"}>${ok?"Continue":"Finish independent mode to continue"}</button>`;}
   if(s.type==="scrub"){const D=SCRUB[s.scrub],ok=!D.goal||P.goalMet;return `<button class="btn wide" data-act="next" ${ok?"":"disabled"}>${ok?"Continue":"Complete the task to continue"}</button>`;}
-  if(s.type==="walk") return s.nodes[P.cur||s.start].end?`<button class="btn wide" data-act="next">Continue</button>`:`<button class="btn wide" disabled>Work through the algorithm to continue</button>`;
+  if(s.type==="walk") return s.nodes[P.cur||s.start].end?(walkNeedsRerun(s)?`<button class="btn wide" data-walkrerun="1">Run it again</button>`:`<button class="btn wide" data-act="next">Continue</button>`):`<button class="btn wide" disabled>Work through the algorithm to continue</button>`;
   if(P.status==="idle"&&P.mode==="diag") return "";
-  if(P.status==="idle"){const conf=P.mode!=="diag"&&QTYPES.includes(s.type)?`<div class="conf" role="group" aria-label="How sure are you?"><span class="label">How sure are you?${needConf()?"":" · optional"}</span>${CONF.map(([k,t])=>`<button class="cbtn" data-conf="${k}" aria-pressed="${P.conf===k}">${t}</button>`).join("")}</div>`:"";
-    return `${conf}<button class="btn wide" data-act="check" ${canCheck(s)?"":"disabled"}>${assessMode()?"Submit answer":"Check"}</button>`;}
-  const fbText=s.fb&&P.sel!==null&&s.fb[P.sel]?s.fb[P.sel]:s.type==="order"?"Items in red are in the wrong position.":s.type==="match"?"Definitions in red are on the wrong term.":s.type==="racebench"?"Rows in red are scored incorrectly. Check them against the RACE table.":"Have another look and try again.";
+  if(P.status==="idle"){const conf=needConf()&&QTYPES.includes(s.type)?`<div class="conf" role="group" aria-label="How sure are you?"><span class="label">How sure are you?</span>${CONF.map(([k,t])=>`<button class="cbtn" data-conf="${k}" aria-pressed="${P.conf===k}">${t}</button>`).join("")}</div>`:"";
+    return `${conf}<button class="btn wide" data-act="check" ${canCheck(s)?"":"disabled"}>${assessMode()?"Submit answer":s.type==="chain"&&P.ci<s.fields.length-1?"Check this line":"Check"}</button>`;}
+  const fbv=s.type==="chain"?s.fields[P.ci].fbv:s.fbv,fbKey=numKey(P.val);
+  const fbText=s.type==="chartpick"&&P.sel!==null?cpickFb(s):fbv&&fbv[fbKey]?fbv[fbKey]:s.type==="chain"?(s.fields[P.ci].hint||"Have another look at this line and try again."):s.fb&&P.sel!==null&&s.fb[P.sel]?s.fb[P.sel]:s.type==="order"?"Items in red are in the wrong position.":s.type==="match"?"Definitions in red are on the wrong term.":s.type==="racebench"?"Rows in red are scored incorrectly. Check them against the RACE table.":"Have another look and try again.";
   if(P.status==="right") return `<div class="fb"><h3>${I.check.replace('<svg','<svg width="22" height="22"')} Correct</h3>${vsHTML(s)}<p>${s.explain||""}</p>${confNote(true)}${s.src?`<p class="src">Source: ${s.src}</p>`:""}</div><button class="btn good wide" data-act="next">Continue</button>`;
   if(P.status==="wrong") return `<div class="fb"><h3>Incorrect</h3><p>${fbText}</p>${confNote(false)}</div><div class="foot-btns">${P.tries>=2?`<button class="btn ghost" data-act="reveal">Show answer</button>`:""}<button class="btn bad" data-act="retry">Try again</button></div>`;
   if(P.status==="revealed") return `<div class="fb">${P.mode==="diag"?"<h3>Incorrect</h3>":`<h3 style="color:var(--ink)">Answer</h3>`}${vsHTML(s)}<p>${s.explain||""}</p>${s.src?`<p class="src">Source: ${s.src}</p>`:""}</div><button class="btn wide" data-act="next">Continue</button>`;
@@ -438,10 +537,11 @@ function drawPlayer(keepFocus){
   const el=document.getElementById("player");
   if(P.mode==="deck"){el.innerHTML=deckHTML();const f=el.querySelector(keepFocus||".p-foot .btn");if(f)f.focus();return;}
   if(P.status!=="complete"&&P.steps&&P.steps[P.i]&&P.steps[P.i].type==="tour"){finishLesson();closeLesson();go("home");tourStart();return;}
-  el.classList.toggle("scene",!!(P.l&&P.l.scene));
+  el.classList.toggle("scene",!!(P.l&&P.l.scene));el.classList.remove("prepbench");
   if(P.status!=="complete"&&P.steps&&P.steps[P.i]&&P.steps[P.i].type==="stage"){
     const s=P.steps[P.i],body=txBody(s),st=P.sx,fc=st.fb?(st.fb.ok?"right":"wrong"):"";
-    el.innerHTML=`<div class="scene-head">${txTopHTML(s)}</div><div class="p-body"><div class="step scene-step" ${keepFocus?'style="animation:none"':""}>${body}</div></div><div class="p-foot ${fc}"><div class="foot-in">${txFoot(s)}</div></div>${txOverlays(s)}`;
+    const bench=benchOn();el.classList.toggle("prepbench",bench);
+    el.innerHTML=`<div class="scene-head">${txTopHTML(s)}</div><div class="p-body">${bench?benchHTML(s):""}<div class="step scene-step${bench?" bench-tool":""}" ${keepFocus?'style="animation:none"':""}>${body}</div></div><div class="p-foot ${fc}"><div class="foot-in">${txFoot(s)}</div></div>${txOverlays(s)}`;
     txAfter(s);
     const ft=keepFocus&&el.querySelector(keepFocus);if(ft)ft.focus();else if(st.fb){const b=el.querySelector(".p-foot .btn");if(b)b.focus();}
     return;
@@ -454,7 +554,10 @@ function drawPlayer(keepFocus){
     <div class="p-foot ${fcls}"><div class="foot-in">${footHTML(s)}</div></div>`;
   const wv=el.querySelector("#watchvid");if(wv)wv.addEventListener("ended",()=>{P.watchDone=true;S.videos=S.videos||{};S.videos[P.l.id]=true;save();const b=el.querySelector(".p-foot .btn");if(b)b.disabled=false;const n=el.querySelector("#watchnote");if(n)n.textContent="Video watched.";});
   if(s.type==="scrub")scrubWire(el,s);
-  const spt=el.querySelector(".sp-txt");if(spt){const st=el.querySelector(".step");[":scope>.badges",":scope>.label",":scope>h2",...(s.type==="read"?[":scope>h2+p"]:[])].map(q=>st.querySelector(q)).filter(Boolean).forEach(n=>spt.appendChild(n));}
+  const wm=el.querySelector(".wmap:not(.full)"),wc=wm&&wm.querySelector(".cur");if(wc&&wm.scrollWidth>wm.clientWidth)wm.scrollLeft=wc.offsetLeft-wm.clientWidth/2+wc.offsetWidth/2;
+  const spt=el.querySelector(".sp-txt");if(spt){const st=el.querySelector(".step");[":scope>.badges",":scope>.label",":scope>h2",...(s.type==="read"?[":scope>h2+p"]:[])].map(q=>st.querySelector(q)).filter(Boolean).forEach(n=>spt.appendChild(n));
+    // nothing left under the picture (e.g. a scene-setting screen): let the picture fill the screen
+    const fig=spt.closest(".scenepic");if(![...st.children].some(c=>c!==fig&&c.textContent.trim()))fig.classList.add("solo");}
   const inp=el.querySelector("#ansInput");
   if(inp&&!inp.disabled){inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);
     inp.addEventListener("input",()=>{P.val=inp.value;const b=el.querySelector("[data-act=check]");if(b)b.disabled=!canCheck(s)});}
@@ -468,12 +571,22 @@ function evaluate(s){
   if(s.type==="match") return s.pairs.every((_,k)=>P.match[k]===k);
   if(s.type==="order") return P.ord.every((v,k)=>v===k);
   if(s.type==="racebench") return rbEval();
-  if(s.type==="input"){const v=P.val.trim().replace(/,/g,"").replace(/\s*[a-zµ]+$/i,"");return v===String(s.answer)||(v!==""&&!isNaN(+v)&&Math.abs(+v-(+s.answer))<1e-9);}
+  if(s.type==="chartpick") return P.sel===s.age;
+  if(s.type==="chain") return numEq(P.val,s.fields[P.ci].answer);
+  if(s.type==="input"){const v=numKey(P.val);return v===String(s.answer)||numEq(P.val,s.answer);}
   return true;
 }
 function matchPlace(k,i){for(const x in P.match)if(P.match[x]===i)delete P.match[x];P.match[k]=i;P.matchSel=null;P.status="idle";drawPlayer();}
 function check(){
-  const s=P.steps[P.i],ok=evaluate(s);
+  const s=P.steps[P.i];
+  if(s.type==="chain"&&!assessMode()){const ok=evaluate(s);P.tries++;
+    if(!ok){if(!P.chainMiss&&P.mode==="practice"&&P.l){S.conf[P.l.id+"#"+P.i]={c:null,ok:false,lesson:P.l.id,label:P.l.title+" · "+(s.label||"question")};save();}P.chainMiss=true;P.status="wrong";drawPlayer();return;}
+    if(P.ci<s.fields.length-1){P.ci++;P.val="";P.status="idle";drawPlayer();return;}
+    const first=!P.chainMiss;P.asked++;if(first)P.right++;P.firstTry=false;
+    if(P.mode==="review"){if(first){S.fixed=S.fixed||{};S.fixed[s._key]=true;}save();}
+    else if(first){S.conf[P.l.id+"#"+P.i]={c:null,ok:true,lesson:P.l.id,label:P.l.title+" · "+(s.label||"question")};save();}
+    P.status="right";drawPlayer();return;}
+  const ok=evaluate(s);
   P.tries++;
   if(P.firstTry){P.asked++;if(ok)P.right++; if(s.id) P.answers.push({id:s.id,mod:s.mod,lesson:s.lesson,ok,conf:P.conf});
     if(P.mode==="review"){if(ok){S.fixed=S.fixed||{};S.fixed[s._key]=true;}save();}
@@ -490,7 +603,7 @@ function nextStep(){
   if(s&&s.type==="sim"&&P.simManual&&!(S.sim&&S.sim.done)){S.sim={done:true,date:today(),score:null,manual:true};save();}
   if(s&&s.type==="video"&&P.watched){S.video=true;save();}
   if(s&&s.type==="lookup"){S.lookups[P.l.id+"-"+P.i]=true;save();}
-  P.i++;resetStep();
+  P.i++;if(typeof benchSave==="function")benchSave();resetStep();
   if(P.i>=P.steps.length) finishLesson();
   drawPlayer();
 }
@@ -552,6 +665,9 @@ function endScreen(){
     if(!R.met&&reviewCount())next=`<button class="btn ghost" data-act="review-more">Review missed questions</button><button class="btn ghost" data-act="retake">Retake</button><button class="btn" data-act="finish">Done</button>`;
     if(!R.met) cta="Done";
   }
+  // module finished: offer its flip cards while the content is fresh
+  if(P.c&&(P.mode==="practice"||P.mode==="exit")&&CHANGES[P.c.id]&&courseDone(P.c)){const n=CHANGES[P.c.id].length,d=deckDue(P.c.id);
+    inner+=`<button class="qbtn deckcta" data-deck="${P.c.id}">${I.cards}<span><b>Habits to unlearn · ${P.c.title}</b><small>${n} flip cards · about ${Math.max(1,Math.round(n*10/60))} min${d?` · ${d} to revisit`:""}</small></span></button>`;}
   return `<div></div><div class="p-body"><div class="done"><div class="burst ${amber?"amber":""}">${amber?I.warn:I.check}</div>${inner}</div></div>
    <div class="p-foot"><div class="foot-in"><div class="foot-btns">${next||`${(P.mode==="exit"||P.mode==="final")&&amber?`<button class="btn ghost" data-act="retake">Retake</button>`:""}<button class="btn" data-act="finish">${cta}</button>`}</div></div></div>`;
 }

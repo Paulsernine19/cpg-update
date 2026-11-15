@@ -31,6 +31,11 @@ document.addEventListener("click",e=>{
   if(t.dataset.act==="sim-manual"){P.simManual=!P.simManual;drawPlayer('[data-act="sim-manual"]');return}
   if(t.dataset.conf){P.conf=t.dataset.conf;drawPlayer(`[data-conf="${P.conf}"]`);return}
   if(t.dataset.walk!==undefined){walkPick(+t.dataset.walk);return}
+  if(t.dataset.walkretry){walkRetry();return}
+  if(t.dataset.walkrerun){walkRerun();return}
+  if(t.dataset.refpeek){rsPeek(t.dataset.refpeek);return}
+  if(t.dataset.scconfirm){scrubConfirm();return}
+  if(t.dataset.cpick&&!locked()){P.sel=+t.dataset.cpick;P.status="idle";drawPlayer(`[data-cpick="${P.sel}"]`);return}
   if(t.dataset.opt&&!locked()){P.sel=+t.dataset.opt;P.status="idle";if(P.mode==="diag"){check();return}drawPlayer(`[data-opt="${P.sel}"]`);return}
   if(t.dataset.multi&&!locked()){const i=+t.dataset.multi;P.multi=P.multi.includes(i)?P.multi.filter(x=>x!==i):[...P.multi,i];P.status="idle";drawPlayer(`[data-multi="${i}"]`);return}
   if(t.dataset.ord!==undefined&&!locked()){P.ord.push(+t.dataset.ord);P.status="idle";drawPlayer(P.ord.length<P.steps[P.i].items.length?"[data-ord]":"[data-act=check]");return}
