@@ -5,6 +5,7 @@ document.addEventListener("click",e=>{
   if(mSkip){mSkip=false;return}
   const t=e.target.closest("button");if(!t)return;
   if(t.dataset.go){go(t.dataset.go);return}
+  if(t.dataset.tr&&P&&P.sx){trClick(t);return}
   if(t.dataset.tx&&P&&P.steps){txClick(t);return}
   if(t.dataset.deck){if(P)closeLesson();openDeck(t.dataset.deck);return}
   if(t.dataset.ref){if(P)closeLesson();refMod=refGrp=t.dataset.ref;RS.pendingIdx=RS_ITEMS.findIndex(x=>x.m===refMod);go("reference");return}
@@ -57,6 +58,13 @@ document.addEventListener("click",e=>{
   if(a==="retake"){const id=P.l.id,m=P.l.txRun?P.txMode:undefined;closeLesson();openLesson(id,{txMode:m});}
   if(a==="tx-pressure"){const id=P.l.id;closeLesson();openLesson(id,{txMode:"pressure"});}
 });
+// focus trap: while a lesson (or a book opened over it) is open, Tab cycles through its controls only
+document.addEventListener("keydown",e=>{if(e.key!=="Tab")return;const pl=document.getElementById("player");if(!pl||pl.hidden)return;
+  const sheet=document.querySelector("#rsd.show"),root=sheet||pl;
+  const f=[...root.querySelectorAll('button:not([disabled]),input:not([disabled]),select,textarea,a[href],[tabindex]:not([tabindex="-1"])')].filter(x=>x.offsetParent!==null||x.closest(".wb-ctl"));
+  if(!f.length)return;const i=f.indexOf(document.activeElement);
+  if(i<0){e.preventDefault();(e.shiftKey?f[f.length-1]:f[0]).focus();return;}
+  if(!e.shiftKey&&i===f.length-1){e.preventDefault();f[0].focus();}else if(e.shiftKey&&i===0){e.preventDefault();f[f.length-1].focus();}},true);
 document.addEventListener("keydown",e=>{
   if(simOpen){if(e.key==="Escape")closeSim();return}
   if(!P)return;

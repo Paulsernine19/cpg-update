@@ -16,7 +16,7 @@ Plain HTML/CSS/JS with no build step and no framework. Users open `index.html` b
 | TXA hands-on simulation (also the shared stage engine `TXS`, sounds, voice) | `js/hands-on/txa.js` |
 | Newborn thermal care hands-on (`scene:"thermo"`) | `js/hands-on/thermal.js` |
 | Newborn resus (`nbr`), code clock (`code`), stretcher/SMR (`smr`) hands-on | `js/hands-on/resus.js` |
-| TXA preparation bench (`bench:true` lessons tx-g / tx-10: all stages on one workbench, kit changes as stages finish, guided bench resumes via `S.benchAt`) | `js/hands-on/bench.js` |
+| TXA hands-on tray (`stage:"tray"`, lessons tx-g Guided Preparation / tx-10 Solo Run): photo equipment in `tx/wb/`, drag the syringe and plunger, free order with consequences, crew mate goals + stepped hints. `js/hands-on/bench.js` is no longer used by any lesson | `js/hands-on/tray.js` |
 | RACE practice (`racebench` step: random patient, score each item, choose destination) | `js/hands-on/race.js` |
 | Quick reference 3D tape shelf + detail sheet (Reference tab; pictures from each REF item's `img`; deep link `#reference/trauma-7` = 7th trauma item) | `js/refshelf.js` |
 | App tour coach marks (started by a `{type:"tour"}` step in Start Here) | `js/tour.js` |
@@ -25,7 +25,7 @@ Plain HTML/CSS/JS with no build step and no framework. Users open `index.html` b
 | Images: brand logos / TXA + avatar / thermal / resus equipment / trauma scenes | `brand/`, `tx/`, `th/`, `rx/`, `sc/` |
 
 ## How the code fits together
-- These are classic `<script>` files that share one global scope. **Load order in `index.html` matters**: content (incl. `scrubs.js`, `scenes.js`) → `app.js` → hands-on (incl. `race.js`, `bench.js`) → `refshelf.js` → `tour.js` → `events.js`. A file can't call a function from a later file at load time. Don't switch to ES modules, because they break on file://.
+- These are classic `<script>` files that share one global scope. **Load order in `index.html` matters**: content (incl. `scrubs.js`, `scenes.js`) → `app.js` → hands-on (incl. `race.js`, `bench.js`, `tray.js`) → `refshelf.js` → `tour.js` → `events.js`. A file can't call a function from a later file at load time. Don't switch to ES modules, because they break on file://.
 - Lesson step types: `read`, `choice`, `multi`, `sort`, `match` (drag definitions onto terms; `pairs` of `term` and `def`), `order` (put items in sequence; `items` stored in the correct order), `input`, `walk`, `watch`, `video`, `lookup`, `stage` (a hands-on stage, handled by `TXS[...]`), `tour` (closes the player and runs the app tour), `scrub` (slider-driven diagram from `SCRUB`, optional task to unlock Continue), `racebench` (RACE practice), `chartpick` (tap a row of the paediatric TXA chart: `age`, `col` = dose | volume | drawOut), `chain` (a calculation in linked lines: `fields` of {lab, expr, answer, unit, fbv}; each line opens once the one before is correct).
 - `walk` steps can set `facts` (case as chips; a wrong option's `ev` highlights the deciding fact), `ref` (Reference book key, opened over the lesson) and per-node `short` (label on the flowchart). `input` and `chain` lines can set `fbv` (feedback for specific wrong values, e.g. {"240":"…"}).
 - Any step can set `pic:"key"` to show a scene picture from `SCENES` above it, plus `after:"key"` and `afterCap` to swap in the next scene once answered correctly (walk steps: at the outcome; walk nodes can also set `pic`/`cap`). Scene pictures are clinical content: they must show correct v2.6 practice and must not give the answer away.

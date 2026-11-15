@@ -566,7 +566,7 @@ function txStartRunTimer(){
 function txRunResult(){
   const ev=P.txEvents||[],errs=ev.filter(e=>!e.ok),time=Math.round((Date.now()-P.t0)/1000);
   const over=P.txMode==="pressure"&&time>TX_TARGET,score=Math.max(0,100-errs.length*10-(over?10:0));
-  const byStage=Object.keys(TX_STAGE_NAMES).map(k=>({k,name:TX_STAGE_NAMES[k],n:errs.filter(e=>e.stage===k).length}));
+  const byStage=Object.keys(TX_STAGE_NAMES).filter(k=>!(k==="equip"&&P.steps.some(x=>x.stage==="tray"))).map(k=>({k,name:TX_STAGE_NAMES[k],n:errs.filter(e=>e.stage===k).length}));
   const tech=TX_TECH.map(([n,re])=>({n,ok:!errs.some(e=>re.test(e.text))}));
   return {score,time,over,errs,byStage,tech,comp:score>=80};
 }

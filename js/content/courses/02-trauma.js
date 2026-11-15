@@ -112,9 +112,8 @@ COURSES.push(
     ]},
     {title:"TXA preparation: hands-on", lessons:[
      {id:"tx-v", title:"Watch: TXA Preparation", steps:[{type:"watch",title:"Paediatric TXA preparation",scope:"AP",body:"Watch this video before you prepare and give TXA yourself in the hands-on lessons.",src:null,src2:"HMCAS video"}]},
-     {id:"tx-1", title:"The Briefing", scene:true, steps:[{type:"stage",stage:"intro"}]},
-     {id:"tx-g", title:"Guided Preparation", scene:true, bench:true, steps:[{type:"stage",stage:"equip"},{type:"stage",stage:"room"},{type:"stage",stage:"drawup"},{type:"stage",stage:"label"},{type:"stage",stage:"mix"},{type:"stage",stage:"dose"},{type:"stage",stage:"give"}]},
-     {id:"tx-10", title:"Solo Run", scene:true, bench:true, txRun:true, steps:[{type:"stage",stage:"equip",case:"run"},{type:"stage",stage:"room",case:"run"},{type:"stage",stage:"drawup",case:"run"},{type:"stage",stage:"label",case:"run"},{type:"stage",stage:"mix",case:"run"},{type:"stage",stage:"dose",case:"run"},{type:"stage",stage:"give",case:"run"}]}
+     {id:"tx-g", title:"Guided Preparation", scene:true, steps:[{type:"stage",stage:"tray"}]},
+     {id:"tx-10", title:"Solo Run", scene:true, txRun:true, steps:[{type:"stage",stage:"tray",case:"run"}]}
     ]},
     {title:"Destination and spinal", lessons:[
      {id:"tr-5", title:"Seat Belt Sign Bypass", steps:[
