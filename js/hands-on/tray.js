@@ -203,7 +203,7 @@ function wbBody(st){const g=P.txMode==="guided",n=wbNext(st),s=st.syr;
   const glow=g&&st.hint>=1&&n&&!["leave"].includes(n)?(n.startsWith("open")?"a"+n[4]:n==="check"?"a0":n):null;
   return `<div class="wb ${s.at?"is-docked":""} ${st.sel?"is-sel":""}" data-glow="${glow||""}">
    ${wbMateHTML(st)}
-   <div class="wb-stage">${wbScene(st)}${st.label?wbLabelHTML(st):""}${st.rate?wbRateHTML():""}${st.dq?wbDqHTML():""}${st.ask?wbAskHTML():""}${st.msg&&!(st.msg.ok&&(st.label||st.rate||st.dq||st.ask))?trMsgHTML(st):""}</div>
+   <div class="wb-stage">${wbScene(st)}${st.label?wbLabelHTML(st):""}${st.rate?wbRateHTML():""}${st.dq?wbDqHTML():""}${st.ask?wbAskHTML():""}${wbDrawOpen(st)?wbDrawHTML(st):""}${st.msg&&!(st.msg.ok&&(st.label||st.rate||st.dq||st.ask))?trMsgHTML(st):""}</div>
    <p class="wb-sr" aria-live="polite">${wbSrText(st)}</p>
    ${wbRead(st)}
    <div class="wb-ctl ${st.kb?"open":""}" aria-label="Keyboard controls">
@@ -312,12 +312,57 @@ function wbConnect(st,id){if(id!=="set"||st.setOn)return;const c=wbCase();
 
 function wbRate(st,n){if(n===10){st.rate=false;st.rateOk=true;st.done=true;if(wbCase().large)st.running=true;txLog(true,"Rate set: over 10 minutes.");wbOk(st,wbCase().large?"Infusion running: the remaining volume over 10 minutes. Preparation complete.":"Ready to give over 10 minutes. Preparation complete.");}else wbErr(st,"Incorrect administration rate","TXA is given slowly over 10 minutes.",TX_RATE[n]);}
 /* ---------- input ---------- */
+/* ---------- drawing close-up: while docked, a large syringe opens over the tray ----------
+   Photo units (barrel photo at scale 1): 0 mL at x=254, 23.6 px per mL; drag away from the needle to draw, towards it to push.
+   Horizontal on wide screens, vertical (needle at the top) on phones. The plunger follows the pointer 1:1; release snaps to 0.5 mL. */
+const WD={X0:254,ML:23.6,CY:372,R:118};
+const wbDrawOpen=st=>!!(st.syr.at&&!st.label&&!st.rate&&!st.dq&&!st.ask&&!(st.msg&&!st.msg.ok));
+const WB_SRC={bag:"Saline bag port",basin:"Kidney basin",a0:"Ampoule 1",a1:"Ampoule 2"};
+function wbTargetV(st){const s=st.syr,at=s.at,c=wbCase();
+  if(at==="bag"){if(!st.room)return 10;if(!st.added)return 0;if(st.mixed&&!st.doseOk)return c.large?c.row.drawOut:c.row.volume;return null;}
+  if(at==="basin")return 0;if(at&&at[0]==="a")return wbV(s)<5.05?5*(1+(st.amps[0].txa<.05&&at==="a1"?1:0)):10;return null;}
+function wbDrawSVG(st){const s=st.syr,v=wbV(s),sx=WD.X0+v*WD.ML,vert=matchMedia("(max-width:600px)").matches;
+  const g=P.txMode==="guided"&&st.hint>=2?wbTargetV(st):null;
+  const body=`<g id="wdG">${wbImg("needle",150-2082*.35,WD.CY-360*.35,2172*.35,724*.35)}
+    ${wbImg("barrel",0,0,2172,724)}
+    <rect id="wdFluid" x="${WD.X0}" y="${WD.CY-WD.R}" width="${Math.max(0,v*WD.ML)}" height="${WD.R*2}" fill="${wbFluid(s)}" class="wd-fl"/>
+    <g id="wdPl" transform="translate(${sx-92*.947} ${WD.CY-378*.68})"><image href="${WBI("plunger")}" width="${2172*.947}" height="${724*.68}" preserveAspectRatio="none"/></g>
+    ${wbImg("barrel",0,0,2172,724,'class="wd-glass"')}
+    ${g!=null?`<path d="M${WD.X0+g*WD.ML} ${WD.CY-WD.R-40}V${WD.CY+WD.R+40}" class="wd-target"/>`:""}
+    <rect x="-400" y="-200" width="3200" height="1124" fill="#000" fill-opacity="0" data-wd="1"/></g>`;
+  return vert?`<svg class="wd-svg vert" viewBox="${-720} 40 ${680} 1480" aria-hidden="true"><g transform="rotate(90)">${body}</g></svg>`
+    :`<svg class="wd-svg" viewBox="40 40 1480 660" aria-hidden="true">${body}</svg>`;}
+function wbDrawRead(st){const s=st.syr,v=wbV(s),src=st.syr.at==="bag"?`Bag ${wbMl(st.bag.nss+st.bag.txa)} mL`:st.syr.at[0]==="a"?`Ampoule ${wbMl(st.amps[+st.syr.at[1]].txa)} mL`:`Basin ${wbMl(st.basin.nss+st.basin.txa)} mL`;
+  return P.l&&P.l.txRun?"Read the volume on the syringe scale.":`Syringe <b>${wbMl(v)} mL</b> · ${src}`;}
+function wbDrawHTML(st){return `<div class="wd" role="dialog" aria-label="Syringe at the ${WB_SRC[st.syr.at]}">
+   <div class="wd-head"><span class="label">${WB_SRC[st.syr.at]}</span><span class="wd-read" id="wdRead" aria-live="polite">${wbDrawRead(st)}</span></div>
+   <div class="wd-stage" tabindex="0" aria-label="Syringe plunger: drag away from the needle to draw, towards it to push. Arrow keys move it by 0.5 mL.">${wbDrawSVG(st)}</div>
+   <div class="wd-btns"><button class="btn ghost" data-tr="wdn" aria-label="Push 0.5 mL">− 0.5 mL</button><button class="btn ghost" data-tr="wup" aria-label="Pull 0.5 mL">+ 0.5 mL</button><button class="btn" data-tr="wdone">Take the syringe off</button></div>
+   <p class="note wd-how">Drag along the syringe: away from the needle to draw, towards it to push.</p></div>`;}
+function wbDrawLive(st){const s=st.syr,v=wbV(s),pl=document.getElementById("wdPl"),fl=document.getElementById("wdFluid"),rd=document.getElementById("wdRead");
+  if(pl)pl.setAttribute("transform",`translate(${WD.X0+v*WD.ML-92*.947} ${WD.CY-378*.68})`);if(fl){fl.setAttribute("width",Math.max(0,v*WD.ML));fl.setAttribute("fill",wbFluid(s));}if(rd)rd.innerHTML=wbDrawRead(st);
+  const r=document.querySelector(".wb-read");if(r)r.outerHTML=wbRead(st);}
+function wbDrawStep(st,d){const was=wbV(st.syr);wbSetV(st,Math.round((was+d)*2)/2);if(Math.floor(wbV(st.syr))!==Math.floor(was))txSound("click");wbAfterPlunge(st);}
+function wbDrawWire(st){const stg=document.querySelector(".wd-stage");if(!stg)return;const grp=stg.querySelector("#wdG");let d=null;
+  const lx=e=>{const p=stg.querySelector("svg").createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(grp.getScreenCTM().inverse()).x;};
+  stg.addEventListener("pointerdown",e=>{if(e.button>0)return;st.idleT=performance.now();d={x0:lx(e),v0:wbV(st.syr),id:e.pointerId};try{stg.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault();});
+  stg.addEventListener("pointermove",e=>{if(!d)return;const was=wbV(st.syr);wbSetV(st,d.v0+(lx(e)-d.x0)/WD.ML);const v=wbV(st.syr);if(Math.floor(v)!==Math.floor(was))txSound("click");wbDrawLive(st);});
+  const up=()=>{if(!d)return;d=null;wbSetV(st,Math.round(wbV(st.syr)*2)/2);wbAfterPlunge(st);drawPlayer(wbFoc(st)||".wd-stage");};
+  stg.addEventListener("pointerup",up);stg.addEventListener("pointercancel",up);
+  stg.addEventListener("keydown",e=>{const k={ArrowRight:.5,ArrowDown:.5,ArrowLeft:-.5,ArrowUp:-.5}[e.key];if(k==null)return;e.preventDefault();wbDrawStep(st,k);drawPlayer(wbFoc(st)||".wd-stage");});
+  // − / + : press and hold repeats
+  document.querySelectorAll('[data-tr="wdn"],[data-tr="wup"]').forEach(b=>{let t=null,iv=null;const stop=()=>{clearTimeout(t);clearInterval(iv);};
+    b.addEventListener("pointerdown",()=>{t=setTimeout(()=>{iv=setInterval(()=>{wbDrawStep(st,b.dataset.tr==="wup"?.5:-.5);wbDrawLive(st);b.dataset.held=1;},110);},380);});
+    ["pointerup","pointerleave","pointercancel"].forEach(k=>b.addEventListener(k,stop));});}
 const wbFoc=st=>st.msg&&!st.msg.ok?'[data-tr="msg-ok"]':undefined;
 function trClick(t){const st=P.sx;if(!st)return;const a=t.dataset.tr;st.idleT=performance.now();
   if(a==="hint"){st.hint=Math.min(3,(st.hint||0)+1);if(st.hint===3)st.ghostKey=null;st.idleT=performance.now()-[0,8000,18000,30000][st.hint]-500;drawPlayer('[data-tr="hint"]');return;}
   if(a==="kb"){st.kb=!st.kb;drawPlayer(st.kb?".wb-ctl button":'[data-tr="kb"]');return;}
+  if(a==="wdn"||a==="wup"){if(t.dataset.held){delete t.dataset.held;drawPlayer(`[data-tr="${a}"]`);return;}wbDrawStep(st,a==="wup"?.5:-.5);drawPlayer(wbFoc(st)||`[data-tr="${a}"]`);return;}
+  if(a==="wdone"){wbDock(st,"");drawPlayer(wbFoc(st));return;}
   if(a==="msg-ok"){st.msg=null;drawPlayer(st.label?"[data-lab]":undefined);return;}
   if(st.msg&&!st.msg.ok)return;
+  if(st.syr.at&&!["wdn","wup","wdone","msg-ok","hint"].includes(a)&&wbDrawOpen(st))return;
   if((st.label||st.rate||st.dq||st.ask)&&!["label-ok","label-x","lab-now","rate","check","dq-x","ask-yes","ask-no","chk"].includes(a))return;
   if(a==="chk"){const k=t.dataset.k;st.chk=st.chk||{};if(!st.chk[k]){st.chk[k]=true;txSound("click");}drawPlayer(`[data-tr="chk"][data-k="${k}"]`);return;}
   if(a==="ask-yes"){st.ask=false;st.dq=true;drawPlayer('[data-tr="chk"]');return;}
@@ -343,7 +388,7 @@ function trClick(t){const st=P.sx;if(!st)return;const a=t.dataset.tr;st.idleT=pe
 function wbAfterPlunge(st){const b=st.bag,s=st.syr;
   if(s.at==="bag"&&st.room&&b.txa<.05&&b.nss>90.25){const back=b.nss-90;b.nss=90;s.nss+=back;const o=TX_DISCARD.find(x=>/back into the bag/i.test(x.text));wbErr(st,"Drawn NSS not discarded","The 10 mL of NSS drawn out must be discarded, not pushed back into the bag.",o&&o.outcome);}}
 // pointer: drag the syringe to a target, drag the plunger handle, press and hold an ampoule to snap it
-function trAfter(st){const svg=document.querySelector(".wb-svg");if(!svg)return;
+function trAfter(st){wbDrawWire(st);const svg=document.querySelector(".wb-svg");if(!svg)return;
   if(st.done&&!st.debriefShown){st.debriefShown=true;const d=document.querySelector(".wb-debrief");if(d)setTimeout(()=>d.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"end"}),300);}
   clearInterval(st.hintIv);st.hintIv=setInterval(()=>{if(!svg.isConnected){clearInterval(st.hintIv);return;}wbHintTick(st,svg);},1000);
   if(st.hint>=3&&st.ghostKey===null)wbHintApply(st,svg);
@@ -404,7 +449,7 @@ function trAfter(st){const svg=document.querySelector(".wb-svg");if(!svg)return;
     if(!d.moved){st.sel=!st.sel;txSound("click");drawPlayer();return;}
     const z=wbZoneAt(pt(e));wbDock(st,z||"");drawPlayer(wbFoc(st));};
   svg.addEventListener("pointerup",up);svg.addEventListener("pointercancel",up);svg.addEventListener("pointerleave",()=>{if(!drag)wbTip(svg,null)});
-  let wT=0;svg.addEventListener("wheel",e=>{if(!st.syr.at||(st.msg&&!st.msg.ok)||st.label||st.rate)return;e.preventDefault();const was=wbV(st.syr),bt=st.bag.txa;
+  let wT=0;svg.addEventListener("wheel",e=>{if(true||!st.syr.at||(st.msg&&!st.msg.ok)||st.label||st.rate)return;e.preventDefault();const was=wbV(st.syr),bt=st.bag.txa;
     wbSetV(st,was+(e.deltaY>0?1:-1)*(e.shiftKey?.5:.1));live(was,bt);wbLoupe(st,svg,true);clearTimeout(wT);wT=setTimeout(()=>{wbLoupe(st,svg,false);wbAfterPlunge(st);drawPlayer(wbFoc(st));},700);},{passive:false});}
 // magnifier next to the plunger: the scale around the stopper, enlarged; guided mode also shows the number
 function wbLoupe(st,svg,on){const stg=svg.parentNode;let el=stg.querySelector(".wb-loupe");if(!on){if(el)el.remove();return;}
@@ -429,5 +474,5 @@ function wbZoneAt(p){const r=(x1,y1,x2,y2)=>p.x>=x1&&p.x<=x2&&p.y>=y1&&p.y<=y2;
   if(r(330,30,512,330))return "bag";if(r(580,420,820,570))return "basin";if(r(100,390,165,560))return "a0";if(r(166,390,235,560))return "a1";return null;}
 TXS.tray={phases:["work"],init:st=>wbInit(st),guide:()=>null,
   body:st=>wbBody(st),
-  foot:st=>st.done?`<button class="btn good wide" data-tr="finish">Continue</button>`:P.txMode==="guided"?`<div class="foot-btns"><button class="btn ghost" data-tr="hint" style="flex:0 0 auto">Hint</button><p class="note tr-how" style="margin:0">Drag to move the syringe and the plunger (Shift for fine control, or scroll). Tap an ampoule to double-check, hold to snap.</p></div>`:`<p class="note tr-how">Drag the syringe onto the bag, basin or an ampoule, then drag the plunger. Hold Shift for fine control, or scroll over the tray. Tap an ampoule to double-check it, press and hold to snap it.</p>`,
+  foot:st=>st.done?`<button class="btn good wide" data-tr="finish">Continue</button>`:P.txMode==="guided"?`<div class="foot-btns"><button class="btn ghost" data-tr="hint" style="flex:0 0 auto">Hint</button><p class="note tr-how" style="margin:0">Drag the syringe onto the bag, an ampoule or the kidney basin. Tap an ampoule to double-check it, hold to snap it.</p></div>`:`<p class="note tr-how">Drag the syringe onto the bag, basin or an ampoule, then drag the plunger. Hold Shift for fine control, or scroll over the tray. Tap an ampoule to double-check it, press and hold to snap it.</p>`,
   after:st=>trAfter(st)};
