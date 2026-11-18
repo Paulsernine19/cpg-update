@@ -1584,3 +1584,7 @@ button.cp-row:hover:not([disabled]){border-color:var(--muted)}
 }
 @media (prefers-reduced-motion:reduce){.wd{animation:none}}
 .wd-glass{opacity:.5}
+.wb.wb-still .tr-card,.wb.wb-still .tr-toast,.wb.wb-still .wd,.wb.wb-still .wb-mate p{animation:none!important}
+/* patient's arm and three-way tap (TXA tray, after labelling) */
+.wb[data-glow="tap"] .wb-arm .wb-dz{stroke:#FFD34D;stroke-width:3;fill:rgba(255,211,77,.12);animation:wbGlow 1.4s ease-in-out infinite}
+.wb[data-glow="line"] [data-item="lend"]{filter:drop-shadow(0 0 8px #FFD34D)}

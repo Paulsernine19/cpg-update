@@ -8,11 +8,14 @@
    Fluid colours are teaching aids (saline blue, TXA violet); both are clear in reality. */
 const WB={W:900,H:600,SC:.7,ML:4};                      // syringe: 4 px per mL along the barrel, scaled by SC
 // docking points: tip position and direction (up: tip at top, plunger pulled downward; down: tip at bottom, plunger pulled upward)
-const WB_DOCK={bag:{x:400,y:311,dir:"up",lab:"saline bag port"},basin:{x:700,y:420,dir:"down",lab:"kidney basin"},a0:{x:130,y:432,dir:"down",lab:"ampoule 1"},a1:{x:200,y:432,dir:"down",lab:"ampoule 2"}};
+const WB_DOCK={bag:{x:400,y:311,dir:"up",lab:"saline bag port"},basin:{x:700,y:420,dir:"down",lab:"kidney basin"},a0:{x:130,y:432,dir:"down",lab:"ampoule 1"},a1:{x:200,y:432,dir:"down",lab:"ampoule 2"},tap:{x:523,y:662,dir:"down",lab:"three-way tap"}};
+// patient's arm with cannula and three-way tap, below the tray once the bag is labelled (photo tx/wb/arm.webp, 710×360, side port tip at 490,92)
+const WB_ARM={x:180,y:600,k:.7},WB_TAP=[WB_ARM.x+490*WB_ARM.k,WB_ARM.y+92*WB_ARM.k];
+const wbWH=st=>[WB.W,st&&st.labeled?840:WB.H];
 const WB_REST={x:520,y:400};                           // syringe lying on the tray, tip pointing left
 const wbV=s=>s.nss+s.txa;
 function wbInit(st){Object.assign(st,{syr:{nss:0,txa:0,at:null},bag:{nss:100,txa:0},amps:[{txa:5,open:false},{txa:5,open:false}],basin:{nss:0,txa:0},
-  checked:false,room:false,added:false,labeled:false,turns:0,mixed:false,doseOk:false,doseDiscarded:false,rateOk:false,setOn:false,stopOn:false,running:false,chamber:0,primed:false,priming:false,clampOpen:false,done:false,sel:false,msg:null,glass:{t0:null,t1:null,a0:null,a1:null},glassSel:null,label:null,rate:false});}
+  checked:false,lineOn:false,room:false,added:false,labeled:false,turns:0,mixed:false,doseOk:false,doseDiscarded:false,rateOk:false,setOn:false,stopOn:false,running:false,chamber:0,primed:false,priming:false,clampOpen:false,done:false,sel:false,msg:null,glass:{t0:null,t1:null,a0:null,a1:null},glassSel:null,label:null,rate:false});}
 /* ---------- drawing: realistic equipment, gloved hands ---------- */
 const wbFluid=s=>{const v=wbV(s);if(v<.05)return "none";const f=s.txa/v;return f>.95?"url(#wbTxa)":f<.05?"url(#wbNss)":"url(#wbMix)";};
 // nitrile glove, drawn in a hand-local frame
@@ -41,7 +44,7 @@ function wbSyringe(st){const s=st.syr,v=wbV(s),d=s.at?WB_DOCK[s.at]:null,flip=d&
   const tf=d?`translate(${d.x} ${d.y}) rotate(${flip?180:0}) scale(${WB.SC})`:`translate(${WB_REST.x} ${WB_REST.y}) rotate(-90) scale(${WB.SC})`;
   const stop=14+v*WB.ML;
   return `<g id="wbSyr" class="wb-syr ${st.sel?"sel":""} ${d?"docked":""}" transform="${tf}">
-   ${d||st.sel?wbNeedle(s):""}
+   ${(d&&s.at!=="tap")||st.sel?wbNeedle(s):""}
    ${wbRot("barrel",2172,724,254,372,.1695,.1695,14)}
    <rect id="wbSyrFluid" x="-20" y="14" width="40" height="${Math.max(0,v*WB.ML)}" fill="${wbFluid(s)}" class="wb-sfl"/>
    <g id="wbPl" transform="translate(0 ${stop})">${d?`<clipPath id="wbPlClip"><rect x="-40" y="-10" width="80" height="${WB_HANDLE}"/></clipPath>`:""}<g ${d?'clip-path="url(#wbPlClip)"':""}>${wbRot("plunger",2172,724,92,378,.1605,.115,0)}</g></g>
@@ -79,15 +82,20 @@ function wbScene(st){const b=st.basin,bv=b.nss+b.txa,c=st.cam||wbCam(st);
   ${wbBag(st)}
   <g class="wb-basin" data-zone="basin">${wbImg("basin",587.7,441.6,226,113,'filter="url(#wbSh)"')}
    ${bv>.05?`<ellipse id="wbPud" cx="700" cy="500" rx="${Math.min(60,18+bv*4)}" ry="${Math.min(14,5+bv)}" fill="${wbFluid(b)}"/>`:""}<rect x="590" y="430" width="220" height="130" fill="transparent" data-zone="basin" class="wb-dz" rx="16"/></g>
-  ${wbAmp(st,0)}${wbAmp(st,1)}
+  ${wbArm(st)}${wbAmp(st,0)}${wbAmp(st,1)}
   ${st.added&&st.labeled&&!st.mixed?`<g class="wb-turns"><rect x="300" y="70" width="104" height="30" rx="15"/><text x="352" y="90" text-anchor="middle">Turns ${st.turns} of 3</text></g>`:""}
   ${wbLine(st)}
   ${wbGlass(st)}
   <path id="wbStream" class="wb-stream" d="M700 480Q702 490 700 500"/>
   <rect x="740" y="40" width="150" height="190" fill="transparent" data-sharps="1" class="wb-sz" rx="14"/>${st.labeled?"":`<rect x="36" y="46" width="208" height="138" fill="transparent" data-labelsheet="1"/>`}
   ${wbSyringe(st)}</svg>`;}
+function wbArm(st){if(!st.labeled)return "";const A=WB_ARM,w=710*A.k,h=360*A.k;
+  return `<g class="wb-arm"><linearGradient id="wbArmF" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".1" stop-color="#fff"/><stop offset=".9" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+   <mask id="wbArmM"><rect x="${A.x}" y="${A.y}" width="${w}" height="${h}" fill="url(#wbArmF)"/></mask>
+   <g mask="url(#wbArmM)">${wbImg("arm",A.x,A.y,w,h,'filter="url(#wbSh)"')}</g>
+   <rect x="${WB_TAP[0]-70}" y="${WB_TAP[1]-60}" width="140" height="150" fill="transparent" data-zone="tap" class="wb-dz" rx="14"/></g>`;}
 // IV giving set and three-way stopcock: shown only when the remaining volume in the bag is given (aged 8 and over / over 30 kg)
-const WB_PORT2=[434,292],WB_LEND=[330,372]; // infusion port (bag), end of the hung line
+const WB_PORT2=[434,292],WB_LEND=[330,372],WB_LEND2=[222,460]; // WB_LEND2: luer end of the giving set (dragged to the tap) // infusion port (bag), end of the hung line
 const wbStopSVG=(x,y)=>`<g class="wb-stop" transform="translate(${x} ${y})"><rect x="-17" y="-5" width="34" height="10" rx="4" class="wb-clear"/><rect x="-4" y="4" width="8" height="12" rx="2" class="wb-clear"/>
   <path d="M0 -16v32M-16 0h32" class="wb-stoph" transform="translate(0 -8) scale(.7 .35)"/><circle cx="0" cy="-8" r="5" class="wb-stoph2"/></g>`;
 // IV giving set photos: coiled on the tray; once connected, spike + drip chamber under the bag's blue port, tubing (drawn) to the roller clamp
@@ -95,7 +103,8 @@ function wbLine(st){let h="";
   if(!st.setOn){h+=`<g data-item="set" class="wb-item">${wbImg("set-coiled",540.8,152.2,210.1,140.1,'filter="url(#wbSh)"')}<rect x="545" y="160" width="200" height="126" fill="#000" fill-opacity="0" stroke="none"/></g>`;}
   else{h+=`<g class="wb-line"><clipPath id="wbSetClip"><rect x="400" y="290" width="70" height="92"/></clipPath>
      <path d="M434 376C434 412 424 430 404 430" class="wb-tube full"/>
-     ${wbImg("set-clamp",254,404.2,152,50.7)}
+     ${st.lineOn?`<path d="M258 428C170 440 150 560 300 590S${WB_TAP[0]} 560 ${WB_TAP[0]} ${WB_TAP[1]+6}" class="wb-tube full"/>${wbImg("set-clamp",254,404.2,152,50.7)}`
+       :`<g data-item="lend" class="wb-item">${wbImg("set-clamp",254,404.2,152,50.7)}<path d="M258 428q-26 0-34 18" class="wb-tube full"/><rect x="214" y="444" width="16" height="22" rx="4" fill="#eef2f7" stroke="#b9c3d2"/><rect x="200" y="396" width="210" height="76" fill="#000" fill-opacity="0" stroke="none"/></g>`}
      <rect x="424" y="356" width="20" height="12" rx="3" fill="url(#wbNss)" opacity=".7"/>${st.running?`<circle cx="434" cy="322" r="2.4" fill="#9CC8F2" class="wb-drop"/>`:""}
      <g clip-path="url(#wbSetClip)">${wbImg("set-top",347.1,230.4,173.8,231.7)}</g></g>`;}
   return h;}
@@ -103,11 +112,11 @@ function wbGlass(st){const pos={t0:[345,548],t1:[372,548],a0:[262,548],a1:[300,5
   return Object.keys(st.glass).filter(k=>st.glass[k]==="tray").map(k=>{const [x,y]=pos[k],top=k[0]==="t";
     return `<g class="wb-glasspc ${st.glassSel===k?"sel":""}" data-glass="${k}" transform="translate(${x} ${y})">${top?wbImg("amp-top",-14,-44,28,44):wbImg("amp-open",-40,-114,80,120)}<rect x="-18" y="-50" width="36" height="56" fill="transparent" data-glass="${k}"/></g>`;}).join("");}
 /* ---------- camera: zooms to the syringe and its target, follows the plunger ---------- */
-function wbCam(st,A){A=A||st.camA||WB.W/WB.H;const s=st.syr;if(!s.at){if(A>=WB.W/WB.H)return [0,0,WB.W,WB.H];const h=WB.W/A;return [0,(WB.H-h)/2,WB.W,h];}
+function wbCam(st,A){A=A||st.camA||WB.W/WB.H;const s=st.syr,[W,H]=wbWH(st);if(!s.at||s.at==="tap"){if(A>=W/H)return [0,0,W,H];const h=W/A;return [0,(H-h)/2,W,h];}
   const d=WB_DOCK[s.at],v=wbV(s),hand=d.y+(d.dir==="up"?1:-1)*WB.SC*(520+v*WB.ML);
   let y0=Math.min(d.y,hand)-50,y1=Math.max(d.y,hand)+40;if(s.at==="bag")y0=Math.min(y0,190);if(s.at==="basin")y1=Math.max(y1,565);if(s.at[0]==="a")y1=Math.max(y1,578);
   let h=Math.max(300,y1-y0),w=h*A;if(w>WB.W){w=WB.W;h=WB.W/A;}
-  let x=d.x-w/2;x=Math.max(0,Math.min(WB.W-w,x));let y=(y0+y1)/2-h/2;y=h>WB.H?(WB.H-h)/2:Math.max(0,Math.min(WB.H+130-h,y));return [x,y,w,h];}
+  let x=d.x-w/2;x=Math.max(0,Math.min(WB.W-w,x));let y=(y0+y1)/2-h/2;y=h>H?(H-h)/2:Math.max(0,Math.min(H+130-h,y));return [x,y,w,h];}
 // smooth move between camera positions (instant with reduced motion or during plunger drags)
 function wbCamTo(st,svg,target,instant){const from=(st.cam||target).slice();st.cam=target.slice();
   if(instant||matchMedia("(prefers-reduced-motion: reduce)").matches){svg.setAttribute("viewBox",target.join(" "));return;}
@@ -117,14 +126,14 @@ function wbCamTo(st,svg,target,instant){const from=(st.cam||target).slice();st.c
 /* ---------- guidance, readouts, feedback ---------- */
 function wbNext(st){const s=st.syr;if(st.done)return null;
   if(!st.room)return s.nss>0?(s.at==="bag"?"leave":"basin"):"bag";
-  if(s.nss>0)return "basin";
+  if(s.nss>0&&!st.added)return "basin";
   if(!st.checked)return "check";
   const a=st.amps.findIndex(x=>x.txa>.05);if(a>=0&&!st.added)return st.amps[a].open?"a"+a:"open"+a;
   if(!st.added)return "bag";
   if(!st.labeled)return "label";if(!st.mixed)return "mix";
   const c=wbCase();if(!st.doseOk)return s.at==="bag"?"bag":"bag";
   if(c.large&&!st.doseDiscarded)return "basin";
-  if(wbGlassLeft(st).length)return "sharps";if(c.large&&!st.setOn)return "set";return "give";}
+  if(wbGlassLeft(st).length)return "sharps";if(c.large&&!st.setOn)return "set";if(c.large&&!st.lineOn)return "line";if(!c.large&&s.at!=="tap")return "tap";return "give";}
 function wbCoach(st){if(st.done)return "Preparation complete. Give the dose over 10 minutes.";
   const n=wbNext(st),s=st.syr,c=wbCase();
   if(st.added){
@@ -133,7 +142,8 @@ function wbCoach(st){if(st.done)return "Preparation complete. Give the dose over
     if(n==="bag"&&!st.doseOk)return `Open the dose chart (book button at the top) for ${c.name} (${c.ageLabel}), then ${c.large?"draw out the chart volume":"draw up the dose"} from the bag.`;
     if(n==="basin")return "Discard the drawn-out volume in the kidney basin.";
     if(n==="sharps")return "Put the ampoule tops and empty ampoules in the sharps bin.";
-    if(n==="give")return c.large?"Set the administration rate.":"The dose is in the syringe. Tap the bag to set how long you give it over.";
+    if(n==="give")return "Set the administration rate.";
+    if(n==="tap")return "Connect the syringe to the three-way tap on the patient's cannula.";if(n==="line")return "Drag the end of the giving set to the three-way tap on the patient's cannula.";
     if(n==="set")return "Drag the IV giving set onto the bag to give the remaining volume.";if(n==="stop")return "Drag the three-way stopcock onto the end of the giving set.";if(n==="clamp")return "Open the roller clamp to start the infusion.";
     if(n==="squeeze")return "Squeeze the drip chamber to fill it about halfway.";if(n==="prime")return "Open the roller clamp to prime the line.";if(n==="closeclamp")return "Close the roller clamp now the line is full.";}
   if(n==="bag")return s.at==="bag"?(st.room?"Push the plunger to inject all of the TXA into the bag.":"Pull the plunger back to draw out exactly 10 mL of saline."):(st.room?"Take the syringe back to the bag's medication port.":"Move the syringe onto the bag's medication port.");
@@ -151,6 +161,7 @@ function wbGoal(st){if(st.done)return "Ready. We give it over 10 minutes.";const
   if(n==="bag"||n==="basin")return `Prepare ${c.name}'s dose. ${c.name} is ${c.ageLabel}.`;
   if(n==="sharps")return "Leave the tray safe before we move on.";
   if(n==="set")return "Set up to give the remaining volume.";
+  if(n==="tap"||n==="line")return "Connect to the patient's cannula.";
   return "Get ready to give the dose.";}
 const wbMateText=st=>P.txMode==="guided"&&st.hint>=2?wbCoach(st):wbGoal(st);
 function wbMateHTML(st){return `<div class="wb-mate" aria-live="polite"><img src="${txBust(st.done?"happy":st.hint>=2?"pointing":"neutral")}" alt="" width="46" height="46"><p><b>Crew mate</b>${wbMateText(st)}</p></div>`;}
@@ -173,7 +184,7 @@ function wbGhost(st,svg,n){const s=st.syr,d=s.at&&WB_DOCK[s.at],SC=WB.SC,grip=d?
   else if(n==="check"){from=to=[130,490];kind="tap";}
   else if(n.startsWith("open")){from=to=[n[4]==="1"?200:130,490];kind="hold";}
   else if(n==="label"){from=to=[140,115];kind="tap";}
-  else if(n==="give"){from=to=[420,150];kind="tap";}
+  else if(n==="give"){from=to=[420,150];kind="tap";}else if(n==="tap"){from=grip;to=[WB_TAP[0],WB_TAP[1]+10];}else if(n==="line"){from=[300,430];to=[WB_TAP[0],WB_TAP[1]+10];}
   else if(n==="set"){from=[640,220];to=[434,300];}else if(n==="stop"){from=[290,345];to=WB_LEND;}else if(n==="clamp"||n==="prime"||n==="closeclamp"){from=to=[401,372];kind="tap";}else if(n==="squeeze"){from=to=[434,320];kind="tap";}
   else if(n==="mix"){from=to=[420,150];kind="circle";}
   else if(n==="sharps"){const k=wbGlassLeft(st)[0],p={t0:[345,530],t1:[372,530],a0:[262,520],a1:[300,520]}[k]||[200,560];from=p;to=[810,130];}
@@ -201,15 +212,17 @@ function wbRead(st){if(P.l&&P.l.txRun)return `<div class="wb-read solo"><p class
 function wbBody(st){const g=P.txMode==="guided",n=wbNext(st),s=st.syr;
   const pk=n+"|"+(s.at||"")+"|"+Math.round(wbV(s)*2)+"|"+st.turns+"|"+wbGlassLeft(st).length;if(pk!==st.nextKey){st.nextKey=pk;st.hint=0;st.idleT=performance.now();st.ghostKey=null;st.saidHint=null;}
   const glow=g&&st.hint>=1&&n&&!["leave"].includes(n)?(n.startsWith("open")?"a"+n[4]:n==="check"?"a0":n):null;
-  return `<div class="wb ${s.at?"is-docked":""} ${st.sel?"is-sel":""}" data-glow="${glow||""}">
+  // pop-ups animate in only when they first open, not on every redraw while open
+  const ck=[st.label?"label":"",st.rate?"rate":"",st.dq?"dq":"",st.ask?"ask":"",wbDrawOpen(st)?"wd":"",st.msg?st.msg.text:""].join("|"),still=ck===st.lastCk;st.lastCk=ck;
+  return `<div class="wb ${s.at?"is-docked":""} ${st.sel?"is-sel":""} ${still?"wb-still":""}" data-glow="${glow||""}">
    ${wbMateHTML(st)}
    <div class="wb-stage">${wbScene(st)}${st.label?wbLabelHTML(st):""}${st.rate?wbRateHTML():""}${st.dq?wbDqHTML():""}${st.ask?wbAskHTML():""}${wbDrawOpen(st)?wbDrawHTML(st):""}${st.msg&&!(st.msg.ok&&(st.label||st.rate||st.dq||st.ask))?trMsgHTML(st):""}</div>
    <p class="wb-sr" aria-live="polite">${wbSrText(st)}</p>
    ${wbRead(st)}
    <div class="wb-ctl ${st.kb?"open":""}" aria-label="Keyboard controls">
-    <div class="wb-move"><span class="label">Move syringe to</span>${["bag","basin","a0","a1"].map(k=>`<button class="btn ghost sm ${s.at===k?"on":""}" data-tr="dock" data-to="${k}">${WB_DOCK[k].lab.replace("saline ","")}</button>`).join("")}<button class="btn ghost sm" data-tr="dock" data-to="">tray</button></div>
+    <div class="wb-move"><span class="label">Move syringe to</span>${["bag","basin","a0","a1",...(st.labeled?["tap"]:[])].map(k=>`<button class="btn ghost sm ${s.at===k?"on":""}" data-tr="dock" data-to="${k}">${WB_DOCK[k].lab.replace("saline ","")}</button>`).join("")}<button class="btn ghost sm" data-tr="dock" data-to="">tray</button></div>
     ${s.at?`<div class="wb-nudge"><span class="label">Plunger</span><button class="btn ghost sm" data-tr="pl" data-d="-1">Push 1 mL</button><button class="btn ghost sm" data-tr="pl" data-d="-0.5">Push 0.5</button><button class="btn ghost sm" data-tr="pl" data-d="0.5">Pull 0.5</button><button class="btn ghost sm" data-tr="pl" data-d="1">Pull 1 mL</button></div>`:""}
-    ${st.added?`${st.doseOk?`<div class="wb-move"><span class="label">Line</span><button class="btn ghost sm ${st.setOn?"on":""}" data-tr="line" data-id="set">Connect IV giving set</button></div>`:""}<div class="wb-move"><span class="label">Bag</span><button class="btn ghost sm ${st.labeled?"on":""}" data-tr="label" ${st.labeled?"disabled":""}>${st.labeled?"Labelled":"Label the bag"}</button><button class="btn ghost sm ${st.mixed?"on":""}" data-tr="turn" ${st.mixed?"disabled":""}>${st.mixed?"Mixed":`Turn the bag (${st.turns}/3)`}</button><button class="btn ghost sm ${st.rateOk?"on":""}" data-tr="give">Set the rate</button></div>`:""}
+    ${st.added?`${st.doseOk?`<div class="wb-move"><span class="label">Line</span><button class="btn ghost sm ${st.setOn?"on":""}" data-tr="line" data-id="set">Connect IV giving set</button>${st.setOn?`<button class="btn ghost sm ${st.lineOn?"on":""}" data-tr="line" data-id="lend">Connect set to the three-way tap</button>`:""}</div>`:""}<div class="wb-move"><span class="label">Bag</span><button class="btn ghost sm ${st.labeled?"on":""}" data-tr="label" ${st.labeled?"disabled":""}>${st.labeled?"Labelled":"Label the bag"}</button><button class="btn ghost sm ${st.mixed?"on":""}" data-tr="turn" ${st.mixed?"disabled":""}>${st.mixed?"Mixed":`Turn the bag (${st.turns}/3)`}</button><button class="btn ghost sm ${st.rateOk?"on":""}" data-tr="give">Set the rate</button></div>`:""}
     ${wbGlassLeft(st).length?`<div class="wb-move"><span class="label">Sharps</span>${wbGlassLeft(st).map(k=>`<button class="btn ghost sm" data-tr="sharps" data-k="${k}">${k[0]==="t"?"Ampoule top":"Empty ampoule"} ${+k[1]+1} → sharps</button>`).join("")}</div>`:""}
     <div class="wb-move"><span class="label">Ampoules</span><button class="btn ghost sm ${st.checked?"on":""}" data-tr="check">${st.checked?"Double-checked":"Double-check with colleague"}</button>${[0,1].map(i=>`<button class="btn ghost sm ${st.amps[i].open?"on":""}" data-tr="snap" data-i="${i}" ${st.amps[i].open?"disabled":""}>${st.amps[i].open?`Ampoule ${i+1} open`:`Snap ampoule ${i+1}`}</button>`).join("")}</div></div></div>`;}
 function wbLabelHTML(st){const L=st.label;
@@ -235,7 +248,7 @@ function wbInfo(st,text){st.msg={ok:true,text};clearTimeout(st.msgT);const m=st.
 function wbErr(st,title,text,outcome){st.tag=wbStage(st);txLog(false,title);st.err=true;txSound("err");clearTimeout(st.msgT);st.msg={ok:false,title,text,outcome};if(P.txMode==="guided")txSay(text);}
 /* ---------- fluid physics ---------- */
 // move the plunger to a new syringe volume; fluid comes from / goes to whatever the syringe is docked in
-function wbSetV(st,target){const s=st.syr,at=s.at;if(!at)return;target=Math.round(target*10)/10;let v=wbV(s);if(target<.3&&target<v)target=0;let dv=Math.max(0,Math.min(50,target))-v;
+function wbSetV(st,target){const s=st.syr,at=s.at;if(!at||at==="tap")return;target=Math.round(target*10)/10;let v=wbV(s);if(target<.3&&target<v)target=0;let dv=Math.max(0,Math.min(50,target))-v;
   if(dv>0){ // pull
     if(at==="basin")return;                              // nothing to draw from the basin
     const src=at==="bag"?st.bag:st.amps[+at[1]];if(at!=="bag"&&!src.open)return;
@@ -276,14 +289,19 @@ function wbCanDock(st,to){const s=st.syr;
   if(to==="bag"&&st.added&&wbV(s)<.05&&!st.doseOk){
     if(!st.labeled){wbErr(st,"Bag not labelled","Label the bag immediately after preparation, before you mix it or draw from it.","An unlabelled bag is an unknown drug.");return false;}
     if(!st.mixed){wbErr(st,"Inadequate mixing","Turn the bag slowly at least 3 times to mix before drawing the dose.","If the TXA is not mixed through, the first millilitres drawn may be much stronger or weaker than 10 mg/mL.");return false;}}
-  if(to==="bag"&&st.doseOk){wbInfo(st,wbCase().large?"Discard the drawn-out volume in the kidney basin.":"The dose is drawn up. Set the rate to give it.");return false;}
+  if(to==="bag"&&st.doseOk){wbInfo(st,wbCase().large?"Discard the drawn-out volume in the kidney basin.":"The dose is drawn up. Connect the syringe to the three-way tap.");return false;}
+  if(to==="tap"){const c=wbCase();
+    if(c.large){wbErr(st,"Wrong administration method",`${c.name} is ${c.ageLabel}: from 8 years or over 30 kg you don't draw the dose up. Give the remaining volume in the bag through the IV giving set: it includes 10 mL to compensate for the set.`);return false;}
+    if(!st.doseOk){wbInfo(st,"Draw up the dose from the bag first.");return false;}
+    if(wbGlassLeft(st).length){wbErr(st,"Sharps left on the tray","Put the ampoule tops and empty ampoules in the sharps bin before you move on.","Loose glass on the tray can cut you or a colleague on a moving ambulance.");return false;}}
   if(to==="bag"&&st.room&&s.nss>.05&&st.bag.txa<.05){const o=TX_DISCARD.find(x=>/back into the bag/i.test(x.text));wbErr(st,"Drawn NSS not discarded","The 10 mL of NSS drawn out must be discarded.",o&&o.outcome);return false;}
   return true;}
 function wbDock(st,to){const s=st.syr,from=s.at;if(from===to)return;
   if(from&&from[0]==="a"&&st.amps[+from[1]].txa<.05&&!st.glass[from])st.glass[from]="tray";
   if(to&&!wbCanDock(st,to))return;
   s.at=null;st.sel=false;if(from)wbLeave(st,from);if(st.msg&&!st.msg.ok)return;
-  s.at=to||null;if(to)txSound("click");}
+  s.at=to||null;if(to)txSound("click");
+  if(to==="tap"){txLog(true,"Syringe connected to the three-way tap.");wbRateOpen(st);}}
 function wbSnap(st,i){const a=st.amps[i];if(a.open)return;
   if(!st.checked){wbErr(st,"Opened ampoules before double-checking","Always double-check the drug name, strength, clarity and expiry with a colleague before opening.","An unchecked ampoule could be the wrong drug, cloudy or out of date — and once snapped open it cannot be returned.");return;}
   a.open=true;st.glass["t"+i]="tray";txSound("snap");if(st.amps.every(x=>x.open))txLog(true,"Opened both TXA ampoules.");}
@@ -304,19 +322,23 @@ function wbTurn(st,fast){if(!st.added)return;
 function wbRateOpen(st){const c=wbCase();if(!st.doseOk||(c.large&&!st.doseDiscarded)){wbInfo(st,c.large?"Draw out and discard the chart volume first.":"Draw up the dose from the bag first.");return;}
   const g=wbGlassLeft(st);if(g.length){wbErr(st,"Sharps left on the tray","Put the ampoule tops and empty ampoules in the sharps bin before you move on.","Loose glass on the tray can cut you or a colleague on a moving ambulance.");return;}
   if(c.large&&!st.setOn){wbInfo(st,"Connect the IV giving set to the bag to give the remaining volume.");return;}
+  if(c.large&&!st.lineOn){wbInfo(st,"Connect the end of the giving set to the three-way tap.");return;}
+  if(!c.large&&st.syr.at!=="tap"){wbInfo(st,"Connect the syringe to the three-way tap on the patient's cannula.");return;}
   clearTimeout(st.msgT);st.msg=null;st.rate=true;}
-function wbConnect(st,id){if(id!=="set"||st.setOn)return;const c=wbCase();
+function wbConnect(st,id){const c=wbCase();
+  if(id==="lend"){if(!st.setOn||st.lineOn)return;st.lineOn=true;txSound("click");txLog(true,"Giving set connected to the three-way tap.");wbRateOpen(st);return;}
+  if(id!=="set"||st.setOn)return;
   if(!c.large){wbErr(st,"Wrong administration method",`${c.name} is under 8 years and under 30 kg: the ${c.row.dose} mg dose is drawn up into the syringe and given from the syringe over 10 minutes, not through a giving set from the bag.`,`The bag holds 1 g of TXA. Running it through a giving set risks giving the child far more than the ${c.row.dose} mg dose.`);return;}
   if(!st.doseOk||!st.doseDiscarded){wbInfo(st,"Draw out and discard the chart volume before you connect the giving set.");return;}
-  st.setOn=true;txSound("click");txLog(true,"IV giving set connected to the bag.");wbOk(st,"Giving set connected to the bag.");wbRateOpen(st);}
+  st.setOn=true;txSound("click");txLog(true,"IV giving set connected to the bag.");wbOk(st,"Giving set connected to the bag. Now connect its end to the three-way tap.");}
 
-function wbRate(st,n){if(n===10){st.rate=false;st.rateOk=true;st.done=true;if(wbCase().large)st.running=true;txLog(true,"Rate set: over 10 minutes.");wbOk(st,wbCase().large?"Infusion running: the remaining volume over 10 minutes. Preparation complete.":"Ready to give over 10 minutes. Preparation complete.");}else wbErr(st,"Incorrect administration rate","TXA is given slowly over 10 minutes.",TX_RATE[n]);}
+function wbRate(st,n){if(n===10){st.rate=false;st.rateOk=true;st.done=true;if(wbCase().large)st.running=true;txLog(true,"Rate set: over 10 minutes.");wbOk(st,wbCase().large?"Infusion running: the remaining volume over 10 minutes. Preparation complete.":"Syringe connected to the three-way tap: give the dose over 10 minutes. Preparation complete.");}else wbErr(st,"Incorrect administration rate","TXA is given slowly over 10 minutes.",TX_RATE[n]);}
 /* ---------- input ---------- */
 /* ---------- drawing close-up: while docked, a large syringe opens over the tray ----------
    Photo units (barrel photo at scale 1): 0 mL at x=254, 23.6 px per mL; drag away from the needle to draw, towards it to push.
    Horizontal on wide screens, vertical (needle at the top) on phones. The plunger follows the pointer 1:1; release snaps to 0.5 mL. */
 const WD={X0:254,ML:23.6,CY:372,R:118};
-const wbDrawOpen=st=>!!(st.syr.at&&!st.label&&!st.rate&&!st.dq&&!st.ask&&!(st.msg&&!st.msg.ok));
+const wbDrawOpen=st=>!!(st.syr.at&&st.syr.at!=="tap"&&!st.label&&!st.rate&&!st.dq&&!st.ask&&!(st.msg&&!st.msg.ok));
 const WB_SRC={bag:"Saline bag port",basin:"Kidney basin",a0:"Ampoule 1",a1:"Ampoule 2"};
 function wbTargetV(st){const s=st.syr,at=s.at,c=wbCase();
   if(at==="bag"){if(!st.room)return 10;if(!st.added)return 0;if(st.mixed&&!st.doseOk)return c.large?c.row.drawOut:c.row.volume;return null;}
@@ -428,7 +450,7 @@ function trAfter(st){wbDrawWire(st);const svg=document.querySelector(".wb-svg");
     if(drag.kind==="glass"&&drag.moved){const q=p.x>=740&&p.x<=880&&p.y>=50&&p.y<=230;wbTip(svg,q?"Drop in the sharps bin":null,e);}
     if(drag.kind==="pl"){const now=performance.now(),dyp=e.clientY-drag.ly,sp=Math.abs(dyp)/Math.max(8,now-drag.lt);drag.ly=e.clientY;drag.lt=now;const g=e.shiftKey?.25:sp>1.6?4:sp>.9?2.5:sp>.45?1.5:1;drag.acc=(drag.acc||0)+dyp*drag.sign*g/drag.px;const was=wbV(st.syr),bt=st.bag.txa;wbSetV(st,drag.v0+drag.acc);live(was,bt);wbLoupe(st,svg,true);return;}
     if(drag.kind==="item"){if(!drag.moved&&Math.hypot(p.x-drag.x,p.y-drag.y)<6)return;drag.moved=true;svg.classList.add("dragging");drag.el.setAttribute("transform",`translate(${p.x-drag.x} ${p.y-drag.y})`);
-      const ok=drag.id==="set"?wbZoneAt(p)==="bag":Math.hypot(p.x-WB_LEND[0],p.y-WB_LEND[1])<60;wbTip(svg,ok?(drag.id==="set"?"Drop on the infusion port":"Drop on the end of the giving set"):null,e);return;}
+      const ok=drag.id==="set"?wbZoneAt(p)==="bag":wbZoneAt({x:p.x-(drag.x-WB_LEND2[0]),y:p.y-(drag.y-WB_LEND2[1])})==="tap";wbTip(svg,ok?(drag.id==="set"?"Drop on the infusion port":"Drop on the three-way tap"):null,e);return;}
     if(drag.kind==="glass"){if(!drag.moved&&Math.hypot(p.x-drag.x,p.y-drag.y)<6)return;drag.moved=true;svg.classList.add("dragglass");drag.el.setAttribute("transform",`translate(${p.x} ${p.y})`);return;}
     if(drag.kind==="rot"){const a=Math.atan2(p.y-150,p.x-420);let da=(a-drag.a)*180/Math.PI;if(da>180)da-=360;if(da<-180)da+=360;drag.a=a;
       st.rot=Math.max(-120,Math.min(120,(st.rot||0)+da));drag.total+=Math.abs(da);const g=svg.querySelector("#wbBagRot");if(g)g.setAttribute("transform",`rotate(${st.rot} 415 150)`);
@@ -439,11 +461,11 @@ function trAfter(st){wbDrawWire(st);const svg=document.querySelector(".wb-svg");
       return;}
     if(!drag.moved&&Math.hypot(p.x-drag.x,p.y-drag.y)<8)return;if(!drag.moved){drag.moved=true;svg.classList.add("dragging");}
     const el=syrEl();if(!el.querySelector(".wb-hand.hold")){el.querySelectorAll(".wb-hand.pl,.wb-plhint").forEach(x=>x.remove());el.querySelectorAll("[clip-path]").forEach(x=>x.removeAttribute("clip-path"));el.insertAdjacentHTML("beforeend",wbCarry());}if(!el.querySelector(".wb-ndl"))el.insertAdjacentHTML("afterbegin",wbNeedle({at:null}));el.setAttribute("transform",`translate(${p.x} ${p.y}) rotate(-90) scale(${WB.SC})`);el.classList.add("carry");
-    svg.querySelectorAll(".dropok").forEach(x=>x.classList.remove("dropok"));const z=wbZoneAt(p);if(z){const g=svg.querySelector(`.wb-${z==="bag"?"bag":z==="basin"?"basin":"amp"}${z[0]==="a"?`[data-amp="${z[1]}"]`:""}`);if(g)g.classList.add("dropok");}});
+    svg.querySelectorAll(".dropok").forEach(x=>x.classList.remove("dropok"));const z=wbZoneAt(p);if(z){const g=svg.querySelector(`.wb-${z==="bag"?"bag":z==="basin"?"basin":z==="tap"?"arm":"amp"}${z[0]==="a"?`[data-amp="${z[1]}"]`:""}`);if(g)g.classList.add("dropok");}});
   const up=e=>{svg.querySelectorAll(".wb-holdring").forEach(x=>x.remove());svg.classList.remove("dragging","dragpl","dragglass");wbTip(svg,null);if(hold){clearTimeout(hold);hold=null;svg.querySelectorAll(".holding").forEach(x=>x.classList.remove("holding"));if(tapAmp!==null){tapAmp=null;if(!st.checked){st.dq=true;drawPlayer('[data-tr="check"]');}else{wbInfo(st,"Press and hold the ampoule to snap it open.");drawPlayer();}return;}}
     if(!drag)return;const d=drag;drag=null;
     if(d.kind==="pl"){wbLoupe(st,svg,false);wbAfterPlunge(st);drawPlayer(wbFoc(st));return;}
-    if(d.kind==="item"){if(!d.moved){drawPlayer();return;}const q=pt(e),ok=d.id==="set"?wbZoneAt(q)==="bag":Math.hypot(q.x-WB_LEND[0],q.y-WB_LEND[1])<60;if(ok)wbConnect(st,d.id);drawPlayer(wbFoc(st));return;}
+    if(d.kind==="item"){if(!d.moved){drawPlayer();return;}const q=pt(e),ok=d.id==="set"?wbZoneAt(q)==="bag":wbZoneAt({x:q.x-(d.x-WB_LEND2[0]),y:q.y-(d.y-WB_LEND2[1])})==="tap";if(ok)wbConnect(st,d.id);else if(d.id==="lend")wbInfo(st,"Drop the end of the giving set on the three-way tap.");drawPlayer(wbFoc(st));return;}
     if(d.kind==="glass"){if(!d.moved){st.glassSel=st.glassSel===d.k?null:d.k;drawPlayer();return;}const q=pt(e);if(q.x>=740&&q.x<=880&&q.y>=50&&q.y<=230)wbToSharps(st,d.k);drawPlayer();return;}
     if(d.kind==="rot"){st.rot=0;if(d.total<6&&st.doseOk)wbRateOpen(st);drawPlayer(wbFoc(st)||(st.rate?'[data-tr="rate"]':undefined));return;}
     if(!d.moved){st.sel=!st.sel;txSound("click");drawPlayer();return;}
@@ -461,7 +483,7 @@ function wbLoupe(st,svg,on){const stg=svg.parentNode;let el=stg.querySelector(".
 // item names: shown next to the pointer on hover, and as the drop target while dragging
 function wbNameAt(t){if(!t||!t.closest)return null;const c=x=>t.closest(x);
   if(c("[data-h]"))return "Plunger: drag to draw or push";if(c("[data-syr]"))return "50 mL syringe: drag to move";
-  if(c("[data-item='set']"))return "IV giving set: drag to the bag";if(c("[data-item='stop']"))return "Three-way stopcock: drag to the end of the giving set";if(c("[data-clamp]"))return "Roller clamp: tap to open or close";if(c("[data-chamber]"))return "Drip chamber: tap to squeeze";
+  if(c("[data-item='set']"))return "IV giving set: drag to the bag";if(c("[data-item='lend']"))return "End of the giving set: drag to the three-way tap";if(c("[data-zone='tap']"))return "Three-way tap on the patient's cannula";if(c("[data-item='stop']"))return "Three-way stopcock: drag to the end of the giving set";if(c("[data-clamp]"))return "Roller clamp: tap to open or close";if(c("[data-chamber]"))return "Drip chamber: tap to squeeze";
   if(c("[data-chart]"))return "Dose chart: tap to open";
   if(c("[data-glass]"))return c("[data-glass]").dataset.glass[0]==="t"?"Ampoule top: drag to the sharps bin":"Empty ampoule: drag to the sharps bin";
   if(c("[data-amp]"))return "TXA 500 mg/5 mL ampoule";if(c("[data-labelsheet]"))return "Additive label: tap to fill in";if(c("[data-sharps]"))return "Sharps bin";
@@ -471,8 +493,9 @@ function wbTip(svg,text,e){const stg=svg.parentNode;let el=stg.querySelector(".w
   const R=stg.getBoundingClientRect();let x=e.clientX-R.left+16,y=e.clientY-R.top+18;if(x+el.offsetWidth>R.width-6)x=e.clientX-R.left-el.offsetWidth-12;el.style.left=x+"px";el.style.top=Math.min(R.height-36,y)+"px";}
 function wbHoldRing(svg,i){const x=i?200:130,c=document.createElementNS("http://www.w3.org/2000/svg","circle");c.setAttribute("cx",x);c.setAttribute("cy",480);c.setAttribute("r",44);c.setAttribute("class","wb-holdring");c.setAttribute("pathLength","100");svg.appendChild(c);}
 function wbZoneAt(p){const r=(x1,y1,x2,y2)=>p.x>=x1&&p.x<=x2&&p.y>=y1&&p.y<=y2;
+  if(P.sx&&P.sx.labeled&&r(WB_TAP[0]-75,WB_TAP[1]-70,WB_TAP[0]+75,WB_TAP[1]+95))return "tap";
   if(r(330,30,512,330))return "bag";if(r(580,420,820,570))return "basin";if(r(100,390,165,560))return "a0";if(r(166,390,235,560))return "a1";return null;}
 TXS.tray={phases:["work"],init:st=>wbInit(st),guide:()=>null,
   body:st=>wbBody(st),
-  foot:st=>st.done?`<button class="btn good wide" data-tr="finish">Continue</button>`:P.txMode==="guided"?`<div class="foot-btns"><button class="btn ghost" data-tr="hint" style="flex:0 0 auto">Hint</button><p class="note tr-how" style="margin:0">Drag the syringe onto the bag, an ampoule or the kidney basin. Tap an ampoule to double-check it, hold to snap it.</p></div>`:`<p class="note tr-how">Drag the syringe onto the bag, basin or an ampoule, then drag the plunger. Hold Shift for fine control, or scroll over the tray. Tap an ampoule to double-check it, press and hold to snap it.</p>`,
+  foot:st=>st.done?`<button class="btn good wide" data-tr="finish">Continue</button>`:P.txMode==="guided"?`<div class="foot-btns"><button class="btn ghost" data-tr="hint" style="flex:0 0 auto">Hint</button><p class="note tr-how" style="margin:0">Drag the syringe onto the bag, an ampoule, the kidney basin or the three-way tap. Tap an ampoule to double-check it, hold to snap it.</p></div>`:`<p class="note tr-how">Drag the syringe onto the bag, basin or an ampoule, then drag the plunger. Hold Shift for fine control, or scroll over the tray. Tap an ampoule to double-check it, press and hold to snap it.</p>`,
   after:st=>trAfter(st)};

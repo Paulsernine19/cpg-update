@@ -16,7 +16,7 @@ Plain HTML/CSS/JS with no build step and no framework. Users open `index.html` b
 | TXA hands-on simulation (also the shared stage engine `TXS`, sounds, voice) | `js/hands-on/txa.js` |
 | Newborn thermal care hands-on (`scene:"thermo"`) | `js/hands-on/thermal.js` |
 | Newborn resus (`nbr`), code clock (`code`), stretcher/SMR (`smr`) hands-on | `js/hands-on/resus.js` |
-| TXA hands-on tray (`stage:"tray"`, lessons tx-g Guided Preparation / tx-10 Solo Run): photo equipment in `tx/wb/`, drag the syringe and plunger, free order with consequences, crew mate goals + stepped hints. `js/hands-on/bench.js` is no longer used by any lesson | `js/hands-on/tray.js` |
+| TXA hands-on tray (`stage:"tray"`, lessons tx-g Guided Preparation / tx-10 Solo Run): photo equipment in `tx/wb/`, drag the syringe and plunger, free order with consequences, crew mate goals + stepped hints. After labelling, the patient's arm (`tx/wb/arm.webp`, cannula + three-way tap) appears below the tray: under 8 the syringe connects to the tap, 8+ the giving set line does. `js/hands-on/bench.js` is no longer used by any lesson | `js/hands-on/tray.js` |
 | RACE practice (`racebench` step: random patient, score each item, choose destination) | `js/hands-on/race.js` |
 | Quick reference 3D tape shelf + detail sheet (Reference tab; pictures from each REF item's `img`; deep link `#reference/trauma-7` = 7th trauma item) | `js/refshelf.js` |
 | App tour coach marks (started by a `{type:"tour"}` step in Start Here) | `js/tour.js` |

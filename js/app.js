@@ -535,6 +535,8 @@ function footHTML(s){
 }
 function drawPlayer(keepFocus){
   const el=document.getElementById("player");
+  // keep the scroll position when the same step is redrawn (a tap on the tray, a card opening), so the screen does not jump
+  const pk=P&&P.l?P.l.id+"#"+P.i+"#"+P.status:null,ob=el.querySelector(".p-body"),keepY=ob&&pk&&el.dataset.pk===pk?ob.scrollTop:0;el.dataset.pk=pk||"";
   if(P.mode==="deck"){el.innerHTML=deckHTML();const f=el.querySelector(keepFocus||".p-foot .btn");if(f)f.focus();return;}
   if(P.status!=="complete"&&P.steps&&P.steps[P.i]&&P.steps[P.i].type==="tour"){finishLesson();closeLesson();go("home");tourStart();return;}
   el.classList.toggle("scene",!!(P.l&&P.l.scene));el.classList.remove("prepbench");
@@ -542,8 +544,9 @@ function drawPlayer(keepFocus){
     const s=P.steps[P.i],body=txBody(s),st=P.sx,fc=st.fb?(st.fb.ok?"right":"wrong"):"";
     const bench=benchOn();el.classList.toggle("prepbench",bench);
     el.innerHTML=`<div class="scene-head">${txTopHTML(s)}</div><div class="p-body">${bench?benchHTML(s):""}<div class="step scene-step${bench?" bench-tool":""}" ${keepFocus?'style="animation:none"':""}>${body}</div></div><div class="p-foot ${fc}"><div class="foot-in">${txFoot(s)}</div></div>${txOverlays(s)}`;
+    {const nb=el.querySelector(".p-body");if(nb&&keepY)nb.scrollTop=keepY;}
     txAfter(s);
-    const ft=keepFocus&&el.querySelector(keepFocus);if(ft)ft.focus();else if(st.fb){const b=el.querySelector(".p-foot .btn");if(b)b.focus();}
+    const ft=keepFocus&&el.querySelector(keepFocus);if(ft)ft.focus({preventScroll:true});else if(st.fb){const b=el.querySelector(".p-foot .btn");if(b)b.focus({preventScroll:true});}
     return;
   }
   if(P.status==="complete"){el.innerHTML=endScreen();const b=el.querySelector(".p-foot .btn");if(b)b.focus();return;}
