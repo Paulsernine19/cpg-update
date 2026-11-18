@@ -35,11 +35,7 @@ COURSES.push(
        options:["Preterm (<37 weeks)","Birth weight <2.5 kg","Needed resuscitation at birth","Mother has diabetes","Hypothermic","Term baby, 3.4 kg, crying, warm, mother well"], answer:[0,1,2,3,4],
        explain:"Risk factors also include small for gestational age, a mother on beta-blockers, perinatal hypoxia and infection or sepsis. Good thermal care helps prevent hypoglycaemia.", src:"CPG 12.13 pp.245, 248"},
       {type:"read", title:"Other risks to look for", scope:"AP", body:"Assess for the newborn's main clinical risks:",
-       points:["<b>Hypoxia:</b> cord compression or prolapse, placental or cord bleeding; meconium may indicate perinatal hypoxia","<b>Sepsis:</b> maternal antibiotics for infection, GBS this pregnancy or a previous GBS baby, preterm pre-labour rupture, membranes ruptured &gt;18 hours","<b>Jaundice risk:</b> &lt;38 weeks, siblings with neonatal jaundice, bruising from instrumental or caesarean birth, diabetic mother","<b>Exposed organs:</b> cover with cling film, but never wrap it all the way around","Prenotify the receiving obstetric unit if the baby has complications or is being resuscitated"], src:"CPG 12.13 pp.245–248"},
-      {type:"choice", label:"Case", scope:"AP", prompt:"A baby is born with abdominal organs outside the body. How do you cover them?",
-       options:["Cling film laid over them, never wrapped all the way round","Cling film wrapped all the way around the abdomen","Dry gauze pads held firmly over the exposed organs"], answer:0,
-       fb:[null,"Cover exposed organs with cling film, but never wrap it all the way around.","CPG 12.13 covers exposed organs with cling film, never wrapped all the way around."],
-       explain:"Cover exposed organs with cling film, but never wrap it all the way around the baby. Prenotify the receiving obstetric unit.", src:"CPG 12.13 pp.245–248"}
+       points:["<b>Hypoxia:</b> cord compression or prolapse, placental or cord bleeding; meconium may indicate perinatal hypoxia","<b>Sepsis:</b> maternal antibiotics for infection, GBS this pregnancy or a previous GBS baby, preterm pre-labour rupture, membranes ruptured &gt;18 hours","<b>Jaundice risk:</b> &lt;38 weeks, siblings with neonatal jaundice, bruising from instrumental or caesarean birth, diabetic mother","Prenotify the receiving obstetric unit if the baby has complications or is being resuscitated"], src:"CPG 12.13 pp.245–248"}
      ]}
     ]},
     {title:"Thermal care: hands-on", lessons:[
