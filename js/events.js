@@ -18,7 +18,7 @@ document.addEventListener("click",e=>{
     if(a==="review"){openReview();return}
     if(a==="reset"){confirmReset=true;render()} if(a==="reset-no"){confirmReset=false;render()}
     if(a==="reset-yes"){S=blank();save();confirmReset=false;render()}
-    if(a==="theme"){const r=document.documentElement;const dark=r.dataset.theme?r.dataset.theme==="dark":matchMedia("(prefers-color-scheme: dark)").matches;r.dataset.theme=dark?"light":"dark";}
+    if(a==="theme"){const r=document.documentElement,t=r.dataset.theme==="dark"?"light":"dark";r.dataset.theme=t;try{localStorage.setItem("stepwise-theme",t)}catch(e){}}
     return;}
   if(P.mode==="deck"){const a=t.dataset.act;
     if(a==="flip"){P.flipped=!P.flipped;drawPlayer(".inner")}
