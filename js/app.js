@@ -311,11 +311,11 @@ function openLesson(lid,opts={}){
   const f=lessonById(lid);if(!f||!isUnlocked(f.c,f.l))return;
   S.current=f.c.id;S.lastMod=f.c.id;save();
   P={c:f.c,l:f.l,mode:f.l.mode||"practice",steps:stepsFor(f.l),i:0,answers:[],watched:S.video,right:0,asked:0};
-  if(f.l.scene){P.txMode=opts.txMode||(f.l.txRun||f.l.thRun||f.l.rxRun?"independent":"guided");P.thTemp=["th-4","th-5"].includes(f.l.id)?36.0:null;P.thHints={};P.thHintKeys={};P.t0=Date.now();P.txEvents=[];P.runCase=f.l.txRun?txRunCase():null;P.lab=null;txStartRunTimer();}
+  if(f.l.scene){P.txMode=opts.txMode||(f.l.txRun||f.l.thRun||f.l.rxRun?"independent":"guided");P.thTemp=null;P.thHints={};P.thHintKeys={};P.t0=Date.now();P.txEvents=[];P.runCase=f.l.txRun?txRunCase():null;P.lab=null;txStartRunTimer();}
   benchResume(f);resetStep();
   document.getElementById("player").hidden=false;document.body.style.overflow="hidden";drawPlayer();
 }
-function resetStep(){P.watchDone=false;P.sx=null;P.chartOpen=false;P.sel=null;P.val="";P.multi=[];P.sort={};P.match={};P.matchSel=null;P.matchOrd=null;P.ord=[];P.ordMix=null;P.status="idle";P.firstTry=true;P.conf=null;P.tries=0;P.cur=null;P.trail=[];P.why=null;P.whyIdx=null;P.walkMiss=false;P.wOrd={};P.wMiss=[];P.wRun=1;P.sv=null;P.scC=null;P.goalMet=false;P.rb=null;P.rbPick={};P.ci=0;P.chainMiss=false;P.scRes=null;P.scMiss=false;}
+function resetStep(){P.watchDone=false;P.sx=null;P.chartOpen=false;P.sel=null;P.val="";P.multi=[];P.sort={};P.match={};P.matchSel=null;P.matchOrd=null;P.sortOrd=null;P.ord=[];P.ordMix=null;P.status="idle";P.firstTry=true;P.conf=null;P.tries=0;P.cur=null;P.trail=[];P.why=null;P.whyIdx=null;P.walkMiss=false;P.wOrd={};P.wMiss=[];P.wRun=1;P.sv=null;P.scC=null;P.goalMet=false;P.rb=null;P.rbPick={};P.ci=0;P.chainMiss=false;P.scRes=null;P.scMiss=false;}
 let simOpen=false;
 function openSim(){
   const w=document.getElementById("simwrap");simOpen=true;w.hidden=false;
@@ -371,7 +371,8 @@ function stepBody(s){
   if(s.type==="order"){const L=locked(),mix=P.ordMix||(P.ordMix=shuffle(s.items.map((_,i)=>i))),seq=L?s.items.map((_,i)=>i):P.ord; // items are stored in the correct order
     return `${badges(s)}${lab}<h2>${s.prompt}</h2><p class="note">Select in order.</p><ol class="ord">${seq.map((i,k)=>`<li><button class="opt ${L?"right":P.status==="wrong"?(i===k?"right":"wrong"):""}" data-unord="${k}" ${L?"disabled":""}><span class="k">${k+1}</span>${s.items[i]}</button></li>`).join("")}</ol>
      ${L?"":`<div class="opts">${mix.filter(i=>!P.ord.includes(i)).map(i=>`<button class="opt" data-ord="${i}"><span class="k"></span>${s.items[i]}</button>`).join("")}</div>`}${srcLine(s)}`;}
-  if(s.type==="sort") return `${badges(s)}${lab}<h2>${s.prompt}</h2><div class="sort">${s.cards.map((cd,ci)=>{
+  if(s.type==="sort"){if(!P.sortOrd)P.sortOrd=shuffle(s.cards.map((_,i)=>i));} // cards appear in a random order (authored order groups them by answer)
+  if(s.type==="sort") return `${badges(s)}${lab}<h2>${s.prompt}</h2><div class="sort">${P.sortOrd.map(ci=>{const cd=s.cards[ci];
       const pick=locked()?cd.b:P.sort[ci];let cls="";if(locked())cls="right";else if(P.status==="wrong")cls=P.sort[ci]===cd.b?"right":"wrong";
       return `<div class="srow ${cls}"><div class="ct">${cd.t}</div><div class="bins" role="group" aria-label="${cd.t}">${s.bins.map((bn,bi)=>`<button class="bin" data-card="${ci}" data-bin="${bi}" aria-pressed="${pick===bi}" ${locked()?"disabled":""}>${bn}</button>`).join("")}</div></div>`}).join("")}</div>${srcLine(s)}`;
   if(s.type==="match"){if(!P.matchOrd)P.matchOrd=shuffle(s.pairs.map((_,i)=>i));const L=locked(),card=(i,on)=>`<button class="mcard ${on?"on":""} ${P.matchSel===i?"sel":""}" data-mcard="${i}" aria-pressed="${P.matchSel===i}" ${L?"disabled":""}>${s.pairs[i].def}</button>`,pool=L?[]:P.matchOrd.filter(i=>!Object.values(P.match).includes(i));
@@ -629,6 +630,9 @@ function finishLesson(){
   if(courseDone(P.c)){const nx=COURSES.find(x=>reqMet(x)&&nextLesson(x));if(nx)S.current=nx.id;}
   save();P.status="complete";
 }
+// end of a lesson: go on to the next unfinished lesson in this module; once the module is complete, back to the modules
+function nextInModule(){if(!P||!P.c||!P.l||courseDone(P.c))return null;const ls=allLessons(P.c),i=ls.findIndex(l=>l.id===P.l.id);return ls.slice(i+1).find(l=>!S.done[l.id])||ls.find(l=>!S.done[l.id])||null;}
+function finishBtns(label="Done"){const n=nextInModule();return n?`<button class="btn ghost" data-act="finish">Back to modules</button><button class="btn" data-revisit="${n.id}">Next: ${n.title}</button>`:`<button class="btn" data-act="finish">${label}</button>`;}
 function revisitButtons(lessonIds){
   const u=[...new Set(lessonIds)].filter(Boolean);
   return u.length?`<div class="revisit">${u.map(id=>{const L=lessonById(id);return L?`<button class="btn ghost sm" data-revisit="${id}">Revisit: ${L.l.title}</button>`:""}).join("")}</div>`:"";
@@ -641,7 +645,7 @@ function endScreen(){
   if(P.mode==="review"){const left=reviewCount();amber=P.right<P.asked;
     inner=`<h1 style="font-size:2rem">Review complete</h1><p class="note">Cleared ${P.right} of ${P.asked}. ${left?left+" still to review.":"Nothing left to review."}</p>`;
     next=`<button class="btn ${left?"ghost":""}" data-act="finish">Done</button>${left?`<button class="btn" data-act="review-more">Review ${Math.min(5,left)} more</button>`:""}`;}
-  if(P.mode==="practice"){
+  if(P.mode==="practice"){next=nextInModule()?finishBtns():"";
     const acc=P.asked?Math.round(P.right/P.asked*100):100;
     inner=`<h1 style="font-size:2rem">Lesson complete</h1><p class="note">${P.l.title}</p><div class="tiles"><div class="tile"><b style="color:var(--good)">${P.asked?acc+"%":"–"}</b><span>First-try accuracy</span></div><div class="tile"><b style="color:var(--accent)">${coursePct()}%</b><span>Course completed</span></div><div class="tile"><b>${fmtMins(minsLeft())}</b><span>Time left (approx.)</span></div></div>`;
   }

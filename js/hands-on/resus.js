@@ -402,7 +402,7 @@ function rxRunEnd(){
    <div class="tiles"><div class="tile"><b style="color:var(--good)">${R.first}</b><span>Without retries or hints</span></div><div class="tile"><b style="color:${R.errors?"var(--bad)":"var(--ink)"}">${R.errors}</b><span>Errors</span></div><div class="tile"><b style="color:var(--sun)">${R.hints}</b><span>Hints</span></div></div>
    <div class="res">${R.rows.map(r=>`<div class="resrow"><b>${r.title}</b><small class="${r.errors||r.hints?"no":"ok"}">${r.errors?r.errors+" error"+(r.errors>1?"s":""):""}${r.errors&&r.hints?" · ":""}${r.hints?r.hints+" hint"+(r.hints>1?"s":""):""}${!r.errors&&!r.hints?"First attempt":""}</small>${r.choices.length?`<p class="note" style="grid-column:1/-1;margin:0">To review: ${r.choices.join("; ")}.</p>`:""}${r.errors||r.hints?`<div class="revisit"><button class="btn ghost sm" data-revisit="${r.lesson}">Revisit: ${lessonById(r.lesson).l.title}</button></div>`:""}</div>`).join("")}</div>
   </div></div>
-  <div class="p-foot"><div class="foot-in"><div class="foot-btns"><button class="btn ghost" data-act="retake">Run again</button><button class="btn" data-act="finish">Done</button></div></div></div>`;
+  <div class="p-foot"><div class="foot-in"><div class="foot-btns"><button class="btn ghost" data-act="retake">Run again</button>${finishBtns()}</div></div></div>`;
 }
 function rxTop(s){
   const c=rxCase(s),k=P.l.scene;
@@ -580,6 +580,6 @@ function txRunEnd(){
    <div class="res">${R.byStage.map(b=>`<div class="resrow"><b>${b.name}</b><small class="${b.n?"no":"ok"}">${b.n?b.n+" error"+(b.n>1?"s":""):"First try"}</small>${b.n?`<div class="revisit"><button class="btn ghost sm" data-revisit="${TX_STAGE_LESSON[b.k]}">Revisit: ${TX_STAGE_NAMES[b.k]}</button></div>`:""}</div>`).join("")}</div>
    <div class="res"><div class="resrow" style="display:block"><b>Technique ${R.tech.filter(x=>x.ok).length}/${R.tech.length}</b><p class="note" style="margin:4px 0 8px">A skill counts only if it was done right first time.</p><ul class="techlist">${R.tech.map(x=>`<li class="${x.ok?"ok":"no"}">${x.ok?I.check:I.x}${x.n}</li>`).join("")}</ul></div></div>
   </div></div>
-  <div class="p-foot"><div class="foot-in"><div class="foot-btns">${P.txMode==="independent"?`<button class="btn ghost" data-act="tx-pressure">Try pressure mode</button>`:`<button class="btn ghost" data-act="retake">Run again</button>`}<button class="btn" data-act="finish">Done</button></div></div></div>`;
+  <div class="p-foot"><div class="foot-in"><div class="foot-btns">${P.txMode==="independent"?`<button class="btn ghost" data-act="tx-pressure">Try pressure mode</button>`:`<button class="btn ghost" data-act="retake">Run again</button>`}${finishBtns()}</div></div></div>`;
 }
 

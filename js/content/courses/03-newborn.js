@@ -5,13 +5,9 @@ COURSES.push(
    units:[
     {title:"Two pathways", lessons:[
      {id:"nb-1", title:"Two Newborns", steps:[
-      {type:"choice", label:"Case", scope:"AP", prompt:"Two births on the same shift. Baby A is term, crying and breathing well. Baby B is preterm and not breathing effectively. Which pathway applies to Baby B?",
-       options:["Routine newborn care (CPG 12.13)","Newborn resuscitation (CPG 2.5)","Adult cardiac arrest"], answer:1,
-       fb:["Routine care (CPG 12.13) is for babies breathing well, with no resuscitation needed.",null,"Newborns follow the newborn pathways, not the adult arrest algorithm."],
-       explain:"A baby who is not breathing effectively follows the newborn resuscitation pathway.", src:"CPG 12.13 p.245 · CPG 2.5"},
-      {type:"choice", label:"Case", scope:"AP", prompt:"And Baby A?", options:["Routine newborn care (CPG 12.13)","Newborn resuscitation (CPG 2.5)"], answer:0,
-       fb:[null,"Baby A is term and breathing well, so no resuscitation is needed."],
-       explain:"A breathing term baby follows the new routine care guideline, CPG 12.13.", src:"CPG 12.13 · Circular row 26"},
+      {type:"sort", label:"Case · first decision", scope:"AP", prompt:"Six babies, seconds after birth. Which pathway does each one need?", bins:["Routine newborn care","Newborn resuscitation"],
+       cards:[{t:"Gasping, HR 80",b:1},{t:"Term, crying, good tone, HR 140",b:0},{t:"Slow, weak breaths, HR 50",b:1},{t:"Born at 35 weeks, crying and breathing well",b:0},{t:"Apnoeic and floppy",b:1},{t:"Meconium-stained liquor, crying and breathing well",b:0}],
+       explain:"Breathing effectively with a satisfactory heart rate: routine newborn care (CPG 12.13), even when preterm or after meconium-stained liquor. Thermal care and the risk assessment still apply. Apnoeic, gasping or ineffective breathing, or a heart rate below 60: newborn resuscitation (CPG 2.5).", src:"CPG 12.13 pp.245–248 · CPG 2.5 pp.50–51"},
       {type:"read", title:"Keep the pathways separate", visual:"ways", body:"v2.6 adds a new routine care guideline and revises resuscitation. Decide which pathway applies first, then set your thermal and ventilation priorities. Before the birth: take the obstetric history (including gestation), prepare resuscitation equipment and a plan, and warm the environment.", src:"CPG 12.13 pp.248–249"},
       {type:"walk", label:"Interactive algorithm", title:"Work through Baby B", scope:"AP",
        case:"Baby B: born at 30 weeks, not breathing effectively. Meconium-stained liquor. You can't see any obstruction.", facts:["Born at 30 weeks","Not breathing effectively","Meconium-stained liquor","No obstruction seen"], ref:"newborn-2", start:"a",
@@ -25,6 +21,10 @@ COURSES.push(
      {id:"nb-2", title:"Thermal Care & Risks", steps:[
       {type:"read", title:"Normal newborn observations", scope:"AP", body:"CPG 12.13 gives these normal ranges:",
        points:["<b>Respiratory rate</b> 40–60/min, counted over 1 minute. Irregular, abdominal breathing is normal","<b>Heart rate</b> 100–160/min, auscultated for 1 minute; use SpO₂ and ECG monitoring too","<b>Temperature</b> 36–37.5 °C","<b>Tone</b> flexed. A floppy baby needs urgent care","<b>Colour</b> centrally pink mucous membranes. Skin tone can differ for the first few minutes"], src:"CPG 12.13 pp.246–247"},
+      {type:"choice", label:"Check", scope:"AP", prompt:"A term baby in routine care, 10 minutes old. Which observation is outside the normal range?",
+       options:["Heart rate 92/min","Respiratory rate 52/min, irregular","Temperature 36.8 °C"], answer:0,
+       fb:[null,"40–60/min is normal, and irregular, abdominal breathing is normal in a newborn.","36–37.5 °C is the normal range."],
+       explain:"Normal newborn heart rate is 100–160/min, auscultated for 1 minute. 92/min is below the normal range.", src:"CPG 12.13 pp.246–247"},
       {type:"read", title:"Thermal care is mandatory", scope:"AP", body:"Keep the newborn's temperature <b>at or above 36.5 °C</b> throughout care and transport.",
        points:["Warm the room or ambulance: doors and windows closed, AC off or on its lowest setting. Ideally move to the ambulance","Dry thoroughly, especially the head","Warm hat (the beanie in the obstetric kit)","Wrap in blankets or towels and thermal foil wrap","<b>Preterm (&lt;37 weeks):</b> thermal mattress and plastic bag wrap are also mandatory","Skin-to-skin is optional: only if mother and baby are well and warm and you can monitor airway and breathing","Measure temperature soon after birth, during transport and on arrival; record it in the ePCR"], src:"CPG 12.13 pp.247–248"},
       {type:"choice", label:"Check", scope:"AP", prompt:"A baby is born at 35 weeks and is breathing well. Which thermal care is mandatory?",
@@ -35,16 +35,16 @@ COURSES.push(
        options:["Preterm (<37 weeks)","Birth weight <2.5 kg","Needed resuscitation at birth","Mother has diabetes","Hypothermic","Term baby, 3.4 kg, crying, warm, mother well"], answer:[0,1,2,3,4],
        explain:"Risk factors also include small for gestational age, a mother on beta-blockers, perinatal hypoxia and infection or sepsis. Good thermal care helps prevent hypoglycaemia.", src:"CPG 12.13 pp.245, 248"},
       {type:"read", title:"Other risks to look for", scope:"AP", body:"Assess for the newborn's main clinical risks:",
-       points:["<b>Hypoxia:</b> cord compression or prolapse, placental or cord bleeding; meconium may indicate perinatal hypoxia","<b>Sepsis:</b> maternal antibiotics for infection, GBS this pregnancy or a previous GBS baby, preterm pre-labour rupture, membranes ruptured &gt;18 hours","<b>Jaundice risk:</b> &lt;38 weeks, siblings with neonatal jaundice, bruising from instrumental or caesarean birth, diabetic mother","<b>Exposed organs:</b> cover with cling film, but never wrap it all the way around","Prenotify the receiving obstetric unit if the baby has complications or is being resuscitated"], src:"CPG 12.13 pp.245–248"}
+       points:["<b>Hypoxia:</b> cord compression or prolapse, placental or cord bleeding; meconium may indicate perinatal hypoxia","<b>Sepsis:</b> maternal antibiotics for infection, GBS this pregnancy or a previous GBS baby, preterm pre-labour rupture, membranes ruptured &gt;18 hours","<b>Jaundice risk:</b> &lt;38 weeks, siblings with neonatal jaundice, bruising from instrumental or caesarean birth, diabetic mother","<b>Exposed organs:</b> cover with cling film, but never wrap it all the way around","Prenotify the receiving obstetric unit if the baby has complications or is being resuscitated"], src:"CPG 12.13 pp.245–248"},
+      {type:"choice", label:"Case", scope:"AP", prompt:"A baby is born with abdominal organs outside the body. How do you cover them?",
+       options:["Cling film laid over them, never wrapped all the way round","Cling film wrapped all the way around the abdomen","Dry gauze pads held firmly over the exposed organs"], answer:0,
+       fb:[null,"Cover exposed organs with cling film, but never wrap it all the way around.","CPG 12.13 covers exposed organs with cling film, never wrapped all the way around."],
+       explain:"Cover exposed organs with cling film, but never wrap it all the way around the baby. Prenotify the receiving obstetric unit.", src:"CPG 12.13 pp.245–248"}
      ]}
     ]},
     {title:"Thermal care: hands-on", lessons:[
      {id:"th-v", title:"Watch: Thermal Care", steps:[{type:"watch",title:"Keeping the newborn warm",scope:"AP",body:"Watch this video before the hands-on thermal care practice.",src:null}]},
-     {id:"th-1", title:"The Birth", scene:"thermo", steps:[{type:"stage",stage:"thintro"},{type:"stage",stage:"th",key:"dry"}]},
-     {id:"th-2", title:"Cap & Wrap", scene:"thermo", steps:[{type:"stage",stage:"th",key:"cap"},{type:"stage",stage:"th",key:"towel"},{type:"stage",stage:"th",key:"thermal"}]},
-     {id:"th-3", title:"First Temperature Check", scene:"thermo", steps:[{type:"stage",stage:"th",key:"temp1"}]},
-     {id:"th-4", title:"Warm the Room", scene:"thermo", steps:[{type:"stage",stage:"th",key:"ac"},{type:"stage",stage:"th",key:"door"}]},
-     {id:"th-5", title:"Reassess & Monitor", scene:"thermo", steps:[{type:"stage",stage:"th",key:"temp2"}]},
+     {id:"th-g", title:"Guided Practice", scene:"thermo", steps:[{type:"stage",stage:"thintro"},{type:"stage",stage:"th",key:"dry"},{type:"stage",stage:"th",key:"cap"},{type:"stage",stage:"th",key:"towel"},{type:"stage",stage:"th",key:"thermal"},{type:"stage",stage:"th",key:"temp1"},{type:"stage",stage:"th",key:"ac"},{type:"stage",stage:"th",key:"door"},{type:"stage",stage:"th",key:"temp2"}]},
      {id:"th-6", title:"Solo Round", scene:"thermo", thRun:true, steps:[{type:"stage",stage:"th",key:"dry"},{type:"stage",stage:"th",key:"cap"},{type:"stage",stage:"th",key:"towel"},{type:"stage",stage:"th",key:"thermal"},{type:"stage",stage:"th",key:"temp1"},{type:"stage",stage:"th",key:"ac"},{type:"stage",stage:"th",key:"door"},{type:"stage",stage:"th",key:"temp2"}]}
     ]},
     {title:"Resuscitation", lessons:[
@@ -60,8 +60,7 @@ COURSES.push(
       {type:"choice", label:"Case", scope:"AP", prompt:"A baby born at 38 weeks is apnoeic. Which settings do you use for the inflation breaths?",
        options:["Room air with PEEP 6 cmH₂O","30% oxygen with PEEP 6 cmH₂O","100% oxygen with no PEEP"], answer:0,
        fb:[null,"30% oxygen is for babies under 32 weeks. At 38 weeks use room air.","Start in room air (21%) at 32 weeks or more, and always attach PEEP 6 cmH₂O."],
-       explain:"At 32 weeks or more, ventilate with room air (21%) and PEEP 6 cmH₂O.", src:"CPG 2.5 p.51"},
-      {type:"input", label:"Practice", scope:"AP", prompt:"How long should each inflation breath last, at most?", answer:"3", unit:"seconds", explain:"Each of the 5 inflation breaths has an inflation time of 2–3 seconds.", src:"CPG 2.5 p.51"}
+       explain:"At 32 weeks or more, ventilate with room air (21%) and PEEP 6 cmH₂O.", src:"CPG 2.5 p.51"}
      ]},
      {id:"nb-4", title:"Further Care", steps:[
       {type:"read", title:"If the heart rate stays low", scope:"AP", body:"Bradycardia in the newborn is usually due to hypoxia, so effective ventilation comes first.",

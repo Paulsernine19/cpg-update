@@ -19,7 +19,8 @@ const TH_WHY={dry:'Drying removes moisture from the skin, reducing heat lost thr
 const TH_RANGE_WHY='36.5–37.5 °C is the target range used in this activity. The measured 36.0 °C is below that range, so warming and reassessment remain important.';
 const TH_QUIZ_WHY='The three checks cover the patient journey: on scene, en route, and at hospital handover. This keeps temperature monitoring going across care transitions.';
 const TH_QUIZ=['Two: on scene and at handover','Three: on scene, en route, and at hospital handover','Three: after drying, after wrapping, and before departure','Four: on scene, before transport, en route, and after handover'];
-const TH_LESSON={dry:"th-1",cap:"th-2",towel:"th-2",thermal:"th-2",temp1:"th-3",ac:"th-4",door:"th-4",temp2:"th-5"};
+// Solo round "Revisit" opens the guided lesson at that step (after the first temperature check the baby reads 36.0 °C)
+const TH_LESSON="th-g",thStepOf=k=>lessonById(TH_LESSON).l.steps.findIndex(s=>s.key===k),TH_LATE=["ac","door","temp2"];
 const TH_ITEMS=(()=>{
   const item=(id,label,zone,action=null)=>({id,label,zone,action});
   const bins=()=>[item('sharps','Sharps container',[77,0,17,34]),item('waste','Clinical waste bags',[77,63,18,31])];
@@ -110,8 +111,8 @@ function thRunEnd(){
    <div class="mate big"><img src="${TXM((good?"avatar-celebrate":"avatar-happy")+"-half.webp")}" alt="Crew mate" width="150"><div class="bubble"><p><b>${good?"You protected the newborn.":"Your learning summary."}</b> ${good?"Every step first time, without hints.":"Review your decisions and revisit any steps that needed another attempt or a hint."}</p></div></div>
    <span class="label">Solo round · newborn thermal care</span><h1 style="font-size:2rem">${R.first} / ${R.rows.length} first attempt</h1>
    <div class="tiles"><div class="tile"><b style="color:var(--good)">${R.first}</b><span>Without retries or hints</span></div><div class="tile"><b style="color:${R.errors?"var(--bad)":"var(--ink)"}">${R.errors}</b><span>Incorrect choices</span></div><div class="tile"><b style="color:var(--sun)">${R.hints}</b><span>Hints</span></div></div>
-   <div class="res">${R.rows.map(r=>`<div class="resrow"><b>${r.title}</b><small class="${r.errors||r.hints?"no":"ok"}">${r.errors?r.errors+" incorrect":""}${r.errors&&r.hints?" · ":""}${r.hints?r.hints+" hint"+(r.hints>1?"s":""):""}${!r.errors&&!r.hints?"First attempt":""}</small>${r.choices.length?`<p class="note" style="grid-column:1/-1;margin:0">Choices to review: ${r.choices.map(x=>x.replace(/ is not the next choice$/,"")).join("; ")}.</p>`:""}${r.errors||r.hints?`<div class="revisit"><button class="btn ghost sm" data-revisit="${TH_LESSON[r.key]}">Revisit: ${lessonById(TH_LESSON[r.key]).l.title}</button></div>`:""}</div>`).join("")}</div>
+   <div class="res">${R.rows.map(r=>`<div class="resrow"><b>${r.title}</b><small class="${r.errors||r.hints?"no":"ok"}">${r.errors?r.errors+" incorrect":""}${r.errors&&r.hints?" · ":""}${r.hints?r.hints+" hint"+(r.hints>1?"s":""):""}${!r.errors&&!r.hints?"First attempt":""}</small>${r.choices.length?`<p class="note" style="grid-column:1/-1;margin:0">Choices to review: ${r.choices.map(x=>x.replace(/ is not the next choice$/,"")).join("; ")}.</p>`:""}${r.errors||r.hints?`<div class="revisit"><button class="btn ghost sm" data-revisit="${TH_LESSON}" data-step="${thStepOf(r.key)}" ${TH_LATE.includes(r.key)?'data-temp="36"':""}>Revisit: ${r.title}</button></div>`:""}</div>`).join("")}</div>
   </div></div>
-  <div class="p-foot"><div class="foot-in"><div class="foot-btns"><button class="btn ghost" data-act="retake">Run again</button><button class="btn" data-act="finish">Done</button></div></div></div>`;
+  <div class="p-foot"><div class="foot-in"><div class="foot-btns"><button class="btn ghost" data-act="retake">Run again</button>${finishBtns()}</div></div></div>`;
 }
 
