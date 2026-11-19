@@ -406,19 +406,69 @@ function stepBody(s){
   if(s.type==="chain") return chainBody(s);
   if(s.type==="walk"){const cur=P.cur||s.start,n=s.nodes[cur],ord=n.opts?(P.wOrd[cur]||(P.wOrd[cur]=shuffle(n.opts.map((_,i)=>i)))):[];
     const asked=P.trail.length,miss=P.wMiss.length,firstOk=asked-miss,again=walkNeedsRerun(s),ev=P.why&&n.opts?n.opts[P.whyIdx].ev:undefined;
-    const caseBox=s.facts?`<div class="case"><span class="label">Case</span><div class="wfacts">${s.facts.map((t,i)=>`<span class="wfact ${ev===i?"hl":""}">${t}</span>`).join("")}</div></div>`:`<div class="case"><span class="label">Case</span><p>${s.case}</p></div>`;
-    return `${badges(s)}<span class="label">${s.label}</span><h2>${s.title}</h2>${caseBox}
+    const caseBox=s.facts?`<div class="case wcase"><span class="label wc-l">${WIC.clip} Case</span><div class="wfacts">${s.facts.map((t,i)=>`<span class="wfact ${ev===i?"hl":""}">${t}</span>`).join("")}</div></div>`:`<div class="case"><span class="label">Case</span><p>${s.case}</p></div>`;
+    return `${badges(s)}${s.cpg?`<div class="whead">${s.hic&&WIC[s.hic]?`<span class="wh-ic">${WIC[s.hic]}</span>`:""}<span class="wh-cpg">${s.cpg}</span><span class="wh-t">${s.topic||""}</span></div>`:`<span class="label">${s.label}</span>`}<h2>${s.title}</h2>${caseBox}
     ${P.wRun>1?`<p class="note wrun">Second run</p>`:""}
-    <div class="wgrid ${n.end?"ended":""}"><div class="wmapcol">${walkMap(s,!!n.end)}</div><div class="wqcol">
+    ${s.vis?walkVis(s,cur):""}<div class="wgrid ${n.end?"ended":""}"><div class="wmapcol">${walkMap(s,!!n.end)}</div><div class="wqcol">
     ${n.end?`<div class="wend ${n.tone}" role="status"><span class="label">Outcome</span><b>${n.end}</b></div>
       <div class="wsum ${miss?(again?"bad":"mid"):"good"}" role="status"><span class="label">${P.wRun>1?"Second run":"Result"}</span><b>${firstOk} of ${asked} steps correct first time</b>
       ${miss?`<ul>${P.wMiss.map(m=>`<li><span>${m.q}</span><b>${m.a}</b></li>`).join("")}</ul>${P.mode==="practice"?`<p class="note">Missed steps are added to the review queue.</p>`:""}`:""}
       ${again?`<p class="note">2 or more steps were missed. Complete one more run to continue.</p>`:""}</div>
       ${s.ref?`<button class="wref" data-refpeek="${s.ref}">${I.book} Open this algorithm in Reference</button>`:""}`
       :`<div class="wq"><span class="label">Step ${walkPath(s).indexOf(cur)+1} of ${walkPath(s).length-1}</span><h3>${n.q}</h3>${P.why?`<div class="why" role="status"><b>Incorrect.</b> <span class="wpick">You chose: ${n.opts[P.whyIdx].t}</span> ${P.why}${ev!==undefined?`<span class="wev">The deciding fact is highlighted in the case.</span>`:""}</div><button class="btn ghost" data-walkretry="1">Try again</button>`
-        :`<div class="wopts">${ord.map(i=>`<button class="opt" data-walk="${i}">${n.opts[i].t}</button>`).join("")}</div>`}</div>`}</div></div>${srcLine(s)}`;}
+        :`<div class="wopts">${ord.map(i=>{const o=n.opts[i],ic=o.ic&&WIC[o.ic];return `<button class="opt${ic?" has-ic":""}" data-walk="${i}">${ic?`<span class="oic ${o.ic}" aria-hidden="true">${ic}</span>`:""}<span>${o.t}</span></button>`}).join("")}</div>`}</div>`}</div></div>${srcLine(s)}`;}
   return "";
 }
+// walk with vis:true: scene (s.media = image/video path, otherwise a neutral drawing) and, once a node states a heart rate (node.mon={hr}), a monitor.
+// The monitor shows only values the case states: SpO₂ stays "--" unless a node sets mon.spo2.
+// two-tone icons: soft fill (currentColor at low opacity) + stroke; shown in a round tinted badge
+const WIC=(()=>{const w=b=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${b}</svg>`,f='fill="currentColor" fill-opacity=".2"';return {
+  lungs:w(`<path d="M12 3.5v7.5"/><path d="M12 11c-1.2 1.1-2.6 1.6-2.6 1.6M12 11c1.2 1.1 2.6 1.6 2.6 1.6"/><path ${f} d="M9.3 6.6C6.3 7 3.8 11 3.8 16c0 2.2 1 3.6 2.6 3.6 2.4 0 3.9-1.8 3.9-5V8.2c0-1-.4-1.6-1-1.6z"/><path ${f} d="M14.7 6.6c3 .4 5.5 4.4 5.5 9.4 0 2.2-1 3.6-2.6 3.6-2.4 0-3.9-1.8-3.9-5V8.2c0-1 .4-1.6 1-1.6z"/>`),
+  comp:w(`<path ${f} d="M6.6 12.2V7.3a1.5 1.5 0 0 1 3 0v3.9V5.6a1.5 1.5 0 0 1 3 0v5.6V6.4a1.5 1.5 0 0 1 3 0v5.4-3a1.5 1.5 0 0 1 3 0v5.1c0 4.3-2.8 7.1-6.6 7.1-2.9 0-4.6-1.3-5.8-3.3l-2-3.4a1.4 1.4 0 0 1 2.3-1.6z"/><path d="M4 3.5 5.2 5M8 2.2l.3 1.8M2.2 7.4 4 7.8"/>`),
+  o2:w(`<circle ${f} cx="12" cy="12" r="9.3"/><text x="12" y="15.7" text-anchor="middle" font-size="9.5" font-weight="800" font-family="system-ui,sans-serif" fill="currentColor" stroke="none">O₂</text>`),
+  air:w(`<path d="M3 8.5h10.5a2.8 2.8 0 1 0-2.8-2.8"/><path d="M3 13h14.5a2.8 2.8 0 1 1-2.8 2.8"/><path d="M3 17.5h6"/><circle ${f} stroke="none" cx="17.5" cy="15.8" r="2.8"/>`),
+  wait:w(`<path d="M6.5 3h11M6.5 21h11"/><path ${f} d="M8 3c0 4.6 4 5.4 4 9s-4 4.4-4 9h8c0-4.6-4-5.4-4-9s4-4.4 4-9z"/><path d="M9.3 19.6c.8-1.6 2-2.2 2.7-2.2s1.9.6 2.7 2.2z" fill="currentColor" stroke="none"/><path d="M10 7h4" stroke-width="1.4"/>`),
+  timer:w(`<circle ${f} cx="12" cy="13.5" r="7.6"/><path d="M12 13.5V9.6M12 13.5l2.6 1.6"/><path d="M10 2.5h4M12 2.5v3.4M18.6 6.6 20.2 5"/>`),
+  suction:w(`<ellipse ${f} cx="8.6" cy="15.6" rx="4.8" ry="5.2"/><path d="M12 12 19.6 4.4"/><path d="M18.2 3.2l2.6 2.6"/><path d="M6.6 13.6c.5-1 1.3-1.5 2.2-1.6" stroke-width="1.3"/>`),
+  mask:w(`<ellipse ${f} cx="15.6" cy="10" rx="5.6" ry="4.6"/><path d="M10 10H7"/><path ${f} d="M7 7.4v5.2L3.6 15V5z"/>`),
+  stop:w(`<path ${f} d="M8.2 2.8h7.6l5.4 5.4v7.6l-5.4 5.4H8.2l-5.4-5.4V8.2z"/><path d="M8.5 12h7" stroke-width="2.2"/>`),
+  yes:w(`<circle ${f} cx="12" cy="12" r="9.3"/><path d="m8 12.4 2.7 2.7 5.4-5.6" stroke-width="2.1"/>`),
+  no:w(`<circle ${f} cx="12" cy="12" r="9.3"/><path d="m9 9 6 6M15 9l-6 6" stroke-width="2.1"/>`),
+  // header + case icons
+  newborn:`<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="22" r="13" fill="#FBDCC4" stroke="#C98A6B" stroke-width="1.6"/><path d="M14 11c2-3 7-4.6 9.5-2.2 1.4 1.3.6 3.4-1.4 3.1" fill="none" stroke="#C98A6B" stroke-width="1.6" stroke-linecap="round"/><path d="M14.6 21.4q1.6-1.6 3.2 0M22.2 21.4q1.6-1.6 3.2 0" fill="none" stroke="#7A4A33" stroke-width="1.6" stroke-linecap="round"/><path d="M17 26.4q3 2.4 6 0" fill="none" stroke="#7A4A33" stroke-width="1.6" stroke-linecap="round"/><circle cx="13.6" cy="25" r="1.8" fill="#F6A9A0" opacity=".7"/><circle cx="26.4" cy="25" r="1.8" fill="#F6A9A0" opacity=".7"/></svg>`,
+  clip:w(`<rect ${f} x="5" y="4.5" width="14" height="17" rx="2.4"/><rect x="8.6" y="2.6" width="6.8" height="3.8" rx="1.4" fill="var(--surface)"/><path d="M8.6 11h6.8M8.6 14.5h6.8M8.6 18h4"/>`),
+  pulse:w(`<path d="M2.5 12.5h4l2-5 3.5 10 2.6-7.2 1.4 2.2h5.5" stroke-width="2"/>`)}})();
+// scene drawing: resuscitation surface (wall outlets, perspective mattress with striped blanket, BVM, folded towel, swaddled baby)
+const WSCENE=`<svg viewBox="8 26 304 168" preserveAspectRatio="xMidYMid slice" class="wscene-svg" role="img" aria-label="Newborn on the resuscitation surface, with a neonatal bag-valve-mask and a folded towel">
+ <defs><linearGradient id="wsWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E8EEF6"/><stop offset="1" stop-color="#D3DDEA"/></linearGradient>
+  <linearGradient id="wsBed" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#F3EEF1"/></linearGradient>
+  <linearGradient id="wsBag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6F9BF0"/><stop offset="1" stop-color="#2F5FCB"/></linearGradient>
+  <linearGradient id="wsTowel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FBE6B0"/><stop offset="1" stop-color="#EBC77A"/></linearGradient>
+  <radialGradient id="wsSkin" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#F6D7BE"/><stop offset="1" stop-color="#E2B897"/></radialGradient></defs>
+ <rect width="320" height="200" fill="url(#wsWall)"/>
+ <rect x="18" y="12" width="64" height="44" rx="6" fill="#C8D3E2"/><rect x="24" y="17" width="52" height="30" rx="3" fill="#2A3550"/><path d="M28 34h10l3-7 4 13 3-9 2 3h22" fill="none" stroke="#3EE08A" stroke-width="1.6"/>
+ <rect x="104" y="14" width="120" height="30" rx="8" fill="#CBD6E4"/>
+ <g><circle cx="128" cy="29" r="8" fill="#F4F6F9" stroke="#AEB9C9" stroke-width="2"/><circle cx="128" cy="29" r="3" fill="#2F9E5B"/><circle cx="158" cy="29" r="8" fill="#F4F6F9" stroke="#AEB9C9" stroke-width="2"/><circle cx="158" cy="29" r="3" fill="#2F9E5B"/><circle cx="188" cy="29" r="8" fill="#F4F6F9" stroke="#AEB9C9" stroke-width="2"/><circle cx="188" cy="29" r="3" fill="#2B3446"/></g>
+ <rect x="244" y="10" width="62" height="50" rx="8" fill="#2B3446"/><rect x="250" y="16" width="50" height="30" rx="4" fill="#3F7FD8" opacity=".55"/><rect x="262" y="48" width="26" height="6" rx="3" fill="#F2C94C"/>
+ <path d="M30 78h260l22 112H8z" fill="#BFD7EE" opacity=".45"/>
+ <path d="M40 84h240l18 100H22z" fill="url(#wsBed)" stroke="#D9DFEA" stroke-width="1.5"/>
+ <path d="M40 84l-18 100M48 84l-17 100M280 84l18 100M272 84l17 100" stroke="#8FB5E8" stroke-width="3"/><path d="M44 84l-17.5 100M276 84l17.5 100" stroke="#F2A0B6" stroke-width="3"/>
+ <path d="M20 184h280" stroke="#C9D3E2" stroke-width="3"/>
+ <g transform="translate(238 90) rotate(-6) scale(.8)"><rect width="58" height="34" rx="7" fill="url(#wsTowel)"/><path d="M0 12h58M0 23h58" stroke="#D8B266" stroke-width="2"/><path d="M4 4h50" stroke="#FFF3D2" stroke-width="2" stroke-linecap="round"/></g>
+ <g transform="translate(30 92) scale(.82)"><path d="M6 8c0-6 6-8 12-6" fill="none" stroke="#C9D6EA" stroke-width="3"/><ellipse cx="36" cy="18" rx="28" ry="15" fill="url(#wsBag)"/><ellipse cx="28" cy="12" rx="11" ry="4.5" fill="#fff" opacity=".35"/><rect x="62" y="12" width="12" height="12" rx="3" fill="#E9B44C"/><rect x="74" y="13" width="9" height="10" rx="2" fill="#DDE3EC"/><path d="M83 10c12-6 22 2 20 12-1 6-8 10-14 9-6-1-8-6-6-10" fill="#EEF4FA" fill-opacity=".85" stroke="#B7C3D3" stroke-width="2"/></g>
+ <g transform="translate(142 114)"><ellipse cx="44" cy="52" rx="58" ry="10" fill="#C9C2D6" opacity=".35"/>
+  <path d="M14 30c6-20 36-26 64-22 18 3 30 14 30 26 0 14-18 22-44 22C34 56 10 50 14 30z" fill="#EDE7F4" stroke="#CBBFDB" stroke-width="2"/>
+  <path d="M34 18c18 6 44 8 70 6M30 46c22 4 50 4 74-4" stroke="#D9CFE6" stroke-width="2" fill="none"/>
+  <circle cx="10" cy="30" r="19" fill="url(#wsSkin)" stroke="#D2A584" stroke-width="1.5"/><path d="M-8 26c2-14 16-22 30-16" stroke="#8DB3E2" stroke-width="10" stroke-linecap="round" fill="none"/>
+  <path d="M0 32h5M12 32h5" stroke="#8C6A52" stroke-width="2" stroke-linecap="round"/><path d="M5 40h5" stroke="#A9806A" stroke-width="2" stroke-linecap="round"/></g>
+</svg>`;
+function walkVis(s,cur){const ids=walkPath(s),ci=ids.indexOf(cur);let mon=null;ids.slice(0,ci+1).forEach(id=>{if(s.nodes[id].mon)mon=s.nodes[id].mon});
+  const scene=s.media?(/\.(mp4|webm)$/.test(s.media)?`<video src="${s.media}" autoplay muted loop playsinline></video>`:`<img src="${s.media}" alt="${s.mediaAlt||""}">`):WSCENE;
+  const hr=mon&&mon.hr,beat=hr?(60/hr).toFixed(2):0,sp=hr?Math.max(26,3600/hr):60,a=((sp-24.5)/2).toFixed(1),qrs=`h${a}l2-3 2 3h3l1.5 3 2.5-22 2.5 25 2-6h3l3-3 3 3h${a}`;
+  return `<div class="wvis ${mon?"":"solo"}"><figure class="wscene">${scene}</figure>${mon?`<div class="wmon-card"><span class="wmon-h">${WIC.pulse} Patient monitor</span><div class="wmon" role="img" aria-label="Monitor: heart rate ${hr||"not available"}${mon.spo2?", SpO2 "+mon.spo2+"%":""}" style="--beat:${beat}s;--sp:${sp}px">
+    <div class="wm-row"><span class="wm-l"><svg class="wm-heart" viewBox="0 0 24 24"><path d="M12 20s-7-4.3-7-9.4A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.6C19 15.7 12 20 12 20z" fill="currentColor"/></svg>HR</span><b class="wm-hr">${hr||"--"}<small>bpm</small></b></div>
+    <svg class="wm-ecg" viewBox="0 0 120 40" preserveAspectRatio="none"><g class="wm-trace"><path d="M0 26${qrs.repeat(Math.ceil(120/sp)+2)}"/></g></svg>
+    <div class="wm-row"><span class="wm-l">SpO₂</span><b class="wm-sp">${mon.spo2?mon.spo2+"<small>%</small>":"--<small>%</small>"}</b></div></div></div>`:""}</div>`;}
 // interactive diagram helpers (content in js/content/scrubs.js)
 const scrubC=D=>P.scC||(P.scC=typeof D.controls==="function"?D.controls():D.controls);
 const scrubV=C=>P.sv||(P.sv=Object.fromEntries(C.map(c=>[c.k,c.val])));
