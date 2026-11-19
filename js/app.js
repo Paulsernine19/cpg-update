@@ -284,7 +284,7 @@ function render(){
   const mn=document.getElementById("main");mn.classList.toggle("wide",view==="reference");mn.classList.toggle("homewide",view==="home");
   mn.innerHTML=view==="reference"?referenceView():view==="courses"?coursesView():view==="profile"?profileView():view==="course"?courseDetail():homeView();
   if(typeof rsMount==="function"){if(view==="reference")rsMount();else rsUnmount();}
-  document.body.classList.toggle("mods-on",view==="courses");document.body.classList.toggle("prog-on",view==="profile");if(view==="courses")modsMount();
+  const bc=document.body.classList;bc.toggle("photo-bg",["courses","profile","home"].includes(view));bc.toggle("mods-on",view==="courses");bc.toggle("prog-on",view==="profile");bc.toggle("home-on",view==="home");if(view==="courses")modsMount();
   // first-launch gate: until Welcome is done, the only way in is Start Here (the player sits above it)
   let g=document.getElementById("gate");const need=!S.done["in-1"];
   if(need&&!g){g=document.createElement("div");g.id="gate";g.className="gate";g.setAttribute("role","dialog");g.setAttribute("aria-modal","true");g.setAttribute("aria-labelledby","gateT");document.body.appendChild(g);}
