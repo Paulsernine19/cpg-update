@@ -7,7 +7,7 @@ const MOD_COVERS={
  intro:{img:"sc/cover-orientation.webp",pos:"41% 35%"},
  trauma:{img:"sc/scene-01-arrival.webp",pos:"55% 55%"},
  newborn:{img:"sc/cover-newborn.webp",pos:"50% 6%"},
- cardiac:{img:"sc/cover-cardiac.webp",pos:"50% 62%"},
+ cardiac:{img:"sc/cover-cardiac.webp",pos:"50% 55%"},
  stroke:{img:"sc/cover-stroke.webp",pos:"55% 35%"},
  final:{img:"sc/cover-final.webp",pos:"58% 42%"}
 };
