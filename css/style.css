@@ -1667,7 +1667,8 @@ button.cp-row:hover:not([disabled]){border-color:var(--muted)}
 :root{--gl-bg:rgba(255,255,255,.62);--gl-edge:rgba(255,255,255,.85);--gl-ink:var(--ink);--gl-mut:#454D6E;--gl-veil:linear-gradient(180deg,rgba(244,246,251,.55) 0%,rgba(244,246,251,.35) 45%,rgba(244,246,251,.8) 100%)}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--gl-bg:rgba(22,26,48,.55);--gl-edge:rgba(255,255,255,.16);--gl-mut:#B9C0DE;--gl-veil:linear-gradient(180deg,rgba(13,16,33,.7) 0%,rgba(13,16,33,.45) 45%,rgba(13,16,33,.85) 100%)}}
 :root[data-theme="dark"]{--gl-bg:rgba(22,26,48,.55);--gl-edge:rgba(255,255,255,.16);--gl-mut:#B9C0DE;--gl-veil:linear-gradient(180deg,rgba(13,16,33,.7) 0%,rgba(13,16,33,.45) 45%,rgba(13,16,33,.85) 100%)}
-body.mods-on::before{content:"";position:fixed;inset:-20px;z-index:-2;background:url("../sc/cover-orientation.webp") 41% 35%/cover no-repeat;filter:blur(7px) saturate(1.05)}
+body.mods-on::before{content:"";position:fixed;inset:-20px;z-index:-2;background:url("../brand/gate-fleet.webp") 50% 60%/cover no-repeat;filter:blur(7px) saturate(1.05)}
+@media (max-aspect-ratio:1/1){body.mods-on::before{background-image:url("../brand/gate-fleet-phone.webp");background-position:50% 68%}}
 body.mods-on::after{content:"";position:fixed;inset:0;z-index:-1;background:var(--gl-veil)}
 body.mods-on{background:transparent}
 .glass{background:var(--gl-bg);border:1px solid var(--gl-edge);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);box-shadow:0 10px 30px rgba(10,14,40,.18),inset 0 1px 0 rgba(255,255,255,.35)}
