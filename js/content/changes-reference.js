@@ -149,8 +149,3 @@ const REF_BOOKS={
 };
 
 
-/* ---------- Source documents (orientation + Reference tab) ---------- */
-const DOCS=[
- {t:"CPG v2.6 2026 · full guideline",d:"Adobe Acrobat · online",href:"https://acrobat.adobe.com/id/urn:aaid:sc:AP:1963e713-622d-4f82-ae96-87aba78a5ac9"},
- {t:"List of changes v2.5 → v2.6",d:"Circular AS/SC 26-56 · PDF · available offline",href:"docs/CPG_v2.6_List_of_Changes_AS-SC-26-56.pdf"}
-];

@@ -8,7 +8,9 @@ document.addEventListener("click",e=>{
   if(t.dataset.tr&&P&&P.sx){trClick(t);return}
   if(t.dataset.tx&&P&&P.steps){txClick(t);return}
   if(t.dataset.deck){if(P)closeLesson();openDeck(t.dataset.deck);return}
-  if(t.dataset.ref){if(P)closeLesson();refMod=refGrp=t.dataset.ref;RS.pendingIdx=RS_ITEMS.findIndex(x=>x.m===refMod);go("reference");return}
+  if(t.dataset.ask){if(P)closeLesson();askOpen(t.dataset.ask);return}
+  if(t.dataset.refback){if(refBack&&refBack.c)go("course",refBack.c);else go(refBack?refBack.v:"home");return}
+  if(t.dataset.ref){if(P)closeLesson();if(view!=="reference")refBack={v:view,c:view==="course"?courseView:null};refMod=refGrp=t.dataset.ref;RS.pendingIdx=RS_ITEMS.findIndex(x=>x.m===refMod);go("reference");return}
   if(t.dataset.refview){S.refView=t.dataset.refview;save();render();return}
   if(t.dataset.courseOpen){go("course",t.dataset.courseOpen);return}
   if(t.dataset.revisit){const id=t.dataset.revisit;closeLesson();openLesson(id);if(t.dataset.step>0&&P&&P.steps[+t.dataset.step]){P.i=+t.dataset.step;resetStep();if(t.dataset.temp)P.thTemp=+t.dataset.temp;drawPlayer();}return}

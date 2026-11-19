@@ -76,8 +76,8 @@ const iconBox=(c,size)=>MOD_ICONS.includes(c.id)?`<div class="icon mod" style="$
 const GLOSS=[["AP","Ambulance Paramedic"],["CCP","Critical Care Paramedic"],["CPG","Clinical Practice Guideline"],["TXA","Tranexamic acid"],["TBI","Traumatic brain injury"],["GCS","Glasgow Coma Scale"],["PPH","Postpartum haemorrhage"],["SMR","Spinal motion restriction"],["MAP","Mean arterial pressure"],["PEEP","Positive end-expiratory pressure"],["BVM","Bag-valve-mask"],["ROSC","Return of spontaneous circulation"],["DSED","Dual sequential external defibrillation"],["SGA","Supraglottic airway"],["e-CPR","Extracorporeal cardiopulmonary resuscitation"],["HOTT","Hypovolaemia, oxygenation, tension pneumothorax, tamponade"],["BEFAST","Balance, Eyes, Face, Arm, Speech, Time"],["RACE","Rapid Arterial oCclusion Evaluation scale"],["RBS","Random blood sugar"],["HGH","Hamad General Hospital"],["ED","Emergency department"],["ETA","Estimated time of arrival"]];
 
 /* ============================ VIEWS ============================ */
-const NAV=[["home","Learn"],["courses","Modules"],["reference","Reference"],["profile","Progress"]];
-let view="home", courseView=null, filter="All", confirmReset=false, refMod="trauma", refGrp="trauma";
+const NAV=[["home","Learn"],["courses","Modules"],["profile","Progress"]];
+let view="home", courseView=null, filter="All", confirmReset=false, refMod="trauma", refGrp="trauma", refBack=null;
 
 // filled versions of the menu icons, shown on the active tab
 const NAV_FILL={
@@ -143,7 +143,7 @@ function homeView(){
   const tile=(on,attrs,icon,title,sub)=>`<button class="stile ${on?"on":""}" ${attrs}>${icon}<b>${title}</b><small>${sub}</small></button>`;
   const tiles=`<div class="stiles">${tile(rv,rv?'data-act="review"':'aria-disabled="true"',I.warn,"Review",rv?rv+" to review":"Nothing to review")}
     ${tile(due,`data-deck="${dm}"`,I.cards,"Flip cards",due?due+" to revisit":CHANGES[dm].length+" cards")}
-    ${tile(false,`data-ref="${dm}"`,I.book,"Reference","Key v2.6 changes")}</div>`;
+    ${tile(false,`data-ask="${dm}"`,I.ask,"Ask CPG","Questions on v2.6")}</div>`;
   const path=`<div class="section"><div class="section-head"><h2>${c.title}</h2><button class="link" data-course-open="${c.id}">Module overview</button></div>${pathHTML(c,true)}</div>`;
   return topbar()+`<div class="hello compact"><h1>${greet}</h1></div>
   <div class="homegrid"><div class="hg-main">${hero}<div class="hg-mob">${tiles}</div>${path}</div><aside class="hg-side">${tiles}</aside></div>`;
@@ -196,7 +196,7 @@ function courseDetail(){
   <div class="hero">${iconBox(c,72)}<div style="display:grid;gap:8px"><span class="label">${c.category} · about ${c.minutes} min</span><h1>${c.title}</h1><p>${c.desc}</p>${c.coverage?`<p class="coverage"><b>Covers:</b> ${c.coverage}</p>`:""}</div>
   <div class="stats"><span><b>${t}</b> lessons</span><span><b>${Math.round(d/t*100)}%</b> complete</span>${S.results[c.id[0]+"-x"]?"":""}</div>
   <div class="bar"><i style="width:${d/t*100}%"></i></div>
-  <div class="danger">${locked?`<div class="lockline">${I.lock}${lockText(c)}</div>`:nl?`<button class="btn" data-lesson="${nl.id}">${d?"Continue":"Start"}</button>`:""}${CHANGES[c.id]?`<button class="btn ghost" data-deck="${c.id}">${I.cards.replace('<svg','<svg width="18" height="18"')} Flip cards</button><button class="btn ghost" data-ref="${c.id}">${I.book.replace('<svg','<svg width="18" height="18"')} Quick reference</button>`:""}</div></div>
+  <div class="danger">${locked?`<div class="lockline">${I.lock}${lockText(c)}</div>`:nl?`<button class="btn" data-lesson="${nl.id}">${d?"Continue":"Start"}</button>`:""}${CHANGES[c.id]?`<button class="btn ghost" data-deck="${c.id}">${I.cards.replace('<svg','<svg width="18" height="18"')} Flip cards</button><button class="btn ghost" data-ask="${c.id}">${I.ask.replace('<svg','<svg width="18" height="18"')} Ask CPG</button>`:""}</div></div>
   ${pathHTML(c)}`;
 }
 // Foldable sections (Progress tab, Reference list view). FOLD remembers the learner's open/closed choice across re-renders;
@@ -237,7 +237,6 @@ ${confSection()}
     ${confirmReset?`<span class="note">Erase all progress in this browser?</span><button class="btn bad" data-act="reset-yes">Yes, reset</button><button class="btn ghost" data-act="reset-no">Cancel</button>`
       :`<button class="btn ghost" data-act="reset">Reset progress</button><button class="btn ghost" data-act="theme">Switch theme</button>`}</div>`)}</div>`;
 }
-const docLinks=()=>`<div class="quick docs">${DOCS.map(d=>`<a class="qbtn" href="${d.href}" target="_blank" rel="noopener">${I.book}<span><b>${d.t}</b><small>${d.d}</small></span></a>`).join("")}</div>`;
 const refScope=x=>x==="AP"?`<span class="badge ap">AP &amp; CCP</span>`:x==="CCP"?`<span class="badge ccp">CCP only</span>`:`<span class="badge pend">Scope to verify</span>`;
 // Books view: the shelf is built by rsMount() in js/refshelf.js after render. List view: every book as a foldable row.
 const RV_ICON={books:'<svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2.5" y="3" width="3.5" height="14" rx=".8"/><rect x="7.5" y="3" width="3.5" height="14" rx=".8"/><path d="M12.6 4.2l3.3-.9 2.6 13.2-3.3.9z"/></svg>',
@@ -245,11 +244,10 @@ const RV_ICON={books:'<svg viewBox="0 0 20 20" width="18" height="18" fill="none
 const refBooksList=()=>Object.keys(REF_BOOKS).map(g=>`<div class="section"><h2 style="font-size:1.2rem">${BOOK_GROUPS[g]}</h2><div class="rvgroup">${RS_ITEMS.filter(b=>b.m===g).map(b=>
   foldD("rb-"+b.key,`<span class="rvdot" style="background:${RS_COL[g]}"></span>${b.title}`,`${b.visual?`<div class="visual">${V[b.visual]}</div>`:""}<ul class="rsd-body" style="--g:${RS_COL[g]}">${b.its.map(rsItemHTML).join("")}</ul>`,{meta:`${refScope(b.scope)} ${b.its.length} key point${b.its.length>1?"s":""}`})).join("")}</div></div>`).join("");
 function referenceView(){const list=S.refView==="list";
-  return topbar()+`<div class="hello rvhead"><div><h1>Quick reference</h1><p>Key v2.6 changes grouped by topic. Available at any time, including on shift.</p></div>
+  return topbar()+`<button class="link rvback" data-refback="1">${I.left} Back</button><div class="hello rvhead"><div><h1>Quick reference</h1><p>Key v2.6 changes grouped by topic. Available at any time, including on shift.</p></div>
    <div class="vtog" role="group" aria-label="Reference layout">${["books","list"].map(k=>`<button data-refview="${k}" aria-label="${k==="books"?"Books":"List"} view" aria-pressed="${(k==="list")===list}" title="${k==="books"?"Books":"List"} view">${RV_ICON[k]}</button>`).join("")}</div></div>
   ${list?refBooksList():`<div class="rs" id="rs" tabindex="-1"></div>`}
-  <div class="section">${list?"":`<div class="danger"><button class="btn" id="rsDeck" data-deck="${refMod}">${I.cards.replace('<svg','<svg width="18" height="18"')} <span>${deckLabel(refMod)}</span></button><button class="btn ghost" id="rsMod" data-course-open="${refMod}">Open module</button></div>`}
-  ${docLinks()}</div>`;
+  <div class="section">${list?"":`<div class="danger"><button class="btn" id="rsDeck" data-deck="${refMod}">${I.cards.replace('<svg','<svg width="18" height="18"')} <span>${deckLabel(refMod)}</span></button><button class="btn ghost" id="rsMod" data-course-open="${refMod}">Open module</button></div>`}</div>`;
 }
 function confSection(){
   const E=Object.values(S.conf).filter(e=>e.c);
@@ -356,7 +354,7 @@ const locked=()=>P.status==="right"||P.status==="revealed";
 
 function stepBody(s){
   const lab=s.label?`<span class="label">${s.label}</span>`:"";
-  if(s.type==="read") return `${badges(s)}${s.top&&s.visual?`<div class="visual">${V[s.visual]}</div>`:""}<h2>${s.title}</h2>${s.body?`<p>${s.body}</p>`:""}${s.ptitle?`<span class="label">${s.ptitle}</span>`:""}${s.points?`<${s.ol?"ol":"ul"}>${s.points.map(p=>`<li>${p}</li>`).join("")}</${s.ol?"ol":"ul"}>`:""}${s.visual&&!s.top?`<div class="visual">${V[s.visual]}</div>`:""}${s.docs?docLinks():""}${s.foot?`<p class="note">${s.foot}</p>`:""}${pendingBox(s.pending)}${srcLine(s)}`;
+  if(s.type==="read") return `${badges(s)}${s.top&&s.visual?`<div class="visual">${V[s.visual]}</div>`:""}<h2>${s.title}</h2>${s.body?`<p>${s.body}</p>`:""}${s.ptitle?`<span class="label">${s.ptitle}</span>`:""}${s.points?`<${s.ol?"ol":"ul"}>${s.points.map(p=>`<li>${p}</li>`).join("")}</${s.ol?"ol":"ul"}>`:""}${s.visual&&!s.top?`<div class="visual">${V[s.visual]}</div>`:""}${s.foot?`<p class="note">${s.foot}</p>`:""}${pendingBox(s.pending)}${srcLine(s)}`;
   if(s.type==="choice") return `${badges(s)}${s.intro?`<div class="info">${s.intro}</div>`:""}${lab}<h2>${s.prompt}</h2>${s.visual?`<div class="visual">${V[s.visual]}</div>`:""}<div class="opts" role="radiogroup" aria-label="Answer options">${s.options.map((o,i)=>{
       const L=locked(),rv=P.status==="revealed"&&P.sel!==null&&P.sel!==s.answer;if(L&&i!==s.answer&&!(rv&&i===P.sel))return ""; // after answering, keep only the correct option (and the learner's wrong pick when revealed)
       let cls="";if(L&&i===s.answer)cls="right";else if((P.status==="wrong"||P.status==="revealed")&&i===P.sel)cls="wrong";

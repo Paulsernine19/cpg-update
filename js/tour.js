@@ -4,8 +4,7 @@
 const TOUR=[
  {go:"home",sel:'.tab[data-go="home"]',t:"Learn",b:"Your current module and next lesson."},
  {go:"courses",sel:'.tab[data-go="courses"]',t:"Modules",b:"The four modules can be taken in any order. The final assessment unlocks once all four are complete."},
- {go:"reference",sel:'.tab[data-go="reference"]',t:"Reference",b:"Key v2.6 changes, one screen per module. Available at any time, including on shift."},
- {go:"reference",sel:'#main .quick.docs',t:"Your documents",b:"CPG v2.6 and the list of changes from Circular AS/SC 26-56."},
+ {go:"home",sel:'#main .stile[data-ask]',t:"Ask CPG",b:"Type a question about the v2.6 changes, such as a dose or a threshold. Answers come only from the approved course content, with the CPG page. Works offline, including on shift."},
  {go:"profile",sel:'.tab[data-go="profile"]',t:"Progress",b:"Completed lessons, assessment results and time remaining."},
  {go:"home",home:"intro",sel:'#main .path .node[data-lesson="in-3"]',t:"Start Here",b:"Orientation ends with a short warm-up: eleven statements, each either still true or changed in v2.6.",end:true}
 ];
