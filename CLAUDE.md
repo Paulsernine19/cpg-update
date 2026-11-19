@@ -9,7 +9,7 @@ Plain HTML/CSS/JS with no build step and no framework. Users open `index.html` b
 | Page shell + script load order | `index.html` (keep it small) |
 | All styling | `css/style.css` (image paths are relative to `css/`, so use `../tx/...`) |
 | Module check bank (`QB`), final-only questions (`FQ`), diagnostic (`DQ`), module names (`MODS`), critical items (`CRITICAL`) | `js/content/questions.js` |
-| Text visuals (`V`), "what changed" flip cards (`CHANGES`), quick reference (`REF`), reference shelf books (`REF_BOOKS`) | `js/content/changes-reference.js` |
+| Text visuals (`V`), "what changed" cards (`CHANGES`; only `kind:"habit"` cards are used, as the end-of-module "Habits to unlearn" deck), quick reference (`REF`), reference shelf books (`REF_BOOKS`) | `js/content/changes-reference.js` |
 | Interactive diagrams for the `scrub` step (`SCRUB`: arrest, txa, stroke, newborn) | `js/content/scrubs.js` |
 | Lessons for each module | `js/content/courses/01-intro.js` … `06-final.js` (each one does `COURSES.push({...})`) |
 | State/progress, icons, views (home, modules, reference, progress), lesson player | `js/app.js` |

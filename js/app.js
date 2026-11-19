@@ -135,14 +135,13 @@ const reviewCard=()=>{const n=reviewCount();return n?`<div class="revcard"><div 
 function homeView(){
   const c=activeCourse(),nl=nextLesson(c),h=new Date().getHours(),d=doneCount(c),t=allLessons(c).length;
   const greet=h<12?"Good morning":h<18?"Good afternoon":"Good evening";
-  const cv=typeof MOD_COVERS!=="undefined"&&MOD_COVERS[c.id],dm=CHANGES[c.id]?c.id:"trauma",rv=reviewCount(),due=deckDue(dm);
+  const cv=typeof MOD_COVERS!=="undefined"&&MOD_COVERS[c.id],dm=CHANGES[c.id]?c.id:"trauma",rv=reviewCount();
   const hero=`<div class="ccard ${cv?"pic":""}">${cv?`<img class="hero-img" src="${cv.img}" alt="" style="object-position:${cv.pos||"50% 50%"}">`:""}
     <div class="hero-in"><span class="label">${c.category} · ${c.title}</span><h2>${nl?nl.title:"All modules complete"}</h2>
     <div class="hero-prog"><div class="bar"><i style="width:${t?d/t*100:0}%"></i></div><span>${d} of ${t} lessons</span></div>
     ${nl?`<button class="btn" data-lesson="${nl.id}">${I.play.replace('<svg','<svg width="18" height="18"')} ${d?"Continue":"Start"}</button>`:`<button class="btn" data-go="profile">See your results</button>`}</div></div>`;
   const tile=(on,attrs,icon,title,sub)=>`<button class="stile ${on?"on":""}" ${attrs}>${icon}<b>${title}</b><small>${sub}</small></button>`;
   const tiles=`<div class="stiles">${tile(rv,rv?'data-act="review"':'aria-disabled="true"',I.warn,"Review",rv?rv+" to review":"Nothing to review")}
-    ${tile(due,`data-deck="${dm}"`,I.cards,"Flip cards",due?due+" to revisit":CHANGES[dm].length+" cards")}
     ${tile(false,`data-ask="${dm}"`,I.ask,"Ask CPG","Questions on v2.6")}</div>`;
   const path=`<div class="section"><div class="section-head"><h2>${c.title}</h2><button class="link" data-course-open="${c.id}">Module overview</button></div>${pathHTML(c,true)}</div>`;
   return topbar()+`<div class="hello compact"><h1>${greet}</h1></div>
@@ -196,7 +195,7 @@ function courseDetail(){
   <div class="hero">${iconBox(c,72)}<div style="display:grid;gap:8px"><span class="label">${c.category} · about ${c.minutes} min</span><h1>${c.title}</h1><p>${c.desc}</p>${c.coverage?`<p class="coverage"><b>Covers:</b> ${c.coverage}</p>`:""}</div>
   <div class="stats"><span><b>${t}</b> lessons</span><span><b>${Math.round(d/t*100)}%</b> complete</span>${S.results[c.id[0]+"-x"]?"":""}</div>
   <div class="bar"><i style="width:${d/t*100}%"></i></div>
-  <div class="danger">${locked?`<div class="lockline">${I.lock}${lockText(c)}</div>`:nl?`<button class="btn" data-lesson="${nl.id}">${d?"Continue":"Start"}</button>`:""}${CHANGES[c.id]?`<button class="btn ghost" data-deck="${c.id}">${I.cards.replace('<svg','<svg width="18" height="18"')} Flip cards</button><button class="btn ghost" data-ask="${c.id}">${I.ask.replace('<svg','<svg width="18" height="18"')} Ask CPG</button>`:""}</div></div>
+  <div class="danger">${locked?`<div class="lockline">${I.lock}${lockText(c)}</div>`:nl?`<button class="btn" data-lesson="${nl.id}">${d?"Continue":"Start"}</button>`:""}${CHANGES[c.id]?`<button class="btn ghost" data-ask="${c.id}">${I.ask.replace('<svg','<svg width="18" height="18"')} Ask CPG</button>`:""}</div></div>
   ${pathHTML(c)}`;
 }
 // Foldable sections (Progress tab, Reference list view). FOLD remembers the learner's open/closed choice across re-renders;
@@ -223,8 +222,7 @@ function profileView(){
    +pRow(hueIcon("--c-trauma","syringe"),"TXA hands-on: solo run",S.sim&&S.sim.done?(S.sim.mode==="pressure"?"Pressure run":"Independent run")+" · "+(S.sim.comp?"Competent":"Needs review"):"Not completed yet",S.sim&&S.sim.done?(S.sim.score!=null?S.sim.score+"%":"Done"):"–",`data-course-open="trauma"`)
    +pRow(hueIcon("--c-newborn","newborn"),"Thermal care: solo round",S.thermo&&S.thermo.done?S.thermo.errors+" incorrect · "+S.thermo.hints+" hints":"Not completed yet",S.thermo&&S.thermo.done?S.thermo.first+"/"+S.thermo.of:"–",`data-course-open="newborn"`)
    +[["nbr","Newborn resuscitation: solo run","--c-newborn","newborn","newborn"],["code","Code clock: solo run","--c-cardiac","cardiac","cardiac"]].map(([k,t,hue,ic,c])=>{const r=rx(k);
-     return pRow(hueIcon(hue,ic),t,r?r.errors+" errors · "+r.hints+" hints"+(r.label?" · "+r.label:""):"Not completed yet",r?r.first+"/"+r.of:"–",`data-course-open="${c}"`)}).join("")
-   +pRow(hueIcon("--accent","cards"),'Flip cards marked "Got it"',"Across all four modules",`${Object.values(S.cards).filter(Boolean).length}/${Object.values(CHANGES).flat().length}`);
+     return pRow(hueIcon(hue,ic),t,r?r.errors+" errors · "+r.hints+" hints"+(r.label?" · "+r.label:""):"Not completed yet",r?r.first+"/"+r.of:"–",`data-course-open="${c}"`)}).join("");
   const mods=COURSES.map(c=>{const d=doneCount(c),t=allLessons(c).length;
     return `<button class="row go" data-course-open="${c.id}">${iconBox(c)}<div style="min-width:0"><b>${c.title}</b><div class="bar"><i style="width:${d/t*100}%"></i></div></div><small>${d}/${t}</small></button>`}).join("");
   return topbar()+`<div class="hello"><h1>Your progress</h1><p>Saved in this browser only. This is not an official training record.</p></div>
@@ -247,7 +245,7 @@ function referenceView(){const list=S.refView==="list";
   return topbar()+`<button class="link rvback" data-refback="1">${I.left} Back</button><div class="hello rvhead"><div><h1>Quick reference</h1><p>Key v2.6 changes grouped by topic. Available at any time, including on shift.</p></div>
    <div class="vtog" role="group" aria-label="Reference layout">${["books","list"].map(k=>`<button data-refview="${k}" aria-label="${k==="books"?"Books":"List"} view" aria-pressed="${(k==="list")===list}" title="${k==="books"?"Books":"List"} view">${RV_ICON[k]}</button>`).join("")}</div></div>
   ${list?refBooksList():`<div class="rs" id="rs" tabindex="-1"></div>`}
-  <div class="section">${list?"":`<div class="danger"><button class="btn" id="rsDeck" data-deck="${refMod}">${I.cards.replace('<svg','<svg width="18" height="18"')} <span>${deckLabel(refMod)}</span></button><button class="btn ghost" id="rsMod" data-course-open="${refMod}">Open module</button></div>`}</div>`;
+  <div class="section">${list?"":`<div class="danger"><button class="btn ghost" id="rsMod" data-course-open="${refMod}">Open module</button></div>`}</div>`;
 }
 function confSection(){
   const E=Object.values(S.conf).filter(e=>e.c);
@@ -331,10 +329,10 @@ window.addEventListener("message",e=>{
 });
 // flip cards: S.cards[key] is true (got it) or false (still learning, remembered between sessions); still-learning cards come first, then unseen, then known
 const deckKey=(m,c)=>m+":"+c.f;
-const deckDue=m=>(CHANGES[m]||[]).filter(c=>S.cards[deckKey(m,c)]===false).length;
-const deckLabel=m=>{const d=deckDue(m);return `Flip cards · ${MODS[m]}${d?` · ${d} to revisit`:` (${(CHANGES[m]||[]).length})`}`};
+const deckCards=m=>(CHANGES[m]||[]).filter(c=>c.kind==="habit");
+const deckDue=m=>deckCards(m).filter(c=>S.cards[deckKey(m,c)]===false).length;
 function openDeck(mod){const rank=c=>{const v=S.cards[deckKey(mod,c)];return v===false?0:v===undefined?1:2};
-  P={mode:"deck",mod,cards:CHANGES[mod].map(c=>({...c,key:deckKey(mod,c)})).map((c,i)=>({c,i})).sort((a,b)=>rank(a.c)-rank(b.c)||a.i-b.i).map(x=>x.c),ci:0,flipped:false,known:0,again:[]};document.getElementById("player").hidden=false;document.body.style.overflow="hidden";drawPlayer();}
+  P={mode:"deck",mod,cards:deckCards(mod).map(c=>({...c,key:deckKey(mod,c)})).map((c,i)=>({c,i})).sort((a,b)=>rank(a.c)-rank(b.c)||a.i-b.i).map(x=>x.c),ci:0,flipped:false,known:0,again:[]};document.getElementById("player").hidden=false;document.body.style.overflow="hidden";drawPlayer();}
 function closeLesson(){if(P){clearInterval(P.tick);clearInterval(P.infT);}txHush();const pl=document.getElementById("player");pl.classList.remove("scene","prepbench");document.getElementById("player").hidden=true;document.body.style.overflow="";P=null;render();}
 const assessMode=()=>P.mode==="diag"||P.mode==="final"||(P.mode==="exit"&&!hasFinalQs(P.l.bank)); // no per-question feedback; a module check gets feedback only once the final no longer reuses its questions
 
@@ -491,13 +489,13 @@ function cwRow(){
 function deckHTML(){
   const n=P.cards.length;
   if(P.ci>=n){
-    return `<div></div><div class="p-body"><div class="done"><div class="burst">${I.cards}</div><h1 style="font-size:2rem">Deck complete</h1><p class="note">${MODS[P.mod]} · what changed in v2.6</p>
+    return `<div></div><div class="p-body"><div class="done"><div class="burst">${I.cards}</div><h1 style="font-size:2rem">Deck complete</h1><p class="note">${MODS[P.mod]} · habits to unlearn</p>
      <div class="tiles" style="grid-template-columns:1fr 1fr"><div class="tile"><b style="color:var(--good)">${P.known}</b><span>Got it</span></div><div class="tile"><b style="color:var(--sun)">${P.again.length}</b><span>Still learning</span></div></div>${P.again.length?`<p class="note">Cards marked Still learning come first the next time you open this deck.</p>`:""}</div></div>
      <div class="p-foot"><div class="foot-in"><div class="foot-btns">${P.again.length?`<button class="btn ghost" data-act="deck-again">Review ${P.again.length} again</button>`:""}<button class="btn" data-act="finish">Done</button></div></div></div>`;
   }
   const c=P.cards[P.ci];
-  return `<div class="p-top"><button class="x" data-act="close" aria-label="Close flip cards">${I.x}</button><div class="bar" role="progressbar" aria-label="Deck progress" aria-valuenow="${Math.round(P.ci/n*100)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${P.ci/n*100}%"></i></div><span class="count">${P.ci+1}/${n}</span></div>
-   <div class="p-body"><div class="deck"><span class="label">${MODS[P.mod]} · what changed</span>
+  return `<div class="p-top"><button class="x" data-act="close" aria-label="Close">${I.x}</button><div class="bar" role="progressbar" aria-label="Deck progress" aria-valuenow="${Math.round(P.ci/n*100)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${P.ci/n*100}%"></i></div><span class="count">${P.ci+1}/${n}</span></div>
+   <div class="p-body"><div class="deck"><span class="label">${MODS[P.mod]} · habits to unlearn</span>
     <div class="card3d ${P.flipped?"flipped":""}"><button class="inner" data-act="flip" aria-label="${P.flipped?"Show the question side":"Flip to see the v2.6 answer"}">
      <div class="face front" aria-hidden="${P.flipped}"><span class="kind ${c.kind}">${KIND[c.kind]}</span><p class="ftxt">${c.f}</p></div>
      <div class="face back" aria-hidden="${!P.flipped}"><span class="kind now">v2.6</span><p class="ftxt">${c.b}</p>${c.pend?`<span class="badge pend" style="justify-self:start">Details pending verification</span>`:""}<span class="src">Source: ${c.src}</span></div>
@@ -670,9 +668,9 @@ function endScreen(){
     if(!R.met&&reviewCount())next=`<button class="btn ghost" data-act="review-more">Review missed questions</button><button class="btn ghost" data-act="retake">Retake</button><button class="btn" data-act="finish">Done</button>`;
     if(!R.met) cta="Done";
   }
-  // module finished: offer its flip cards while the content is fresh
-  if(P.c&&(P.mode==="practice"||P.mode==="exit")&&CHANGES[P.c.id]&&courseDone(P.c)){const n=CHANGES[P.c.id].length,d=deckDue(P.c.id);
-    inner+=`<button class="qbtn deckcta" data-deck="${P.c.id}">${I.cards}<span><b>Habits to unlearn · ${P.c.title}</b><small>${n} flip cards · about ${Math.max(1,Math.round(n*10/60))} min${d?` · ${d} to revisit`:""}</small></span></button>`;}
+  // module finished: offer its "habits to unlearn" cards (old practice → v2.6) while the content is fresh
+  if(P.c&&(P.mode==="practice"||P.mode==="exit")&&deckCards(P.c.id).length&&courseDone(P.c)){const n=deckCards(P.c.id).length,d=deckDue(P.c.id);
+    inner+=`<button class="qbtn deckcta" data-deck="${P.c.id}">${I.cards}<span><b>Habits to unlearn · ${P.c.title}</b><small>${n} cards · about ${Math.max(1,Math.round(n*10/60))} min${d?` · ${d} to revisit`:""}</small></span></button>`;}
   return `<div></div><div class="p-body"><div class="done"><div class="burst ${amber?"amber":""}">${amber?I.warn:I.check}</div>${inner}</div></div>
    <div class="p-foot"><div class="foot-in"><div class="foot-btns">${next||`${(P.mode==="exit"||P.mode==="final")&&amber?`<button class="btn ghost" data-act="retake">Retake</button>`:""}<button class="btn" data-act="finish">${cta}</button>`}</div></div></div>`;
 }

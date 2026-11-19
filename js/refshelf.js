@@ -131,8 +131,8 @@ function rsSetActive(i,dir,first){if(i===RS.act)return;RS.act=i;const it=RS_ITEM
   if(RS.q.length){const j=RS.q.indexOf(i);if(j>=0&&j!==RS.mi){RS.mi=j;rsHits()}}
   clearTimeout(RS.saveT);RS.saveT=setTimeout(()=>{if(S.refItem!==it.key){S.refItem=it.key;save()}},600);
   if(it.m!==refGrp||it.mod!==refMod||first){refGrp=it.m;refMod=it.mod;RS.lastMod=refGrp;
-    const dk=document.getElementById("rsDeck"),om=document.getElementById("rsMod");
-    if(dk){dk.dataset.deck=refMod;dk.querySelector("span").textContent=deckLabel(refMod)}
+    const om=document.getElementById("rsMod");
+    
     if(om)om.dataset.courseOpen=refMod;}
 }
 function rsSwap(m,html,dir,instant){
@@ -181,7 +181,7 @@ function rsSheet(){let d=document.getElementById("rsd");if(d)return d;
   <div class="rsd-grid"><div class="rsd-txt">
    <div class="rsd-m"><span class="lbl rsd-sub"></span></div><div class="rsd-m"><h2 id="rsdT"></h2></div><div class="rsd-m"><span class="lbl rsd-meta"></span></div>
    <div class="rsd-vbox visual" hidden></div><div class="rsd-m"><ul class="rsd-body"></ul></div><div class="rsd-m"><p class="rsd-cred"></p></div>
-   <div class="rsd-m rsd-acts"><button class="rs-box lbl rsd-go" data-rsd="deck"></button><button class="rs-box lbl rsd-go ghost" data-rsd="mod">Open module</button></div></div>
+   <div class="rsd-m rsd-acts"><button class="rs-box lbl rsd-go" data-rsd="mod">Open module</button></div></div>
    <div class="rsd-poster"><svg viewBox="0 0 474 900" aria-hidden="true"><defs><filter id="rsInk" x="-30%" y="-30%" width="160%" height="160%"><feTurbulence type="fractalNoise" baseFrequency=".011" numOctaves="3" seed="7"/><feDisplacementMap in="SourceGraphic" scale="120" xChannelSelector="R" yChannelSelector="G"/></filter>
     <mask id="rsMask" maskUnits="userSpaceOnUse" x="-200" y="-200" width="874" height="1300"><g filter="url(#rsInk)">${RS_BLOBS.map(b=>`<circle cx="${b[0]}" cy="${b[1]}" r="0" fill="#fff"/>`).join("")}</g></mask>
     <pattern id="rsDots" width="9" height="9" patternUnits="userSpaceOnUse"><circle cx="4.5" cy="4.5" r="1.3" fill="rgba(255,255,255,.16)"/></pattern><clipPath id="rsClip"><rect width="474" height="900" rx="4"/></clipPath></defs>
@@ -193,7 +193,7 @@ function rsSheet(){let d=document.getElementById("rsd");if(d)return d;
   d.addEventListener("click",e=>{const b=e.target.closest("[data-rsd]");if(!b)return;const a=b.dataset.rsd;
     if(a==="close"){if(RS.peek){rsPeekClose();return}rsClose();return}
     if(a==="prev"||a==="next"){rsStep(a==="prev"?-1:1);return}
-    rsClose(true);if(a==="deck")openDeck(refMod);else go("course",refMod);});
+    rsClose(true);go("course",refMod);});
   return d;
 }
 function rsVis(it){const d=rsSheet(),v=it.visual,box=d.querySelector(".rsd-vbox");d.classList.toggle("hasvis",!!v);
@@ -209,7 +209,7 @@ function rsFill(it){const d=rsSheet();
   d.querySelector("#rsdT").innerHTML=it.title;d.querySelector(".rsd-meta").innerHTML=`${rsScope(it.scope)} · sources listed under each point`;
   d.querySelector(".rsd-body").innerHTML=it.its.map(rsItemHTML).join("");d.querySelector(".rsd-cred").textContent=`HMCAS Clinical Practice Guidelines v2.6 · ${BOOK_GROUPS[it.m]}`;
   d.querySelector(".rsd-pos").textContent=`${BOOK_GROUPS[it.m]} ${String(it.k+1).padStart(2,"0")} / ${REF_BOOKS[it.m].length}`;
-  d.querySelector('[data-rsd="deck"]').textContent=deckLabel(it.mod);
+
   d.querySelector(".rsd-band").setAttribute("fill",RS_COL[it.m]);const pi=d.querySelector(".rsd-img");pi.setAttribute("href",it.img);pi.setAttribute("preserveAspectRatio",it.photo?"xMidYMid slice":"xMidYMid meet");
   rsPosterTitle(d.querySelector(".rsd-pm"),it.title);d.querySelector(".rsd-pk").textContent=`HMCAS · ${BOOK_GROUPS[it.m].toUpperCase()}`;d.style.setProperty("--g",RS_COL[it.m]);d.querySelector(".rsd-ps").textContent=rsScope(it.scope).replace("&amp;","&").toUpperCase();
   rsVis(it);}

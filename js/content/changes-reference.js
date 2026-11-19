@@ -14,7 +14,7 @@ const V={
   <div class="branch"><div class="if">≥ 24 hours</div><div class="p2"><b>P2</b> to nearest appropriate ED</div></div></div>`
 };
 
-/* ---------- Flip cards: "what changed" per module ----------
+/* ---------- "What changed" cards per module (only kind:"habit" cards are shown: end-of-module "Habits to unlearn" deck) ----------
    kind: habit = a familiar routine to unlearn; removed = explicitly removed in v2.6; new = new or changed action */
 const KIND={habit:"Habit to unlearn",removed:"Removed in v2.6",new:"What's new?"};
 const CHANGES={
