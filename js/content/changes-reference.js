@@ -14,56 +14,31 @@ const V={
   <div class="branch"><div class="if">≥ 24 hours</div><div class="p2"><b>P2</b> to nearest appropriate ED</div></div></div>`
 };
 
-/* ---------- "What changed" cards per module (only kind:"habit" cards are shown: end-of-module "Habits to unlearn" deck) ----------
-   kind: habit = a familiar routine to unlearn; removed = explicitly removed in v2.6; new = new or changed action */
-const KIND={habit:"Habit to unlearn",removed:"Removed in v2.6",new:"What's new?"};
+/* ---------- "Habits to unlearn" cards per module (end-of-module deck): f = the old habit, b = the v2.6 practice ---------- */
+const KIND={habit:"Habit to unlearn"};
 const CHANGES={
  trauma:[
   {kind:"habit",f:"Neck pain after a collision means a full immobilised extraction.",b:"Self-extrication or minimal assistance is now first line, including neck or back pain and soft neuro signs. Not if they can't follow instructions or can't stand on at least one leg.",src:"CPG 10.13 p.200"},
-  {kind:"new",f:"A conscious trapped patient with no neuro deficit. Manual in-line stabilisation in the vehicle?",b:"Not needed. Keep monitoring to a minimum while trapped; only critical interventions (haemorrhage control, TXA, analgesia).",src:"CPG 10.13 p.200"},
-  {kind:"new",f:"A child with an isolated TBI and GCS ≤12. Is TXA indicated?",b:"Yes, if the injury is under 3 hours old and there are no contraindications. Dose 15 mg/kg from the chart; 1 g in 100 mL = 10 mg/mL; give over 10 minutes.",src:"Circular rows 27–28 · HMCAS Paediatric IV TXA poster"},
   {kind:"habit",f:"Add 1 g TXA straight into the full 100 mL bag.",b:"Draw out 10 mL of saline first, then add 1 g (2 × 500 mg = 10 mL). That makes exactly 10 mg/mL.",src:"HMCAS Paediatric IV TXA poster"},
   {kind:"habit",f:"Mix the bag first and label it afterwards.",b:"Label immediately after preparation, then mix gently by turning the bag slowly a few times.",src:"HMCAS Paediatric IV TXA poster"},
-  {kind:"new",f:"Child aged 8 or over, or over 30 kg: how do you give the dose?",b:"Draw out and discard the chart volume, then give the remaining volume over 10 minutes. It includes 10 mL for the administration set.",src:"HMCAS Paediatric IV TXA poster"},
   {kind:"habit",f:"Push TXA quickly to save time.",b:"Give it over 10 minutes. A rapid push can drop the child's blood pressure.",src:"HMCAS Paediatric IV TXA poster"},
-  {kind:"removed",f:"TXA in the ectopic pregnancy, miscarriage, placental abruption and placenta praevia algorithms.",b:"Removed. In obstetrics, TXA is for postpartum haemorrhage only. Urgent haemorrhage care still applies.",src:"Circular rows 22–25, 29"},
-  {kind:"new",f:"Abdominal seat belt sign with normal vital signs. Does it affect destination?",b:"Yes. It is now a trauma bypass criterion. Apply the CPG 10.10 destination decision.",src:"CPG 10.10 · Circular row 19"},
   {kind:"habit",f:"One MAP target for every spinal patient in shock.",b:"Isolated neurogenic shock: MAP 85–90 mmHg. Combined with haemorrhagic shock: MAP ≥65 mmHg.",src:"CPG 10.3 p.178"},
   {kind:"habit",f:"Keep every spinal patient on the combi-carrier all the way to hospital.",b:"Consider removing it once on the stretcher (keep it for the unconscious patient). Head blocks always. Stretcher may be raised up to 30°.",src:"CPG 10.3 p.178"}
  ],
  newborn:[
-  {kind:"new",f:"A breathing newborn who needs no resuscitation. Which guideline?",b:"New CPG 12.13 Care of the newborn. Dry, warm hat and wrap are mandatory; keep temperature ≥36.5 °C.",src:"CPG 12.13 p.247"},
-  {kind:"new",f:"Preterm baby (<37 weeks): what's added to thermal care?",b:"A thermal mattress and plastic bag wrap are mandatory.",src:"CPG 12.13 p.247"},
   {kind:"habit",f:"Clamp the cord straight away.",b:"Leave it intact for at least 60 seconds, then clamp about 5 cm from the umbilicus. Clamp at once only if resuscitation is needed.",src:"CPG 12.13 p.247"},
   {kind:"habit",f:"Suction meconium routinely before giving breaths.",b:"Suction only for obstruction, under direct vision. Mouth first, then nose.",src:"CPG 2.5 p.51"},
   {kind:"habit",f:"Judge the newborn's oxygenation by skin colour.",b:"Skin colour isn't accurate. Use breathing, heart rate, response to stimulation, tone and SpO₂.",src:"CPG 2.5 p.51"},
-  {kind:"new",f:"The first breaths in newborn resuscitation?",b:"5 inflation breaths of 2–3 s with PEEP 6 cmH₂O. Room air at ≥32 weeks, 30% oxygen under 32 weeks.",src:"CPG 2.5 p.51"},
-  {kind:"new",f:"When do newborn compressions start?",b:"HR still <60 after 30 s of ventilation. 3:1, two-thumb technique, 100% oxygen, reassess every 30 s.",src:"CPG 2.5 p.52"},
-  {kind:"removed",f:"Glucagon for a hypoglycaemic newborn.",b:"Don't give glucagon. RBS <2.6 mmol/L in routine care: buccal glucose. In resuscitation: dextrose 10% 2 ml/kg.",src:"CPG 12.13 p.248 · CPG 2.5 p.52"}
  ],
  cardiac:[
-  {kind:"new",f:"Adult medical shockable arrest: when is the first adrenaline?",b:"After the third shock, then every 4 minutes. Non-shockable: as soon as IV/IO is in.",src:"CPG 2.1 · Summary p.1"},
-  {kind:"new",f:"Adult arrest: amiodarone timing?",b:"300 mg after the third shock, 150 mg after the fifth.",src:"CPG 2.1 · Summary p.1"},
-  {kind:"new",f:"Zoll energy for adult arrest?",b:"150 J, 200 J, 200 J (LP15 unchanged: 200, 300, 360 J). Maximum 3 DSEDs.",src:"CPG 2.1 p.37 · Summary p.1"},
   {kind:"habit",f:"Use the adult medical drug timing in traumatic arrest.",b:"Trauma arrest: HOTT first, minimum scene time. Adrenaline only after reversible causes and at least 500 ml NS, then every 4 minutes.",src:"CPG 2.2 p.35"},
-  {kind:"new",f:"How does paediatric CPR start?",b:"5 ventilations, then CPR at 15:2.",src:"CPG 2.3 · Summary p.2"},
-  {kind:"new",f:"Child under 25 kg in arrest: pad position?",b:"Anterior-posterior is first choice. Over 25 kg, either position.",src:"CPG 2.3 p.42"},
   {kind:"habit",f:"Paediatric fluid bolus 20 ml/kg.",b:"10 ml/kg, up to 3 times in arrest. Dextrose 10% is now 2 ml/kg.",src:"CPG 2.3 p.43"},
   {kind:"habit",f:"Keep SpO₂ at 100% after ROSC.",b:"Target 94–98%. Avoid hyperoxaemia.",src:"CPG 2.6 p.54"},
-  {kind:"new",f:"Comatose adult after a medical arrest with ROSC. Anything new?",b:"Ice packs to the axillae and groin. Don't let temperature drop below 33 °C, and tell the hospital.",src:"CPG 2.6 p.55"},
-  {kind:"new",f:"Drowning arrest: first ventilation?",b:"Five ventilations with a BVM and 100% oxygen.",src:"CPG 2.8 p.58"},
   {kind:"habit",f:"\"Consider\" transporting a hypothermic arrest.",b:"Transport all of them unless there are signs of undeniable death, and consider e-CPR.",src:"CPG 2.8 p.58"},
   {kind:"habit",f:"It's 150 J for all synchronised cardioversion.",b:"150 J is broad-complex. Narrow-complex adult: 120 J regular, 200 J irregular. Cardioversion is CCP only; APs apply pads and escalate.",src:"CPG 4.3–4.4 pp.77, 79"},
   {kind:"habit",f:"Accept any handover from a CCP after an antiemetic.",b:"Only if the patient is stable, has no adverse effects, and has had no other CCP medications not approved for AP sign-off.",src:"CPG 6.4 · ondansetron formulary"}
  ],
  stroke:[
-  {kind:"removed",f:"The 15-hour stroke time threshold.",b:"Removed. Use the ≤8 h, >8 to <24 h (with RACE), ≥24 h and unknown-onset branches.",src:"CPG 3.1 p.64"},
-  {kind:"new",f:"Wake-up stroke with unknown onset. Where to?",b:"P1 to HGH ED with prenotification via CC:E.",src:"CPG 3.1 p.64"},
-  {kind:"new",f:"Last known well 10 hours ago, RACE 6. Where to?",b:"P1 to HGH ED with prenotification via CC:E (RACE ≥5 in the >8 to <24 h window).",src:"CPG 3.1 p.64"},
-  {kind:"new",f:"Last known well 10 hours ago, RACE 3. Where to?",b:"P2 to the nearest appropriate ED.",src:"CPG 3.1 p.64"},
-  {kind:"new",f:"Last known well 24 hours ago or more. Where to?",b:"P2 to the nearest appropriate ED. No RACE needed for the decision.",src:"CPG 3.1 p.64"},
-  {kind:"removed",f:"Penthrox for stroke-related pain.",b:"Removed. Paracetamol and an antiemetic if required; oxygen only as required.",src:"CPG 3.1 p.65 · Summary p.4"},
-  {kind:"new",f:"What goes in a stroke prenotification?",b:"Age, last seen well, BEFAST, RACE if done, RBS, BP, anticoagulant status and ETA.",src:"CPG 3.1 p.62"}
  ]
 };
 
