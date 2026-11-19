@@ -170,7 +170,7 @@ function cfCard(c,i,n){
   const d=doneCount(c),t=allLessons(c).length,locked=!reqMet(c),nl=nextLesson(c),cv=typeof MOD_COVERS!=="undefined"&&MOD_COVERS[c.id],last=c.id===(S.lastMod||"");
   const act=locked?"":nl?`<button class="btn sm" data-lesson="${nl.id}">${d?"Continue":"Start"}</button>`:`<button class="btn sm" data-course-open="${c.id}">Review</button>`;
   return `<article class="cf-card ${locked?"locked":""}" data-cfi="${i}" aria-label="${c.title}, module ${i+1} of ${n}">
-   ${cv?`<img class="cf-img" src="${cv.img}" alt="" style="object-position:${cv.pos||"50% 50%"}" draggable="false">`:`<div class="cf-ico">${iconBox(c,96)}</div>`}
+   ${cv?`<img class="cf-bgimg" src="${cv.img}" alt="" draggable="false"><img class="cf-img" src="${cv.img}" alt="" style="object-position:${cv.pos||"50% 50%"}" draggable="false">`:`<div class="cf-ico">${iconBox(c,96)}</div>`}
    <div class="cf-top"><button class="cf-pill" data-course-open="${c.id}" tabindex="-1">${I.book} Overview</button>${last?`<span class="cf-pill tag">Last visited</span>`:""}</div>
    <div class="cf-glass"><span class="cf-cat">${c.category}</span>
     <div class="cf-h"><h3>${c.title}</h3><span class="cf-n">${i+1} / ${n}</span></div>
