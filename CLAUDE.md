@@ -12,7 +12,7 @@ Plain HTML/CSS/JS with no build step and no framework. Users open `index.html` b
 | Text visuals (`V`), "what changed" cards (`CHANGES`; only `kind:"habit"` cards are used, as the end-of-module "Habits to unlearn" deck), quick reference (`REF`), reference shelf books (`REF_BOOKS`) | `js/content/changes-reference.js` |
 | Interactive diagrams for the `scrub` step (`SCRUB`: arrest, txa, stroke, newborn) | `js/content/scrubs.js` |
 | Lessons for each module | `js/content/courses/01-intro.js` … `06-final.js` (each one does `COURSES.push({...})`) |
-| State/progress, icons, views (home, modules = 3D card carousel over `sc/cover-orientation.webp` (`coursesView`, `cfCard`, `modsMount`), reference, progress), lesson player | `js/app.js` |
+| State/progress, icons, views (home, modules = 3D card carousel over `sc/cover-orientation.webp` (`coursesView`, `cfCard`, `modsMount`), reference, progress = glass panels over `brand/gate-fleet*.webp` (body classes `mods-on` / `prog-on`)), lesson player | `js/app.js` |
 | TXA hands-on simulation (also the shared stage engine `TXS`, sounds, voice) | `js/hands-on/txa.js` |
 | Newborn thermal care hands-on (`scene:"thermo"`) | `js/hands-on/thermal.js` |
 | Newborn resus (`nbr`), code clock (`code`), stretcher/SMR (`smr`) hands-on | `js/hands-on/resus.js` |

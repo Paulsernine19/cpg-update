@@ -1715,3 +1715,12 @@ body.mods-on{background:transparent}
 @media (min-width:900px){.cf-card{width:360px}.cf-stage{height:clamp(480px,calc(100dvh - 260px),620px)}.cf-page{margin:0;padding:0}}
 @media (prefers-reduced-motion:reduce){.cf-stage.ready .cf-card{transition:none}}
 .cf-glass .bar{background:color-mix(in srgb,var(--gl-ink) 14%,transparent)}
+/* ============ Progress tab: glass panels over the fleet photo (first-launch screen) ============ */
+body.prog-on{background:transparent}
+body.prog-on::before{content:"";position:fixed;inset:-20px;z-index:-2;background:url("../brand/gate-fleet.webp") 50% 60%/cover no-repeat;filter:blur(4px) saturate(1.05)}
+@media (max-aspect-ratio:1/1){body.prog-on::before{background-image:url("../brand/gate-fleet-phone.webp");background-position:50% 68%}}
+body.prog-on::after{content:"";position:fixed;inset:0;z-index:-1;background:var(--gl-veil)}
+body.prog-on details.gloss,body.prog-on .tile{background:var(--gl-bg);border-color:var(--gl-edge);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);box-shadow:0 10px 30px rgba(10,14,40,.16),inset 0 1px 0 rgba(255,255,255,.35)}
+body.prog-on details.gloss .rows{background:color-mix(in srgb,var(--surface) 45%,transparent);border-color:var(--gl-edge)}
+body.prog-on .row{border-top-color:var(--gl-edge)}
+body.prog-on .tile span,body.prog-on .note,body.prog-on .fold-m:not(.alert),body.prog-on .row small,body.prog-on dl.terms dd,body.prog-on .hello p,body.prog-on .fold-chev{color:var(--gl-mut)}
