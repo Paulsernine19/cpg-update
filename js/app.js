@@ -407,7 +407,7 @@ function stepBody(s){
   if(s.type==="walk"){const cur=P.cur||s.start,n=s.nodes[cur],ord=n.opts?(P.wOrd[cur]||(P.wOrd[cur]=shuffle(n.opts.map((_,i)=>i)))):[];
     const asked=P.trail.length,miss=P.wMiss.length,firstOk=asked-miss,again=walkNeedsRerun(s),ev=P.why&&n.opts?n.opts[P.whyIdx].ev:undefined;
     const caseBox=s.facts?`<div class="case wcase"><span class="label wc-l">${WIC.clip} Case</span><div class="wfacts">${s.facts.map((t,i)=>`<span class="wfact ${ev===i?"hl":""}">${t}</span>`).join("")}</div></div>`:`<div class="case"><span class="label">Case</span><p>${s.case}</p></div>`;
-    return `${badges(s)}${s.cpg?`<div class="whead">${s.hic&&WIC[s.hic]?`<span class="wh-ic">${WIC[s.hic]}</span>`:""}<span class="wh-cpg">${s.cpg}</span><span class="wh-t">${s.topic||""}</span></div>`:`<span class="label">${s.label}</span>`}<h2>${s.title}</h2>${caseBox}
+    return `${badges(s)}<span class="label">${s.label}</span><h2>${s.title}</h2>${caseBox}
     ${P.wRun>1?`<p class="note wrun">Second run</p>`:""}
     ${s.vis?walkVis(s,cur):""}<div class="wgrid ${n.end?"ended":""}"><div class="wmapcol">${walkMap(s,!!n.end)}</div><div class="wqcol">
     ${n.end?`<div class="wend ${n.tone}" role="status"><span class="label">Outcome</span><b>${n.end}</b></div>
@@ -416,7 +416,7 @@ function stepBody(s){
       ${again?`<p class="note">2 or more steps were missed. Complete one more run to continue.</p>`:""}</div>
       ${s.ref?`<button class="wref" data-refpeek="${s.ref}">${I.book} Open this algorithm in Reference</button>`:""}`
       :`<div class="wq"><span class="label">Step ${walkPath(s).indexOf(cur)+1} of ${walkPath(s).length-1}</span><h3>${n.q}</h3>${P.why?`<div class="why" role="status"><b>Incorrect.</b> <span class="wpick">You chose: ${n.opts[P.whyIdx].t}</span> ${P.why}${ev!==undefined?`<span class="wev">The deciding fact is highlighted in the case.</span>`:""}</div><button class="btn ghost" data-walkretry="1">Try again</button>`
-        :`<div class="wopts">${ord.map(i=>{const o=n.opts[i],ic=o.ic&&WIC[o.ic];return `<button class="opt${ic?" has-ic":""}" data-walk="${i}">${ic?`<span class="oic ${o.ic}" aria-hidden="true">${ic}</span>`:""}<span>${o.t}</span></button>`}).join("")}</div>`}</div>`}</div></div>${srcLine(s)}`;}
+        :`<div class="wopts">${ord.map(i=>{const o=n.opts[i],ic=o.ic&&WIC[o.ic];return `<button class="opt${ic?" has-ic":""}" data-walk="${i}">${ic?`<span class="oic ${o.ic}${WIC_ART[o.ic]?" art":""}" aria-hidden="true">${ic}</span>`:""}<span>${o.t}</span></button>`}).join("")}</div>`}</div>`}</div></div>${srcLine(s)}`;}
   return "";
 }
 // walk with vis:true: scene (s.media = image/video path, otherwise a neutral drawing) and, once a node states a heart rate (node.mon={hr}), a monitor.
@@ -434,8 +434,23 @@ const WIC=(()=>{const w=b=>`<svg viewBox="0 0 24 24" fill="none" stroke="current
   stop:w(`<path ${f} d="M8.2 2.8h7.6l5.4 5.4v7.6l-5.4 5.4H8.2l-5.4-5.4V8.2z"/><path d="M8.5 12h7" stroke-width="2.2"/>`),
   yes:w(`<circle ${f} cx="12" cy="12" r="9.3"/><path d="m8 12.4 2.7 2.7 5.4-5.6" stroke-width="2.1"/>`),
   no:w(`<circle ${f} cx="12" cy="12" r="9.3"/><path d="m9 9 6 6M15 9l-6 6" stroke-width="2.1"/>`),
-  // header + case icons
-  newborn:`<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="22" r="13" fill="#FBDCC4" stroke="#C98A6B" stroke-width="1.6"/><path d="M14 11c2-3 7-4.6 9.5-2.2 1.4 1.3.6 3.4-1.4 3.1" fill="none" stroke="#C98A6B" stroke-width="1.6" stroke-linecap="round"/><path d="M14.6 21.4q1.6-1.6 3.2 0M22.2 21.4q1.6-1.6 3.2 0" fill="none" stroke="#7A4A33" stroke-width="1.6" stroke-linecap="round"/><path d="M17 26.4q3 2.4 6 0" fill="none" stroke="#7A4A33" stroke-width="1.6" stroke-linecap="round"/><circle cx="13.6" cy="25" r="1.8" fill="#F6A9A0" opacity=".7"/><circle cx="26.4" cy="25" r="1.8" fill="#F6A9A0" opacity=".7"/></svg>`,
+  // case + monitor icons, more option icons
+  talk:w(`<path ${f} d="M4 5.5h16a1.5 1.5 0 0 1 1.5 1.5v8.5A1.5 1.5 0 0 1 20 17H10l-4.5 3.5V17H4a1.5 1.5 0 0 1-1.5-1.5V7A1.5 1.5 0 0 1 4 5.5z"/><path d="M7 10h10M7 13h6"/>`),
+  exit:w(`<path ${f} d="M4 3.5h9v17H4z"/><path d="M10.4 12h.01" stroke-width="2.4"/><path d="M15 12h6.5M18.5 9l3 3-3 3"/>`),
+  door:w(`<path ${f} d="M6 3.5h12v17H6z"/><path d="M14.5 12.5h.01" stroke-width="2.6"/><path d="M3.5 20.5h17"/>`),
+  move:w(`<path ${f} d="M7.6 3.5c1.8 0 2.8 1.8 2.8 4.3S9.4 12 7.7 12 5 10.4 5 7.7 5.9 3.5 7.6 3.5z"/><path ${f} d="M16.4 8.5c1.8 0 2.7 1.8 2.7 4.2s-1 4.2-2.7 4.2-2.6-1.6-2.6-4.2.9-4.2 2.6-4.2z"/><path d="M6.3 14.6h2.8v1.6a1.4 1.4 0 0 1-2.8 0zM15 19.6h2.8v.4a1.4 1.4 0 0 1-2.8 0z"/>`),
+  lift:w(`<path d="M12 3.5v10M8 7.5l4-4 4 4"/><path ${f} d="M4 15.5h16l-1.5 5h-13z"/>`),
+  plan:w(`<path ${f} d="M3.5 6.5 9 4l6 2.5L20.5 4v13.5L15 20l-6-2.5L3.5 20z"/><path d="M9 4v13.5M15 6.5V20"/>`),
+  stretcher:w(`<path ${f} d="M3 11.5h18v3H3z"/><circle cx="6.5" cy="18.5" r="1.8"/><circle cx="17.5" cy="18.5" r="1.8"/><path d="M6.5 14.5v2.2M17.5 14.5v2.2M3 11.5 4.5 8h4"/>`),
+  hospital:w(`<path ${f} d="M4 20.5V6.5h16v14z"/><path d="M12 9.5v6M9 12.5h6M2.5 20.5h19"/>`),
+  collar:w(`<path ${f} d="M5 9c2.2 1.6 4.6 2.3 7 2.3s4.8-.7 7-2.3v6c-2.2 1.6-4.6 2.3-7 2.3S7.2 16.6 5 15z"/><path d="M12 11.3v6M9 4.5a3 3 0 0 0 6 0"/>`),
+  pull:w(`<path d="M21 12H8.5M12.5 8l-4 4 4 4"/><path ${f} d="M3 7.5h3.2v9H3z"/>`),
+  board:w(`<rect ${f} x="2.5" y="8.5" width="19" height="7" rx="3.5"/><path d="M6.5 12h.01M10 12h.01M14 12h.01M17.5 12h.01" stroke-width="2.4"/>`),
+  drop:w(`<path ${f} d="M12 3.5s6.5 7 6.5 11.2a6.5 6.5 0 0 1-13 0C5.5 10.5 12 3.5 12 3.5z"/><path d="M9 15a3 3 0 0 0 3 3" stroke-width="1.4"/>`),
+  brain:w(`<path ${f} d="M9 4.5a3 3 0 0 0-3 3 3 3 0 0 0-1.8 5.2A3 3 0 0 0 6.5 18a3 3 0 0 0 5.5 1.5V5.8A3 3 0 0 0 9 4.5z"/><path ${f} d="M15 4.5a3 3 0 0 1 3 3 3 3 0 0 1 1.8 5.2 3 3 0 0 1-2.3 5.3 3 3 0 0 1-5.5 1.5V5.8A3 3 0 0 1 15 4.5z"/>`),
+  syringe:w(`<path ${f} d="M14.5 4.5l5 5-9.5 9.5H5v-5z"/><path d="M17 2l5 5M19.5 4.5l-2 2M5 19l-2.5 2.5M8.5 11l2 2M11 8.5l2 2"/>`),
+  sleep:w(`<path ${f} d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/><path d="M14.5 4h3.5l-3.5 4h3.5"/>`),
+  gauge:w(`<path ${f} d="M3.5 16.5a8.5 8.5 0 0 1 17 0z"/><path d="M12 16.5l4-5"/><circle cx="12" cy="16.5" r="1.5" fill="currentColor"/>`),
   clip:w(`<rect ${f} x="5" y="4.5" width="14" height="17" rx="2.4"/><rect x="8.6" y="2.6" width="6.8" height="3.8" rx="1.4" fill="var(--surface)"/><path d="M8.6 11h6.8M8.6 14.5h6.8M8.6 18h4"/>`),
   pulse:w(`<path d="M2.5 12.5h4l2-5 3.5 10 2.6-7.2 1.4 2.2h5.5" stroke-width="2"/>`)}})();
 // scene drawing: resuscitation surface (wall outlets, perspective mattress with striped blanket, BVM, folded towel, swaddled baby)
@@ -462,6 +477,12 @@ const WSCENE=`<svg viewBox="8 26 304 168" preserveAspectRatio="xMidYMid slice" c
   <circle cx="10" cy="30" r="19" fill="url(#wsSkin)" stroke="#D2A584" stroke-width="1.5"/><path d="M-8 26c2-14 16-22 30-16" stroke="#8DB3E2" stroke-width="10" stroke-linecap="round" fill="none"/>
   <path d="M0 32h5M12 32h5" stroke="#8C6A52" stroke-width="2" stroke-linecap="round"/><path d="M5 40h5" stroke="#A9806A" stroke-width="2" stroke-linecap="round"/></g>
 </svg>`;
+// supplied artwork (full colour, fills the badge): hourglass for wait, stopwatch for time questions (ic/timer.webp), syringe, two-thumb compressions picture (ic/comp.webp)
+const WIC_ART=(()=>{const hg=`<svg viewBox="0 0 508 508" aria-hidden="true"><circle fill="#324A5E" cx="254" cy="254" r="254"/><path fill="#FFFFFF" d="M268.8,254c25.6-21.2,74.8-69.2,75.6-125.6H163.6c0.8,56.4,50.4,104.4,75.6,125.6c-25.2,21.2-74.8,69.2-75.6,125.6h180.8C343.6,323.2,294,275.2,268.8,254z"/><path fill="#FF7058" d="M368.8,128.4H139.2c-6.4,0-11.6-5.2-11.6-11.6l0,0c0-6.4,5.2-11.6,11.6-11.6h229.2c6.4,0,11.6,5.2,11.6,11.6l0,0C380,123.2,375.2,128.4,368.8,128.4z"/><path fill="#FF7058" d="M368.8,402.4H139.2c-6.4,0-11.6-5.2-11.6-11.6l0,0c0-6.4,5.2-11.6,11.6-11.6h229.2c6.4,0,11.6,5.2,11.6,11.6l0,0C380,397.2,375.2,402.4,368.8,402.4z"/><path fill="#84DBFF" d="M199.6,196c19.2,26.8,44,47.2,54.4,55.2c10.8-8,35.2-28.4,54.4-55.2H199.6z"/><path fill="#84DBFF" d="M200,311.2c-12,16.8-22,36-25.2,56.4h158c-3.2-20.4-13.2-39.6-25.2-56.4H200z"/><ellipse fill="#84DBFF" cx="254" cy="268.8" rx="6" ry="6.8"/><ellipse fill="#84DBFF" cx="254" cy="288.8" rx="6" ry="6.8"/><rect x="354" y="128.4" fill="#E6E9EE" width="12" height="250.8"/><rect x="142.4" y="128.4" fill="#E6E9EE" width="12" height="250.8"/></svg>`;
+  return {wait:hg,timer:`<img src="ic/timer.webp" alt="" draggable="false">`,
+  syringe:`<svg viewBox="0 0 512.014 512.014" aria-hidden="true"><polygon fill="#3BAFDA" points="0.007,496.92 138.306,358.605 153.4,373.699 15.085,512.014"/><polygon fill="#E6E9ED" points="184.572,402.857 116.696,395.309 109.149,327.433 350.496,86.085 425.919,161.508"/><polygon fill="#4FC2E9" points="109.149,327.433 116.696,395.309 184.572,402.857 354.059,233.361 203.213,233.361"/><polygon fill="#CCD1D9" points="501.343,55.913 456.092,10.662 350.496,116.25 395.747,161.508"/><path fill="#434A54" d="M293.73,203.196c4.156,4.164,10.923,4.164,15.079,0c4.172-4.164,4.172-10.922,0-15.086l-30.173-30.172l-15.078,15.086L293.73,203.196z"/><path fill="#434A54" d="M248.48,248.447c4.156,4.164,10.906,4.164,15.078,0s4.172-10.922,0-15.086l-30.172-30.165l-15.079,15.079L248.48,248.447z"/><path fill="#434A54" d="M203.229,293.698c4.156,4.156,10.906,4.156,15.078,0c4.156-4.156,4.156-10.906,0-15.078l-30.172-30.173l-15.079,15.094L203.229,293.698z"/><path fill="#E6E9ED" d="M508.89,63.46L448.545,3.123c-4.156-4.164-10.922-4.164-15.078,0c-4.173,4.164-4.173,10.914,0,15.078l60.328,60.337c4.173,4.172,10.923,4.172,15.095,0C513.046,74.374,513.046,67.624,508.89,63.46z"/><path fill="#E6E9ED" d="M425.919,161.508l-75.423-75.423c-4.156-4.164-10.922-4.164-15.078,0c-4.172,4.165-4.172,10.915,0,15.086l75.423,75.416c2.078,2.086,4.812,3.125,7.531,3.125c2.734,0,5.469-1.039,7.547-3.125C430.091,172.423,430.091,165.673,425.919,161.508z"/></svg>`,
+  comp:`<img src="ic/comp.webp" alt="" draggable="false">`}})();
+Object.assign(WIC,WIC_ART);
 function walkVis(s,cur){const ids=walkPath(s),ci=ids.indexOf(cur);let mon=null;ids.slice(0,ci+1).forEach(id=>{if(s.nodes[id].mon)mon=s.nodes[id].mon});
   const scene=s.media?(/\.(mp4|webm)$/.test(s.media)?`<video src="${s.media}" autoplay muted loop playsinline></video>`:`<img src="${s.media}" alt="${s.mediaAlt||""}">`):WSCENE;
   const hr=mon&&mon.hr,beat=hr?(60/hr).toFixed(2):0,sp=hr?Math.max(26,3600/hr):60,a=((sp-24.5)/2).toFixed(1),qrs=`h${a}l2-3 2 3h3l1.5 3 2.5-22 2.5 25 2-6h3l3-3 3 3h${a}`;

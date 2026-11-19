@@ -23,7 +23,7 @@ Plain HTML/CSS/JS with no build step and no framework. Users open `index.html` b
 | App tour coach marks (started by a `{type:"tour"}` step in Start Here) | `js/tour.js` |
 | Click/key/input handlers, startup | `js/events.js` |
 | Trauma scene pictures (`SCENES`: key → image, alt text, crop position) | `js/content/scenes.js` |
-| Images: brand logos / TXA + avatar / thermal / resus equipment / trauma scenes | `brand/`, `tx/`, `th/`, `rx/`, `sc/` |
+| Images: brand logos / TXA + avatar / thermal / resus equipment / trauma scenes / algorithm option icon art (`WIC_ART`) | `brand/`, `tx/`, `th/`, `rx/`, `sc/`, `ic/` |
 
 ## How the code fits together
 - These are classic `<script>` files that share one global scope. **Load order in `index.html` matters**: content (incl. `scrubs.js`, `scenes.js`) → `app.js` → hands-on (incl. `race.js`, `bench.js`, `tray.js`) → `refshelf.js` → `ask.js` → `tour.js` → `events.js`. A file can't call a function from a later file at load time. Don't switch to ES modules, because they break on file://.
