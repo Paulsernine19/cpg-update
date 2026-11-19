@@ -1662,3 +1662,56 @@ button.cp-row:hover:not([disabled]){border-color:var(--muted)}
 @media (prefers-reduced-motion:reduce){.ask,.ak-row,.ak-orb b,.ak-orb .o1,.ak-live i,.ak-typing span{animation:none}}
 .stile[data-ask] svg{color:var(--accent)}
 .ak-meta .tag{font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}.ak-meta .tag.ccp{background:var(--ccp-soft);color:var(--ccp)}
+
+/* ============ Modules tab: 3D card carousel over the orientation photo ============ */
+:root{--gl-bg:rgba(255,255,255,.62);--gl-edge:rgba(255,255,255,.85);--gl-ink:var(--ink);--gl-mut:#454D6E;--gl-veil:linear-gradient(180deg,rgba(244,246,251,.55) 0%,rgba(244,246,251,.35) 45%,rgba(244,246,251,.8) 100%)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--gl-bg:rgba(22,26,48,.55);--gl-edge:rgba(255,255,255,.16);--gl-mut:#B9C0DE;--gl-veil:linear-gradient(180deg,rgba(13,16,33,.7) 0%,rgba(13,16,33,.45) 45%,rgba(13,16,33,.85) 100%)}}
+:root[data-theme="dark"]{--gl-bg:rgba(22,26,48,.55);--gl-edge:rgba(255,255,255,.16);--gl-mut:#B9C0DE;--gl-veil:linear-gradient(180deg,rgba(13,16,33,.7) 0%,rgba(13,16,33,.45) 45%,rgba(13,16,33,.85) 100%)}
+body.mods-on::before{content:"";position:fixed;inset:-20px;z-index:-2;background:url("../sc/cover-orientation.webp") 41% 35%/cover no-repeat;filter:blur(7px) saturate(1.05)}
+body.mods-on::after{content:"";position:fixed;inset:0;z-index:-1;background:var(--gl-veil)}
+body.mods-on{background:transparent}
+.glass{background:var(--gl-bg);border:1px solid var(--gl-edge);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);box-shadow:0 10px 30px rgba(10,14,40,.18),inset 0 1px 0 rgba(255,255,255,.35)}
+.cf-page{overflow-x:clip;margin:0 -16px;padding:0 16px 8px;display:grid;grid-template-columns:minmax(0,1fr);justify-items:center;gap:14px}
+.cf-filter{display:flex;gap:4px;padding:5px;border-radius:999px;max-width:100%;overflow-x:auto;scrollbar-width:none;margin-top:4px}
+.cf-filter::-webkit-scrollbar{display:none}
+.cf-filter .chip{border:0;background:transparent;white-space:nowrap;color:var(--gl-ink)}
+.cf-filter .chip[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.cf-stage{position:relative;width:100%;height:clamp(440px,calc(100dvh - 330px),600px);perspective:1300px;touch-action:pan-y;outline:none}
+.cf-stage:focus-visible .cf-card.on{outline:3px solid var(--accent);outline-offset:4px}
+.cf-card{position:absolute;top:0;left:50%;width:min(76vw,360px);height:100%;border-radius:30px;overflow:hidden;cursor:pointer;transform-style:preserve-3d;
+  border:1px solid var(--gl-edge);background:var(--sunken);box-shadow:0 24px 50px rgba(8,12,35,.35),0 4px 12px rgba(8,12,35,.18);user-select:none;-webkit-user-select:none}
+.cf-stage.ready .cf-card{transition:transform .55s cubic-bezier(.2,.8,.2,1),opacity .4s,filter .4s}
+.cf-card:not(.on){filter:brightness(.82) saturate(.9)}
+.cf-card.on{cursor:default}
+.cf-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.cf-ico{position:absolute;inset:0 0 45%;display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,var(--accent-soft),var(--sunken))}
+.cf-top{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;gap:8px;opacity:0;transition:opacity .3s}
+.cf-card.on .cf-top{opacity:1}
+.cf-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;font:inherit;font-size:13px;font-weight:700;color:#fff;background:rgba(10,14,34,.42);border:1px solid rgba(255,255,255,.3);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);cursor:pointer}
+.cf-pill svg{width:15px;height:15px}.cf-pill.tag{cursor:default}
+.cf-glass{position:absolute;left:10px;right:10px;bottom:10px;padding:14px 16px 16px;border-radius:22px;color:var(--gl-ink);background:var(--gl-bg);border:1px solid var(--gl-edge);
+  -webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
+.cf-cat{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gl-mut)}
+.cf-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-top:2px}
+.cf-h h3{font-size:22px}.cf-card:not(.on) .cf-h h3{font-size:18px}
+.cf-n{font-size:13px;color:var(--gl-mut);white-space:nowrap;opacity:0;transition:opacity .3s}.cf-card.on .cf-n{opacity:1}
+.cf-more{display:grid;gap:10px;max-height:0;overflow:hidden;opacity:0;transition:opacity .35s,max-height .45s}
+.cf-card.on .cf-more{max-height:320px;opacity:1;margin-top:8px}
+.cf-more p{margin:0;font-size:15px;line-height:1.45;color:var(--gl-ink);display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.cf-stats{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px;color:var(--gl-mut)}
+.cf-stats span{display:inline-flex;align-items:center;gap:6px}.cf-stats svg{width:16px;height:16px}
+.cf-btns{display:flex;justify-content:flex-end}.cf-btns .btn{min-width:120px}
+.cf-glass .lockline{color:var(--gl-ink)}
+.cf-dock{display:flex;align-items:center;gap:10px;padding:8px;border-radius:999px;width:min(100%,420px)}
+.cf-nav{width:44px;height:44px;flex:none;border-radius:50%;border:1px solid var(--gl-edge);background:rgba(255,255,255,.18);color:var(--gl-ink);display:grid;place-items:center;cursor:pointer}
+.cf-nav.next svg{transform:rotate(180deg)}.cf-nav:disabled{opacity:.35;cursor:default}
+.cf-cur{flex:1;min-width:0;display:flex;align-items:center;gap:12px;color:var(--gl-ink)}
+.cf-cur img,.cf-cur .ibox{width:48px;height:48px;border-radius:50%;object-fit:cover;flex:none;border:2px solid var(--gl-edge)}
+.cf-cur b{display:block;font-family:var(--display);font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cf-cur small{display:block;color:var(--gl-mut);font-size:13px}
+.cf-cur>div{min-width:0}
+.cf-dots{display:flex;gap:8px}.cf-dots button{width:8px;height:8px;padding:0;border-radius:99px;border:0;background:var(--gl-mut);opacity:.45;cursor:pointer;transition:width .3s,opacity .3s}
+.cf-dots button.on{width:22px;opacity:1;background:var(--accent)}
+.cf-empty{padding:20px;border-radius:20px}
+@media (min-width:900px){.cf-card{width:360px}.cf-stage{height:clamp(480px,calc(100dvh - 260px),620px)}.cf-page{margin:0;padding:0}}
+@media (prefers-reduced-motion:reduce){.cf-stage.ready .cf-card{transition:none}}
+.cf-glass .bar{background:color-mix(in srgb,var(--gl-ink) 14%,transparent)}

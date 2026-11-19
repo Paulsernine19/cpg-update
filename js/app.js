@@ -152,43 +152,53 @@ function courseCard(c){
   return `<button class="course ${locked?"locked":""}" data-course-open="${c.id}">${iconBox(c)}<div><div class="label">${c.category} · ${c.minutes} min</div><h3 style="margin-top:4px">${c.title}</h3><p style="margin-top:6px">${c.desc}</p></div>
   ${locked?`<div class="lockline">${I.lock}${lockText(c)}</div>`:`<div><div class="meta"><span>${d===t?"Completed":d?"In progress":"Not started"}</span><span>${d}/${t}</span></div><div class="bar" style="margin-top:6px"><i style="width:${t?d/t*100:0}%"></i></div></div>`}</button>`;
 }
+// Modules tab: 3D card carousel over the orientation photo. The centre card holds the details and actions; side cards show title only and bring themselves to the centre when tapped.
+let cfIdx=null;
+const cfState=c=>{const d=doneCount(c),t=allLessons(c).length;return !reqMet(c)?"Locked":d===0?"Not started":d===t?"Completed":"In progress"};
 function coursesView(){
   const cats=["All","Not started","In progress","Completed"];
-  const st=c=>{const d=doneCount(c),t=allLessons(c).length;return d===0?"Not started":d===t?"Completed":"In progress"};
-  const list=COURSES.filter(c=>filter==="All"||st(c)===filter);
-  const lastId=S.lastMod||activeCourse().id;
-  return topbar()+`<div class="hello compact"><h1>Modules</h1></div>
-  <div class="section"><div class="chips scrollx" role="group" aria-label="Filter by status">${cats.map(k=>`<button class="chip" data-filter="${k}" aria-pressed="${filter===k}">${k}</button>`).join("")}</div>
-  ${list.length?`<div class="modwrap"><button class="modnav prev" id="modPrev" aria-label="Previous module">${I.left}</button><div class="modrail" id="modRail" tabindex="0" aria-label="Modules, use the arrow keys to move between them">${list.map(c=>modCard(c,c.id===lastId)).join("")}</div><button class="modnav next" id="modNext" aria-label="Next module">${I.left}</button></div>${list.length>1?`<div class="modots" id="modDots">${list.map((c,i)=>`<button aria-label="Show ${c.title}" data-mdot="${i}"></button>`).join("")}</div>`:""}`:`<p class="note">Nothing here yet.</p>`}</div>`;
+  const list=COURSES.filter(c=>filter==="All"||(cfState(c)==="Locked"?"Not started":cfState(c))===filter);
+  if(cfIdx===null||cfIdx>=list.length){const k=list.findIndex(c=>c.id===(S.lastMod||activeCourse().id));cfIdx=k<0?0:k;}
+  const cv=c=>typeof MOD_COVERS!=="undefined"&&MOD_COVERS[c.id];
+  return topbar()+`<div class="cf-page">
+  <div class="cf-filter glass" role="group" aria-label="Filter by status">${cats.map(k=>`<button class="chip" data-filter="${k}" aria-pressed="${filter===k}">${k}</button>`).join("")}</div>
+  ${list.length?`<div class="cf-stage" id="cfStage" tabindex="0" aria-roledescription="carousel" aria-label="Modules. Use the arrow keys to move between them.">${list.map((c,i)=>cfCard(c,i,list.length)).join("")}</div>
+  <div class="cf-dock glass"><button class="cf-nav" data-cf="-1" aria-label="Previous module">${I.left}</button><div class="cf-cur" id="cfCur" aria-live="polite"></div><button class="cf-nav next" data-cf="1" aria-label="Next module">${I.left}</button></div>
+  ${list.length>1?`<div class="cf-dots" id="cfDots">${list.map((c,i)=>`<button aria-label="Show ${c.title}" data-cfi="${i}"></button>`).join("")}</div>`:""}`:`<p class="cf-empty glass">No modules here yet.</p>`}</div>`;
 }
-// Modules tab card: swipeable rail on phone/tablet, grid on desktop. The last-visited module is marked and scrolled into view.
-function modCard(c,last){
-  const d=doneCount(c),t=allLessons(c).length,locked=!reqMet(c),nl=nextLesson(c);
+function cfCard(c,i,n){
+  const d=doneCount(c),t=allLessons(c).length,locked=!reqMet(c),nl=nextLesson(c),cv=typeof MOD_COVERS!=="undefined"&&MOD_COVERS[c.id],last=c.id===(S.lastMod||"");
   const act=locked?"":nl?`<button class="btn sm" data-lesson="${nl.id}">${d?"Continue":"Start"}</button>`:`<button class="btn sm" data-course-open="${c.id}">Review</button>`;
-  return `<article class="modc ${locked?"locked":""} ${last?"is-last":""}" aria-label="${c.title}">
-   ${(()=>{const cv=typeof MOD_COVERS!=="undefined"&&MOD_COVERS[c.id],top=`<div class="modc-top"><span class="label">${c.category}</span>${last?`<span class="modc-tag">Last visited</span>`:""}</div>`;
-     return cv?`<div class="modc-panel cover"><img class="modc-img" src="${cv.img}" alt="" style="object-position:${cv.pos||"50% 50%"}" draggable="false">${top}</div>`:`<div class="modc-panel">${top}${iconBox(c,96)}</div>`})()}
-   <h3>${c.title}</h3><p>${c.desc}</p>
-   <div class="modc-stats"><div><span>Lessons</span><b>${d} / ${t}</b></div><div><span>Time</span><b>${c.minutes} min</b></div></div>
-   ${locked?`<div class="lockline">${I.lock}${lockText(c)}</div>`:`<div class="bar"><i style="width:${t?d/t*100:0}%"></i></div>`}
-   <div class="modc-btns ${act?"":"one"}"><button class="btn ghost sm" data-course-open="${c.id}">Overview</button>${act}</div></article>`;
+  return `<article class="cf-card ${locked?"locked":""}" data-cfi="${i}" aria-label="${c.title}, module ${i+1} of ${n}">
+   ${cv?`<img class="cf-img" src="${cv.img}" alt="" style="object-position:${cv.pos||"50% 50%"}" draggable="false">`:`<div class="cf-ico">${iconBox(c,96)}</div>`}
+   <div class="cf-top"><button class="cf-pill" data-course-open="${c.id}" tabindex="-1">${I.book} Overview</button>${last?`<span class="cf-pill tag">Last visited</span>`:""}</div>
+   <div class="cf-glass"><span class="cf-cat">${c.category}</span>
+    <div class="cf-h"><h3>${c.title}</h3><span class="cf-n">${i+1} / ${n}</span></div>
+    <div class="cf-more"><p>${c.desc}</p>
+     <div class="cf-stats"><span>${I.check} ${d} / ${t} lessons</span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> ${c.minutes} min</span></div>
+     ${locked?`<div class="lockline">${I.lock}${lockText(c)}</div>`:`<div class="bar"><i style="width:${t?d/t*100:0}%"></i></div><div class="cf-btns">${act}</div>`}</div></div></article>`;
 }
-// rail controls for mouse and keyboard: arrow buttons, clickable dots, drag with the mouse, Left/Right keys (touch swipes natively)
-function modsMount(){const r=document.getElementById("modRail");if(!r)return;const cards=[...r.children],dots=document.getElementById("modDots"),pv=document.getElementById("modPrev"),nx=document.getElementById("modNext");
-  const x0=()=>cards[0].offsetLeft,idx=()=>{const x=r.scrollLeft+8;let k=0;cards.forEach((c,i)=>{if(c.offsetLeft-x0()<=x)k=i});if(r.scrollLeft+r.clientWidth>=r.scrollWidth-4)k=cards.length-1;return k};
-  const to=(k,inst)=>{k=Math.max(0,Math.min(cards.length-1,k));r.scrollTo({left:cards[k].offsetLeft-x0(),behavior:inst||matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth"})};
-  const mark=()=>{const k=idx(),can=r.scrollWidth>r.clientWidth+4;if(dots)[...dots.children].forEach((d,i)=>{d.classList.toggle("on",i===k);d.setAttribute("aria-current",i===k?"true":"false")});
-    pv.hidden=nx.hidden=!can;pv.disabled=r.scrollLeft<=4;nx.disabled=r.scrollLeft+r.clientWidth>=r.scrollWidth-4;};
-  const last=r.querySelector(".is-last");if(last&&r.scrollWidth>r.clientWidth)r.scrollLeft=last.offsetLeft-x0();
-  mark();r.addEventListener("scroll",mark,{passive:true});if(modsMount.rz)removeEventListener("resize",modsMount.rz);modsMount.rz=mark;addEventListener("resize",mark,{passive:true});
-  pv.onclick=()=>to(idx()-1);nx.onclick=()=>to(idx()+1);if(dots)dots.onclick=e=>{const b=e.target.closest("[data-mdot]");if(b)to(+b.dataset.mdot)};
-  r.addEventListener("keydown",e=>{if(e.target!==r)return;if(e.key==="ArrowRight"){e.preventDefault();to(idx()+1)}else if(e.key==="ArrowLeft"){e.preventDefault();to(idx()-1)}});
-  let d=null,dragEnd=0;const near=()=>{let k=0,b=1e9;cards.forEach((c,i)=>{const v=Math.abs(c.offsetLeft-x0()-r.scrollLeft);if(v<b){b=v;k=i}});return k};
-  r.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse"||e.button!==0||r.scrollWidth<=r.clientWidth)return;d={x:e.clientX,s:r.scrollLeft,moved:false,id:e.pointerId}});
-  r.addEventListener("pointermove",e=>{if(!d)return;const dx=e.clientX-d.x;if(!d.moved&&Math.abs(dx)>6){d.moved=true;r.classList.add("dragging");r.setPointerCapture(d.id)}if(d.moved)r.scrollLeft=d.s-dx});
-  const up=()=>{if(!d)return;const m=d.moved;d=null;if(!m)return;r.classList.remove("dragging");dragEnd=Date.now();to(near())};
-  r.addEventListener("pointerup",up);r.addEventListener("pointercancel",up);r.addEventListener("lostpointercapture",up);
-  r.addEventListener("click",e=>{if(Date.now()-dragEnd<350){e.stopPropagation();e.preventDefault()}},true);}
+// layout: each card is placed by its offset from the centre (translate, rotateY, scale); swipe, drag, arrow keys, dots and the dock buttons move it
+function modsMount(){const st=document.getElementById("cfStage");if(!st)return;const cards=[...st.children],n=cards.length,dots=document.getElementById("cfDots"),cur=document.getElementById("cfCur");
+  const lay=()=>{const w=st.clientWidth,cw=cards[0].offsetWidth,gap=Math.min(cw*.62,w*.3);
+    cards.forEach((el,i)=>{const o=i-cfIdx,a=Math.abs(o),s=Math.sign(o);el.classList.toggle("on",o===0);el.setAttribute("aria-hidden",o!==0);
+      el.querySelectorAll("button").forEach(b=>b.tabIndex=o===0?0:-1);
+      el.style.transform=o===0?"translateX(-50%)":`translateX(calc(-50% + ${s*(gap+(a-1)*gap*.55)}px)) translateZ(${-120*a}px) rotateY(${-s*28}deg) scale(${1-a*.12})`;
+      el.style.zIndex=10-a;el.style.opacity=a>2?0:1;el.style.pointerEvents=a>2?"none":"";});
+    if(dots)[...dots.children].forEach((d,i)=>{d.classList.toggle("on",i===cfIdx);d.setAttribute("aria-current",i===cfIdx?"true":"false")});
+    const c=COURSES.find(x=>x.id===cards[cfIdx].querySelector("[data-course-open]").dataset.courseOpen),cv=typeof MOD_COVERS!=="undefined"&&MOD_COVERS[c.id];
+    cur.innerHTML=`${cv?`<img src="${cv.img}" alt="" style="object-position:${cv.pos||"50% 50%"}">`:iconBox(c,44)}<div><b>${c.title}</b><small>${cfState(c)} · ${c.minutes} min</small></div>`;
+    document.querySelectorAll("[data-cf]").forEach(b=>b.disabled=b.dataset.cf<0?cfIdx<=0:cfIdx>=n-1);};
+  const to=k=>{k=Math.max(0,Math.min(n-1,k));if(k===cfIdx)return;cfIdx=k;lay();const c=cards[k].querySelector("[data-course-open]").dataset.courseOpen;if(S.lastMod!==c){S.lastMod=c;save()}};
+  lay();requestAnimationFrame(()=>st.classList.add("ready"));
+  if(modsMount.rz)removeEventListener("resize",modsMount.rz);modsMount.rz=lay;addEventListener("resize",lay,{passive:true});
+  document.querySelectorAll("[data-cf]").forEach(b=>b.onclick=()=>to(cfIdx+ +b.dataset.cf));if(dots)dots.onclick=e=>{const b=e.target.closest("[data-cfi]");if(b)to(+b.dataset.cfi)};
+  st.addEventListener("keydown",e=>{if(e.key==="ArrowRight"){e.preventDefault();to(cfIdx+1)}else if(e.key==="ArrowLeft"){e.preventDefault();to(cfIdx-1)}});
+  // swipe/drag: horizontal movement over 40px moves one card; a tap on a side card centres it
+  let p=null,moved=0;st.addEventListener("pointerdown",e=>{if(e.button)return;p={x:e.clientX,y:e.clientY};moved=0});
+  st.addEventListener("pointermove",e=>{if(!p)return;const dx=e.clientX-p.x;if(Math.abs(dx)>Math.abs(e.clientY-p.y)&&Math.abs(dx)>40){to(cfIdx+(dx<0?1:-1));p=null;moved=Date.now()}},{passive:true});
+  addEventListener("pointerup",()=>{p=null},{passive:true});
+  st.addEventListener("click",e=>{if(Date.now()-moved<350){e.stopPropagation();e.preventDefault();return}const card=e.target.closest(".cf-card");if(card&&!card.classList.contains("on")){e.stopPropagation();e.preventDefault();to(+card.dataset.cfi)}},true);}
 function courseDetail(){
   const c=courseById(courseView),d=doneCount(c),t=allLessons(c).length,nl=nextLesson(c),locked=!reqMet(c);
   return topbar()+`<button class="back" data-go="courses">${I.left} Modules</button>
@@ -274,7 +284,7 @@ function render(){
   const mn=document.getElementById("main");mn.classList.toggle("wide",view==="reference");mn.classList.toggle("homewide",view==="home");
   mn.innerHTML=view==="reference"?referenceView():view==="courses"?coursesView():view==="profile"?profileView():view==="course"?courseDetail():homeView();
   if(typeof rsMount==="function"){if(view==="reference")rsMount();else rsUnmount();}
-  if(view==="courses")modsMount();
+  document.body.classList.toggle("mods-on",view==="courses");if(view==="courses")modsMount();
   // first-launch gate: until Welcome is done, the only way in is Start Here (the player sits above it)
   let g=document.getElementById("gate");const need=!S.done["in-1"];
   if(need&&!g){g=document.createElement("div");g.id="gate";g.className="gate";g.setAttribute("role","dialog");g.setAttribute("aria-modal","true");g.setAttribute("aria-labelledby","gateT");document.body.appendChild(g);}

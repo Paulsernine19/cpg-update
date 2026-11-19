@@ -15,7 +15,7 @@ document.addEventListener("click",e=>{
   if(t.dataset.courseOpen){go("course",t.dataset.courseOpen);return}
   if(t.dataset.revisit){const id=t.dataset.revisit;closeLesson();openLesson(id);if(t.dataset.step>0&&P&&P.steps[+t.dataset.step]){P.i=+t.dataset.step;resetStep();if(t.dataset.temp)P.thTemp=+t.dataset.temp;drawPlayer();}return}
   if(t.dataset.lesson){if(t.getAttribute("aria-disabled"))return;openLesson(t.dataset.lesson);return}
-  if(t.dataset.filter){filter=t.dataset.filter;render();return}
+  if(t.dataset.filter){filter=t.dataset.filter;cfIdx=null;render();return}
   if(!P){const a=t.dataset.act;
     if(a==="review"){openReview();return}
     if(a==="reset"){confirmReset=true;render()} if(a==="reset-no"){confirmReset=false;render()}
