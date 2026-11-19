@@ -643,6 +643,13 @@ function revisitButtons(lessonIds){
   const u=[...new Set(lessonIds)].filter(Boolean);
   return u.length?`<div class="revisit">${u.map(id=>{const L=lessonById(id);return L?`<button class="btn ghost sm" data-revisit="${id}">Revisit: ${L.l.title}</button>`:""}).join("")}</div>`:"";
 }
+// break suggestion: active time (page visible, input within 2 min) counted in this session; offered on a lesson's end screen after 30 min, then again 30 min later
+const BRK={t:0,last:Date.now(),every:(()=>{try{return new URLSearchParams(location.search).get("break")==="1"?60:30*60}catch(e){return 30*60}})()}; // index.html?break=1: every minute, for testing
+["pointerdown","keydown"].forEach(e=>addEventListener(e,()=>{BRK.last=Date.now()},{passive:true,capture:true}));
+setInterval(()=>{if(document.visibilityState==="visible"&&Date.now()-BRK.last<120000)BRK.t+=15},15000);
+function breakCard(){if(P.brk===undefined){P.brk=BRK.t>=BRK.every;if(P.brk)BRK.t=0}if(!P.brk)return "";
+  return `<div class="brk"><span class="brk-ic">${I.clock}</span><div><b>Time for a short break</b><p>You have been learning for 30 minutes. A 5 to 10 minute break helps retention. Your progress is saved.</p>
+   <button class="btn ghost sm" data-act="finish">Take a break</button></div></div>`}
 function endScreen(){
   if(P.l&&P.l.txRun) return txRunEnd();
   if(P.l&&P.l.thRun) return thRunEnd();
@@ -678,6 +685,7 @@ function endScreen(){
     if(!R.met&&reviewCount())next=`<button class="btn ghost" data-act="review-more">Review missed questions</button><button class="btn ghost" data-act="retake">Retake</button><button class="btn" data-act="finish">Done</button>`;
     if(!R.met) cta="Done";
   }
+  if(P.mode==="practice")inner+=breakCard();
   // module finished: offer its "habits to unlearn" cards (old practice → v2.6) while the content is fresh
   if(P.c&&(P.mode==="practice"||P.mode==="exit")&&deckCards(P.c.id).length&&courseDone(P.c)){const n=deckCards(P.c.id).length,d=deckDue(P.c.id);
     inner+=`<button class="qbtn deckcta" data-deck="${P.c.id}">${I.cards}<span><b>Habits to unlearn · ${P.c.title}</b><small>${n} cards · about ${Math.max(1,Math.round(n*10/60))} min${d?` · ${d} to revisit`:""}</small></span></button>`;}
