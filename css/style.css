@@ -1776,3 +1776,9 @@ body.home-on details.pfold{background:color-mix(in srgb,var(--surface) 45%,trans
 .oic.art svg,.oic.art img{width:46px;height:46px;border-radius:50%;object-fit:cover;display:block}
 .oic.art.syringe{background:var(--accent-soft)}.oic.art.syringe svg{width:28px;height:28px;border-radius:0}
 .oic.art.timer{background:var(--accent-soft)}.oic.art.timer img{width:36px;height:36px;border-radius:0;object-fit:contain}
+/* pads one at a time: step chips + single close-up photo */
+.ccsteps{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 10px}
+.ccstep{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-weight:700;font-size:.85rem;color:var(--muted)}
+.ccstep.on{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.ccstep.done{border-color:color-mix(in srgb,var(--good) 40%,var(--line));color:var(--good);background:var(--good-soft)}
+.ccstep svg{width:14px;height:14px}

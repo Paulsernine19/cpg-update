@@ -56,10 +56,11 @@ const RX_TORSO={
  front:`<path d="M100 8c13 0 22 10 22 24s-9 26-22 26-22-12-22-26 9-24 22-24z" class="sk"/><path d="M89 56h22v12H89z" class="sk"/><path d="M58 70q42-12 84 0l30 20q10 40-6 62l2 84q-68 22-136 0l2-84Q18 130 28 90z" class="sk"/><path d="M28 92q-14 52-6 112M172 92q14 52 6 112" class="ln"/><circle cx="78" cy="112" r="2.4" class="ln"/><circle cx="122" cy="112" r="2.4" class="ln"/><path d="M100 72v80M70 76q12 8 26 0M104 76q14 8 26 0" class="ln"/>`,
  back:`<path d="M100 8c13 0 22 10 22 24s-9 26-22 26-22-12-22-26 9-24 22-24z" class="sk"/><path d="M89 56h22v12H89z" class="sk"/><path d="M58 70q42-12 84 0l30 20q10 40-6 62l2 84q-68 22-136 0l2-84Q18 130 28 90z" class="sk"/><path d="M28 92q-14 52-6 112M172 92q14 52 6 112" class="ln"/><path d="M100 70v150" class="ln" stroke-dasharray="3 5"/><path d="M62 88q14 26 30 22M138 88q-14 26-30 22" class="ln"/>`
 };
-function rxBody(view,zones,placed,st,act,label){
-  return `<div class="rxbody"><svg viewBox="0 0 200 250" aria-hidden="true">${RX_TORSO[view]}${placed.map(p=>`<rect x="${p.z[0]*2+2}" y="${p.z[1]*2.5+2}" width="${p.z[2]*2-4}" height="${p.z[3]*2.5-4}" rx="7" class="${p.cls}"/>`).join("")}</svg>
+// photo (optional): a picture in place of the drawn torso, as a path (4:5) or {src,w,h}; zones stay in % of it; zones are % of the 4:5 picture
+function rxBody(view,zones,placed,st,act,label,photo){const ph=typeof photo==="string"?{src:photo,w:200,h:250}:photo,W=ph?ph.w:200,H=ph?ph.h:250;
+  return `<div class="rxbody${ph?" photo":""}" style="aspect-ratio:${W}/${H}${W>H?";max-width:420px":""}"><svg viewBox="0 0 ${W} ${H}" aria-hidden="true">${ph?`<image href="${ph.src}" width="${W}" height="${H}" preserveAspectRatio="xMidYMid slice"/>`:RX_TORSO[view]}${placed.map(p=>`<rect x="${p.z[0]*W/100+2}" y="${p.z[1]*H/100+2}" width="${p.z[2]*W/100-4}" height="${p.z[3]*H/100-4}" rx="7" class="${p.cls}"${p.r?` transform="rotate(${p.r} ${(p.z[0]+p.z[2]/2)*W/100} ${(p.z[1]+p.z[3]/2)*H/100})"`:""}/>`).join("")}</svg>
    <span class="rxview">${label||(view==="front"?"Front":"Back")}</span>
-   ${zones.map(z=>`<button class="hot ${st.hint&&z.ok?"hint":""} ${st.wrongId===z.id?"wrong":""}" data-tx="${act}" data-z="${z.id}" aria-label="${z.label}" style="left:${z.z[0]}%;top:${z.z[1]}%;width:${z.z[2]}%;height:${z.z[3]}%"><span>${z.label}</span></button>`).join("")}</div>`;
+   ${zones.map(z=>`<button class="hot ${st.hint&&z.ok?"hint":""} ${st.wrongId===z.id?"wrong":""}" data-tx="${act}" data-z="${z.id}" aria-label="${z.label}" style="left:${z.z[0]}%;top:${z.z[1]}%;width:${z.z[2]}%;height:${z.z[3]}%${z.r?`;transform:rotate(${z.r}deg)`:""}"><span${z.r?` style="transform:translateX(-50%) rotate(${-z.r}deg)"`:""}>${z.label}</span></button>`).join("")}</div>`;
 }
 const rxHead=(t,sub)=>`<h3 class="q3">${t}</h3>${sub?`<p class="note" style="margin-top:-4px">${sub}</p>`:""}`;
 const rxOpts=(act,list)=>`<div class="opts">${list.map((t,i)=>`<button class="opt" data-tx="${act}" data-i="${i}"><span class="k">${String.fromCharCode(65+i)}</span>${t}</button>`).join("")}</div>`;
@@ -191,31 +192,41 @@ const ccEnergy=(c,n)=>c.pop==="paed"?Math.min(c.w*4,c.device==="Zoll"?200:360):C
 const ccClock=st=>txFmt(((st.cyc||1)-1)*120+(st.phase==="cpr"?60:0));
 TXS.ccintro={phases:["intro"],guide:()=>null,
   body:()=>`<div class="scn rxhero mon-hero"><img src="${RXM("monitor")}" alt="" loading="lazy"><div class="scn-t"><span class="label">Cardiac arrest · hands-on</span><h2>Run the code clock</h2></div></div>
-   <div class="mate big"><img src="${TXM("avatar-welcome-half.webp")}" alt="Your crew mate" width="150"><div class="bubble"><p>You're the team leader. You'll put the pads on, read every rhythm check, pick the energy and give each drug on the v2.6 timeline.</p><p>Adult medical, trauma and paediatric arrests each run differently. Don't carry the rules from one to another.</p></div></div>
-   <ol class="stages">${["Kit","Pads on","Rhythm checks & shocks","Drugs on time","ROSC: oxygen & BP","Cooling"].map((x,i)=>`<li><b>${i+1}</b>${x}</li>`).join("")}</ol>`,
+   <div class="mate big"><img src="${TXM("avatar-welcome-half.webp")}" alt="Your crew mate" width="150"><div class="bubble"><p>You're the team leader. Start with the pads: each one goes on its own landmark, one at a time. Then you'll read every rhythm check, pick the energy and give each drug on the v2.6 timeline.</p><p>Adult medical, trauma and paediatric arrests each run differently. Don't carry the rules from one to another.</p></div></div>
+   <ol class="stages">${["Pads on","Rhythm checks & shocks","Drugs on time","ROSC: oxygen & BP","Cooling"].map((x,i)=>`<li><b>${i+1}</b>${x}</li>`).join("")}</ol>`,
   foot:()=>`<button class="btn wide" data-tx="intro-go">Start</button>`};
-const CC_KIT=[{...RX_ITEMS.pads,ok:1},{...RX_ITEMS.adultBvm,ok:1},{...RX_ITEMS.o2,ok:1},{...RX_ITEMS.neoBvm,why:"The infant BVM is for newborns and infants, not this adult."},{...RX_ITEMS.combi,why:"A combi-carrier isn't needed for a medical arrest on the floor."},{...RX_ITEMS.blocks,why:"Head blocks are for spinal motion restriction, not this arrest."}];
-TXS.cckit={phases:["pick"],init:st=>{st.sel={};st.tag="cckit";st.rx=1;},
-  guide:rxG([["pointing","Adult collapsed at home, CPR in progress by the family. Grab what you need to take in with the monitor."]],"Adult collapse, bystander CPR. Take in your kit."),
-  hint:()=>"Three items: pads, the adult BVM and oxygen.",
-  body:st=>rxHead("Take in the kit","Select every item you need with the monitor, then confirm.")+rxKit(st,CC_KIT),
-  foot:()=>`<button class="btn wide" data-tx="rxkitok">Confirm kit</button>`};
 
 const CC_PADZ={
- adult:{front:[{id:"rsub",label:"Right upper chest, below the collarbone",z:[24,26,20,13],pad:"sternum"},{id:"apex",label:"Left side, mid-axillary line",z:[66,42,16,17],pad:"apex"},{id:"lup",label:"Left upper chest",z:[56,26,20,13]},{id:"mid",label:"Over the sternum",z:[42,32,16,22]},{id:"abd",label:"Upper abdomen",z:[36,60,28,14]}]},
- paed:{front:[{id:"ant",label:"Front of the chest, left of the sternum",z:[44,34,22,18],pad:"front"},{id:"rsub",label:"Right upper chest",z:[22,26,20,12]},{id:"apex",label:"Left side, mid-axillary line",z:[68,42,14,16]},{id:"abd",label:"Abdomen",z:[36,62,28,14]}],
-       back:[{id:"bk",label:"Back, between the shoulder blades",z:[36,32,28,18],pad:"back"},{id:"low",label:"Lower back",z:[36,62,28,16]}]}
+ paed:{front:[{id:"ant",label:"Left side of the chest, between the midline and the nipple",z:[50.5,46,13.5,17],pad:"front"},{id:"rsub",label:"Right upper chest",z:[29,30,14,17]},{id:"apex",label:"Left side, mid-axillary line",z:[66,54,11,17]},{id:"abd",label:"Abdomen",z:[43,78,14,15]}],
+       back:[{id:"bk",label:"Left side of the spine, just below the scapula",z:[34,52,14,17],pad:"back"},{id:"mid",label:"Between the shoulder blades",z:[43,30,14,17]},{id:"rbk",label:"Right side of the spine, below the scapula",z:[52,52,14,17]},{id:"low",label:"Lower back",z:[43,74,14,15]}]}
 };
-TXS.ccpads={phases:["place"],init:(st,c)=>{st.tag="ccpads";st.rx=1;st.placed={};st.cur=null;st.view="front";},
-  guide:s=>P.txMode==="guided"?[["pointing","Put the pads on. Pick a pad, then tap where it goes on the patient."]]:[["neutral","Pads on."]],
-  hint:(c)=>c.pop==="paed"&&c.w<25?"Under 25 kg: anterior-posterior is first choice. One on the front of the chest, one on the back.":"Sternal pad: right upper chest below the collarbone. Apex pad: left side, mid-axillary line.",
-  body:(st,c)=>{
-   const paed=c.pop==="paed"&&c.w<25,Z=paed?CC_PADZ.paed[st.view]:CC_PADZ.adult.front;
-   const pads=paed?[{id:"front",label:"Pad 1 · front",img:null},{id:"back",label:"Pad 2 · back",img:null}]:[{id:"sternum",label:"Sternal pad",img:"pad-sternum"},{id:"apex",label:"Apex pad",img:"pad-apex"}];
-   const placed=Object.entries(st.placed).filter(([p,z])=>paed?(p==="back")===(st.view==="back"):true).map(([p,zid])=>({z:Z.find(z=>z.id===zid).z,cls:"padp"}));
-   return rxHead(paed?`${c.label}: put the pads on`:"Put the pads on",paed?"Use the Front / Back switch to turn the patient.":"Pick a pad, then tap its position.")+`<div class="split"><div>${rxBody(st.view,Z.filter(z=>!Object.values(st.placed).includes(z.id)),placed,st,"ccz",paed?(st.view==="front"?"Front":"Back"):"Front")}${paed?`<div class="seg" style="margin-top:8px">${["front","back"].map(v=>`<button class="segb" data-tx="ccview" data-v="${v}" aria-pressed="${st.view===v}">${v==="front"?"Front":"Back"}</button>`).join("")}</div>`:""}</div>
-    <div class="padpick">${pads.map(p=>`<button class="padc ${st.cur===p.id?"on":""} ${st.placed[p.id]?"done":""}" data-tx="ccpad" data-p="${p.id}" ${st.placed[p.id]?"disabled":""} aria-pressed="${st.cur===p.id}">${p.img?`<img src="${RXM(p.img)}" alt="">`:`<span class="padg"></span>`}<span>${p.label}${st.placed[p.id]?" ✓":""}</span></button>`).join("")}</div></div>`;}
+// pads go on one at a time, each on its own close-up photo: adult anterior (chest) then lateral (left side, arm raised);
+// under 25 kg anterior (front) then posterior (back). Landmarks: CPG v2.6 p.34, worded as ERC Guidelines 2025 Adult ALS (Resuscitation 215:110769) p.19.
+const CC_PADS={
+ adult:[{id:"sternum",name:"anterior",label:"Anterior pad",img:"pad-sternum",photo:{src:"rx/adult-chest.webp",w:240,h:160},view:"Chest",
+   tip:"Anterior pad: below the right clavicle, just to the right of the upper sternal border.",
+   zones:[{id:"rsub",label:"Below the right clavicle, beside the upper sternum",z:[26,44,18,18.6],ok:1},{id:"lup",label:"Left upper chest, below the collarbone",z:[56,44,18,18.6]},{id:"mid",label:"Over the sternum",z:[44.5,38,11,27]},{id:"rlow",label:"Right chest, below the nipple",z:[26,68,18,18.6]}]},
+  {id:"apex",name:"lateral",label:"Lateral pad",img:"pad-apex",photo:{src:"rx/adult-side.webp",w:240,h:160},view:"Left side",
+   tip:"Lateral pad: left mid-axillary line, below the armpit.",
+   zones:[{id:"axil",label:"Left mid-axillary line, below the armpit",z:[59.4,48.7,18.2,18.6],r:-22,ok:1},{id:"ant",label:"Below the left nipple, too far forward",z:[35.2,57.9,18.2,18.6],r:25},{id:"lowl",label:"Left side, too low on the chest",z:[45.6,63,18.2,18.6],r:-22}]}],
+ paed:[{id:"front",name:"anterior",label:"Anterior pad",photo:{src:"rx/child-chest.webp",w:240,h:160},view:"Chest",
+   tip:"Anterior pad: left side of the chest, between the midline and the nipple.",
+   zones:CC_PADZ.paed.front.map(z=>({...z,ok:z.pad==="front"?1:0}))},
+  {id:"back",name:"posterior",label:"Posterior pad",photo:{src:"rx/child-back.webp",w:240,h:160},view:"Back",
+   tip:"Posterior pad: left side of the spine, just below the scapula.",
+   zones:CC_PADZ.paed.back.map(z=>({...z,ok:z.pad==="back"?1:0}))}]};
+const ccPads=c=>c.pop==="paed"&&c.w<25?CC_PADS.paed:CC_PADS.adult;
+TXS.ccpads={phases:["place"],init:(st,c)=>{st.tag="ccpads";st.rx=1;st.placed={};st.k=0;},
+  guide:s=>P.txMode==="guided"?[["pointing","Put the pads on, one at a time. Tap where each pad goes."]]:[["neutral","Pads on."]],
+  hint:(c,st)=>{const L=ccPads(c),p=L[Math.min((st&&st.k)||0,L.length-1)];return (c.pop==="paed"&&c.w<25?"Under 25 kg: anterior-posterior is first choice. ":"")+p.tip},
+  body:(st,c)=>{const paed=c.pop==="paed"&&c.w<25,L=ccPads(c),k=Math.min(st.k,L.length-1),p=L[k],done=st.k>=L.length;
+   const pz=st.placed[p.id]&&p.zones.find(z=>z.id===st.placed[p.id]),placed=pz?[{z:pz.z,r:pz.r,cls:"padp"}]:[];
+   return rxHead(`${paed?c.label+" · ":""}Pad ${k+1} of ${L.length}: ${p.label.toLowerCase()}`,`Tap where the ${p.name} pad goes.`)+
+    `<div class="ccsteps">${L.map((q,i)=>`<span class="ccstep ${st.placed[q.id]?"done":i===k?"on":""}">${st.placed[q.id]?I.check:i+1} ${q.label}</span>`).join("")}</div>
+    <div class="ccpad1">${rxBody("front",done||st.placed[p.id]?[]:p.zones,placed,st,"ccz",p.view,p.photo)}</div>
+    <div class="src">Source: CPG v2.6 p.34 · ERC Guidelines 2025 Adult ALS p.19 (pad positions)</div>`;}
 };
+
 
 function ccDue(c,st){
   const d=[];const adrGap=st.lastAdr==null||st.cyc-st.lastAdr>=2;
@@ -292,7 +303,7 @@ function rxClick(t,st){
   switch(a){
   case "noop": return true;
   case "rxkit": st.sel[t.dataset.id]=!st.sel[t.dataset.id];txSound("click");drawPlayer(`[data-id="${t.dataset.id}"]`);return true;
-  case "rxkitok": rxKitCheck(st,st.tag==="nrkit"?NB_KIT:CC_KIT,st.tag==="nrkit"?"Infant BVM with a PEEP valve and oxygen, opened and ready. Also have a warm, dry place to resuscitate.":"Pads, adult BVM and oxygen go in with the monitor. Get the pads on as soon as possible.");return true;
+  case "rxkitok": rxKitCheck(st,NB_KIT,"Infant BVM with a PEEP valve and oxygen, opened and ready. Also have a warm, dry place to resuscitate.");return true;
   /* newborn */
   case "nrq": {
     const k=st.tag+":"+st.phase;
@@ -329,13 +340,10 @@ function rxClick(t,st){
     if(!v||Math.abs(v-want)>0.15) return txErr(`${v||"Blank"} ml`,`Dextrose 10% is 2 ml/kg: 2 × ${c.weight} kg = ${want} ml.`,v>want?"Too much glucose risks hyperglycaemia and fluid overload in a newborn.":undefined,{always:true}),true;
     txOk(`Dextrose 10% ${want} ml (2 ml/kg) IV/IO. Prenotify the obstetric unit: she's been resuscitated.`,{next:"END"});return true;}
   /* code clock */
-  case "ccview": st.view=t.dataset.v;txSound("click");drawPlayer(`[data-tx="ccview"][data-v="${st.view}"]`);return true;
-  case "ccpad": st.cur=t.dataset.p;txSound("click");drawPlayer(`[data-tx="ccpad"][data-p="${st.cur}"]`);return true;
-  case "ccz": {const paed=c.pop==="paed"&&c.w<25,Z=paed?CC_PADZ.paed[st.view]:CC_PADZ.adult.front,z=Z.find(x=>x.id===t.dataset.z);
-    if(!st.cur) return txErr("Pick a pad first","Select a pad on the right, then tap where it goes.",undefined,{always:true}),true;
-    if(z.pad!==st.cur){st.wrongId=z.id;return txErr(`${z.label}`,paed?"Under 25 kg, anterior-posterior is first choice: one pad on the front of the chest, one on the back between the shoulder blades.":"Sternal pad below the right collarbone; apex pad on the left side in the mid-axillary line. Pads must not overlap.","Poor pad placement leads to ineffective defibrillation.",{always:true}),true;}
-    st.placed[st.cur]=z.id;st.cur=null;st.wrongId=null;txSound("snap");
-    if(Object.keys(st.placed).length===2) txOk(paed?"Anterior-posterior: first choice under 25 kg.":"Sternal and apex pads in position with good contact.",{next:"END"});else drawPlayer();return true;}
+  case "ccz": {const L=ccPads(c),p=L[st.k],z=p&&p.zones.find(x=>x.id===t.dataset.z);if(!z)return true;
+    if(!z.ok){st.wrongId=z.id;return txErr(`${z.label}`,(c.pop==="paed"&&c.w<25?"Under 25 kg, anterior-posterior is first choice. ":"")+p.tip,"Poor pad placement leads to ineffective defibrillation.",{always:true}),true;}
+    st.placed[p.id]=z.id;st.wrongId=null;st.hint=false;txSound("snap");st.k++;
+    if(st.k>=L.length) txOk(c.pop==="paed"&&c.w<25?"Anterior and posterior pads in position: first choice under 25 kg.":"Anterior and lateral pads in position with good contact.",{next:"END"});else drawPlayer();return true;}
   case "ccstart": return pick(i===0,c.pop==="paed"?"Five ventilations, then 15:2.":"HOTT alongside compressions, minimum scene time.","check","Start",c.pop==="paed"?"Paediatric CPR starts with 5 ventilations, then 15:2.":"Trauma arrest: correct reversible causes alongside compressions. Adrenaline comes only after HOTT and volume."),true;
   case "cccheck": {const r=c.rh[st.cyc-1];
     if(r==="VF") return pick(i===0,"VF: shockable. Charge and shock.","defib","Rhythm check","This is VF, a shockable rhythm. Shock without delay.","Every minute without defibrillation in VF lowers survival."),true;

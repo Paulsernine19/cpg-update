@@ -81,8 +81,7 @@ COURSES.push(
      ]}
     ]},
     {title:"Code clock: hands-on", lessons:[
-     {id:"cc-1", title:"The Arrest Call", scene:"code", steps:[{type:"stage",stage:"ccintro"},{type:"stage",stage:"cckit"}]},
-     {id:"cc-2", title:"Pads On", scene:"code", steps:[{type:"stage",stage:"ccpads"}]},
+     {id:"cc-2", title:"Pads On", scene:"code", steps:[{type:"stage",stage:"ccintro"},{type:"stage",stage:"ccpads"}]},
      {id:"cc-3", title:"Adult Medical Arrest", scene:"code", steps:[{type:"stage",stage:"ccloop"}]},
      {id:"cc-4", title:"Adult Trauma Arrest", scene:"code", steps:[{type:"stage",stage:"ccloop",variant:"trauma"}]},
      {id:"cc-5", title:"Paediatric Arrest", scene:"code", steps:[{type:"stage",stage:"ccpads",variant:"paed"},{type:"stage",stage:"ccloop",variant:"paed"}]},
