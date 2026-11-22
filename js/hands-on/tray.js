@@ -154,10 +154,11 @@ function wbCoach(st){if(st.done)return "Preparation complete. Give the dose over
   return s.at&&s.at.startsWith("a")?"Pull the plunger back to draw up the TXA.":"Move the syringe into the open ampoule.";}
 // goal for the current stage (what to achieve); the method (wbCoach) is the level-2 hint
 function wbGoal(st){if(st.done)return "Ready. We give it over 10 minutes.";const n=wbNext(st),c=wbCase();
-  if(!st.room||(st.syr.nss>.05&&st.bag.txa<.05))return "Make room in the saline bag for 1 g of TXA.";
+  if(!st.room)return "Draw out 10 mL from the 100 mL bag to make room for the TXA.";
+  if(st.syr.nss>.05&&st.bag.txa<.05)return "Discard the 10 mL of NSS you drew out in the kidney basin.";
   if(!st.added)return n==="check"||String(n).startsWith("open")||n[0]==="a"&&!st.syr.txa?"Prepare 1 g of TXA from the ampoules.":"Add the TXA to the bag.";
   if(n==="label")return "Make sure anyone can tell what's in this bag.";
-  if(n==="mix")return "Get the TXA evenly through the bag.";
+  if(n==="mix")return "Mix the TXA through the bag: turn it slowly and gently at least 3 times. Do not shake it.";
   if(n==="bag"||n==="basin")return `Prepare ${c.name}'s dose. ${c.name} is ${c.ageLabel}.`;
   if(n==="sharps")return "Leave the tray safe before we move on.";
   if(n==="set")return "Set up to give the remaining volume.";
@@ -225,10 +226,14 @@ function wbBody(st){const g=P.txMode==="guided",n=wbNext(st),s=st.syr;
     ${st.added?`${st.doseOk?`<div class="wb-move"><span class="label">Line</span><button class="btn ghost sm ${st.setOn?"on":""}" data-tr="line" data-id="set">Connect IV giving set</button>${st.setOn?`<button class="btn ghost sm ${st.lineOn?"on":""}" data-tr="line" data-id="lend">Connect set to the three-way tap</button>`:""}</div>`:""}<div class="wb-move"><span class="label">Bag</span><button class="btn ghost sm ${st.labeled?"on":""}" data-tr="label" ${st.labeled?"disabled":""}>${st.labeled?"Labelled":"Label the bag"}</button><button class="btn ghost sm ${st.mixed?"on":""}" data-tr="turn" ${st.mixed?"disabled":""}>${st.mixed?"Mixed":`Turn the bag (${st.turns}/3)`}</button><button class="btn ghost sm ${st.rateOk?"on":""}" data-tr="give">Set the rate</button></div>`:""}
     ${wbGlassLeft(st).length?`<div class="wb-move"><span class="label">Sharps</span>${wbGlassLeft(st).map(k=>`<button class="btn ghost sm" data-tr="sharps" data-k="${k}">${k[0]==="t"?"Ampoule top":"Empty ampoule"} ${+k[1]+1} → sharps</button>`).join("")}</div>`:""}
     <div class="wb-move"><span class="label">Ampoules</span><button class="btn ghost sm ${st.checked?"on":""}" data-tr="check">${st.checked?"Double-checked":"Double-check with colleague"}</button>${[0,1].map(i=>`<button class="btn ghost sm ${st.amps[i].open?"on":""}" data-tr="snap" data-i="${i}" ${st.amps[i].open?"disabled":""}>${st.amps[i].open?`Ampoule ${i+1} open`:`Snap ampoule ${i+1}`}</button>`).join("")}</div></div></div>`;}
+// prompt for the blank in focus; guided mode can also show its value
+function wbLabTip(st){const f=TX_LABEL.find(x=>x.key===st.labFocus);if(!f)return `<span class="note">${(st.labBad||[]).length?"Fix the blanks marked in red.":"Tap a blank to see what it asks for."}</span>`;
+  const show=st.labShow===f.key;return `<b>${f.tip}</b>${show?`<span class="wb-labval">${f.val(wbCase())}</span>`:P.txMode==="guided"?`<button class="btn ghost sm" data-tr="lab-hint">Show the value</button>`:""}`;}
 function wbLabelHTML(st){const L=st.label;
-  return `<div class="tr-card wb-labform" role="dialog" aria-label="Additive label"><h3 style="color:var(--ink)">Medication additive label</h3><p class="note" style="margin:0">Fill in the blanks directly on the additive label.</p>
-   <button class="btn ghost sm" data-tr="lab-now" style="justify-self:start">Use the current date and time</button>
-   <div class="wb-labscroll"><div class="labelphoto crop"><img src="${TXM("label.webp")}" alt="Tranexamic acid additive label">${TX_LABEL.map(f=>`<input class="labin ${f.key==="conc"?"big":""}" data-lab="${f.key}" aria-label="${f.name}${f.unit?" in "+f.unit:""}" value="${txEsc(L[f.key]||"")}" ${f.unit?'inputmode="decimal"':""} enterkeyhint="next" autocomplete="off" style="left:${(f.left*9-150)/6.55}%;top:${(f.top*12.72-320)/6.25}%;--w:${f.w*9/6.55}%;--h:${(f.h||2.9)*12.72/6.25}%">`).join("")}</div></div>
+  return `<div class="tr-card wb-labform" role="dialog" aria-label="Additive label"><h3 style="color:var(--ink)">Medication additive label</h3><p class="note" style="margin:0">Fill in the blanks directly on the additive label. Tap a blank to see what it asks for.</p>
+   <button class="btn ghost sm" data-tr="lab-now" style="justify-self:start">Click to insert the current date and time</button>
+   <div class="wb-labscroll"><div class="labelphoto crop"><img src="${TXM("label.webp")}" alt="Tranexamic acid additive label">${TX_LABEL.map(f=>`<input class="labin ${f.key==="conc"?"big":""} ${(st.labBad||[]).includes(f.key)?"bad":""}" data-lab="${f.key}" placeholder="${f.ph||""}" aria-label="${f.name}${f.unit?" in "+f.unit:""}" value="${txEsc(L[f.key]||"")}" ${f.unit?'inputmode="decimal"':""} enterkeyhint="next" autocomplete="off" style="left:${(f.left*9-150)/6.55}%;top:${(f.top*12.72-320)/6.25}%;--w:${f.w*9/6.55}%;--h:${(f.h||2.9)*12.72/6.25}%">`).join("")}</div></div>
+   <div class="wb-labtip" id="wbLabTip" aria-live="polite">${wbLabTip(st)}</div>
    <div class="foot-btns wb-labfoot"><button class="btn ghost" data-tr="label-x">Cancel</button><button class="btn" data-tr="label-ok">Confirm label</button></div></div>`;}
 function wbAskHTML(){return `<div class="tr-card wb-ratecard" role="dialog" aria-label="Before you open the ampoule"><h3 style="color:var(--ink)">Before you open the ampoule</h3><p>Do you want to double-check the medication with your colleague?</p><div class="foot-btns"><button class="btn ghost" data-tr="ask-no">No, open it</button><button class="btn" data-tr="ask-yes">Yes, double-check</button></div></div>`;}
 const WB_DQ=[{k:"name",lab:"Drug name",rb:"Tranexamic acid",x:88,y:44.6},{k:"strength",lab:"Strength",rb:"500 mg in 5 mL",x:88,y:57.5},{k:"clarity",lab:"Clarity",rb:"Clear and colourless, no particles",x:50,y:24},{k:"expiry",lab:"Expiry",rb:"In date: EXP 06/2028",x:88,y:93}];
@@ -284,6 +289,8 @@ function wbLeave(st,from){const s=st.syr,b=st.bag;
 function wbCanDock(st,to){const s=st.syr;
   if(to==="a0"||to==="a1"){
     if(!st.room){const o=TX_NEXT.find(x=>/Draw up TXA/i.test(x.text));wbErr(st,"Incorrect next action","Draw out 10 mL of NSS first to make room for the 10 mL of TXA.",o&&o.outcome);return false;}
+    // part of the TXA already in the bag: fluid drawn back from the bag goes back in, it is not the 10 mL of NSS to discard
+    if(s.nss>.05&&st.bag.txa>.05){wbInfo(st,"Push the fluid in the syringe back into the bag, then draw up the second ampoule.");return false;}
     if(s.nss>.05){const o=TX_DISCARD.find(x=>/flush/i.test(x.text));wbErr(st,"Drawn NSS not discarded","The 10 mL of NSS drawn out must be discarded before you draw up the TXA.",o&&o.outcome);return false;}
     if(!st.amps[+to[1]].open){if(!st.checked){st.ask=true;return false;}wbInfo(st,"Snap the ampoule open first: press and hold it.");return false;}}
   if(to==="bag"&&st.added&&wbV(s)<.05&&!st.doseOk){
@@ -309,11 +316,13 @@ const wbCase=()=>txCaseFor(P.steps[P.i]);
 // glass (ampoule tops once snapped, ampoules once empty) belongs in the sharps bin
 const wbGlassLeft=st=>Object.keys(st.glass).filter(k=>st.glass[k]==="tray");
 function wbToSharps(st,k){if(st.glass[k]!=="tray")return;st.glass[k]="sharps";st.glassSel=null;txSound("bin");}
-function wbLabel(st){if(!st.added){wbInfo(st,"Label the bag once the TXA has been added.");return;}if(st.labeled)return;st.label={};}
+function wbLabel(st){if(!st.added){wbInfo(st,"Label the bag once the TXA has been added.");return;}if(st.labeled)return;st.label={};st.labFocus=null;st.labShow=null;st.labBad=null;}
 const wbLabRead=st=>document.querySelectorAll("[data-lab]").forEach(i=>{st.label[i.dataset.lab]=i.value});
 function wbLabelCheck(st){const c=wbCase(),L=st.label;
   const bad=TX_LABEL.filter(x=>{const want=x.ans(c),got=String(L[x.key]??"").trim();return want instanceof RegExp?!want.test(got):(got===""||Math.abs(parseFloat(got)-want)>.01);}).map(x=>x.name+(x.unit?` (${x.unit})`:""));
-  if(bad.length){wbErr(st,"Incomplete or incorrect label",`Check: ${[...new Set(bad)].join(", ")}.`,"An incomplete label makes the bag an unknown drug to the next person who picks it up.");return;}
+  st.labBad=TX_LABEL.filter(x=>{const want=x.ans(c),got=String(L[x.key]??"").trim();return want instanceof RegExp?!want.test(got):(got===""||Math.abs(parseFloat(got)-want)>.01);}).map(x=>x.key);
+  if(bad.length){wbErr(st,"Incomplete or incorrect label",`${st.labBad.length} blank${st.labBad.length>1?"s are":" is"} missing or incorrect. They are marked in red on the label.`,"An incomplete label makes the bag an unknown drug to the next person who picks it up.");return;}
+  st.labBad=null;st.labFocus=null;st.labShow=null;
   P.lab={...L};if(P.txMode==="guided"){S.txLabel={...L};save();}st.labeled=true;st.label=null;wbOk(st,"Bag labelled immediately: 1 g in 100 mL, 10 mg/mL.");}
 function wbTurn(st,fast){if(!st.added)return;
   if(!st.labeled){wbErr(st,"Bag not labelled","Label the bag immediately after preparation, before you mix it.","An unlabelled bag is an unknown drug.");return;}
@@ -385,7 +394,7 @@ function trClick(t){const st=P.sx;if(!st)return;const a=t.dataset.tr;st.idleT=pe
   if(a==="msg-ok"){st.msg=null;drawPlayer(st.label?"[data-lab]":undefined);return;}
   if(st.msg&&!st.msg.ok)return;
   if(st.syr.at&&!["wdn","wup","wdone","msg-ok","hint"].includes(a)&&wbDrawOpen(st))return;
-  if((st.label||st.rate||st.dq||st.ask)&&!["label-ok","label-x","lab-now","rate","check","dq-x","ask-yes","ask-no","chk"].includes(a))return;
+  if((st.label||st.rate||st.dq||st.ask)&&!["label-ok","label-x","lab-now","lab-hint","rate","check","dq-x","ask-yes","ask-no","chk"].includes(a))return;
   if(a==="chk"){const k=t.dataset.k;st.chk=st.chk||{};if(!st.chk[k]){st.chk[k]=true;txSound("click");}drawPlayer(`[data-tr="chk"][data-k="${k}"]`);return;}
   if(a==="ask-yes"){st.ask=false;st.dq=true;drawPlayer('[data-tr="chk"]');return;}
   if(a==="ask-no"){st.ask=false;wbErr(st,"Opened ampoules before double-checking","Always double-check the drug name, strength, clarity and expiry with a colleague before opening.","An unchecked ampoule could be the wrong drug, cloudy or out of date — and once snapped open it cannot be returned.");drawPlayer(wbFoc(st));return;}
@@ -398,6 +407,7 @@ function trClick(t){const st=P.sx;if(!st)return;const a=t.dataset.tr;st.idleT=pe
   if(a==="label"){wbLabel(st);drawPlayer(st.label?"[data-lab]":wbFoc(st));return;}
   if(a==="label-ok"){wbLabRead(st);wbLabelCheck(st);drawPlayer(wbFoc(st));return;}
   if(a==="lab-now"){wbLabRead(st);const d=new Date(),p=x=>String(x).padStart(2,"0");st.label.date=`${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()}`;st.label.time=`${p(d.getHours())}:${p(d.getMinutes())}`;drawPlayer('[data-tr="lab-now"]');return;}
+  if(a==="lab-hint"){wbLabRead(st);st.labShow=st.labFocus;drawPlayer(`[data-lab="${st.labFocus}"]`);return;}
   if(a==="label-x"){st.label=null;drawPlayer();return;}
   if(a==="turn"){wbTurn(st,false);drawPlayer(wbFoc(st)||'[data-tr="turn"]');return;}
   if(a==="glass"){const k=t.dataset.k;if(st.glassSel===k)st.glassSel=null;else st.glassSel=k;drawPlayer();return;}
@@ -499,3 +509,7 @@ TXS.tray={phases:["work"],init:st=>wbInit(st),guide:()=>null,
   body:st=>wbBody(st),
   foot:st=>st.done?`<button class="btn good wide" data-tr="finish">Continue</button>`:P.txMode==="guided"?`<div class="foot-btns"><button class="btn ghost" data-tr="hint" style="flex:0 0 auto">Hint</button><p class="note tr-how" style="margin:0">Drag the syringe onto the bag, an ampoule, the kidney basin or the three-way tap. Tap an ampoule to double-check it, hold to snap it.</p></div>`:`<p class="note tr-how">Drag the syringe onto the bag, basin or an ampoule, then drag the plunger. Hold Shift for fine control, or scroll over the tray. Tap an ampoule to double-check it, press and hold to snap it.</p>`,
   after:st=>trAfter(st)};
+
+const wbLabFoc=e=>{const i=e.target.closest&&e.target.closest("[data-lab]"),st=P&&P.sx;if(!i||!st||!st.label||st.labFocus===i.dataset.lab)return;st.labFocus=i.dataset.lab;if(st.labShow!==st.labFocus)st.labShow=null;const t=document.getElementById("wbLabTip");if(t)t.innerHTML=wbLabTip(st);};
+document.addEventListener("focusin",wbLabFoc);document.addEventListener("pointerdown",wbLabFoc);
+document.addEventListener("input",e=>{const i=e.target.closest&&e.target.closest("[data-lab]"),st=P&&P.sx;if(!i||!st||!st.labBad)return;i.classList.remove("bad");st.labBad=st.labBad.filter(k=>k!==i.dataset.lab);});

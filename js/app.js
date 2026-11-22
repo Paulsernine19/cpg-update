@@ -279,6 +279,29 @@ const gateHTML=()=>`<div class="gate-hero">
    <button class="gh-cta" data-lesson="in-1"><span class="gh-pill">Start the course</span><span class="gh-circ">${GATE_ARROW}</span></button>
    <ul class="gh-steps"><li><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c1-3.6 3.8-5.4 7-5.4s6 1.8 7 5.4"/></svg></b>Learner focused</li><li><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3 16 5-5 4 4 3-3 6 6"/></svg></b>Realistic scenarios</li><li><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg></b>Meaningful practice</li></ul></div>
   <p class="gh-note gh-quote">“Every guideline learned today is a better decision on tomorrow’s call.”</p></div>`;
+// "Start the course": the photo screen shrinks into the CPG book and swings open as its cover (a copy of the screen is the turning cover, with a back),
+// real CPG pages (brand/cpg/) turn with a paper sound. The last page is a copy of the lesson's first slide (the lesson opens hidden at the start); it zooms to fill the screen and the real lesson shows in its place.
+// Full run once (S.bookSeen), short run after. A tap or Esc/Enter/Space skips
+const CPG_PAGES=["cover","contents","cardiac-arrest","newborn","txa"];
+const CBK_T=[[.35,.85],[.95,.7],[1.3,.58],[1.56,.5],[1.78,.45],[1.97,.42]],CBK_SHORT=[[.35,.7]];// [start, duration] in s of each turn (0 = photo cover): slow first, then faster
+function gateBook(id){const g=document.getElementById("gate");if(!g||g.classList.contains("opening")||matchMedia("(prefers-reduced-motion: reduce)").matches){openLesson(id);return}
+  const short=!!S.bookSeen;S.bookSeen=true;save();
+  const vw=innerWidth,vh=innerHeight,bw=Math.min(vw-28,(vh-48)*.707),bh=bw*1.415,k=Math.min(bw/vw,bh/vh),pages=short?[]:CPG_PAGES,T=short?CBK_SHORT:CBK_T,n=pages.length+2,tm=[];
+  g.style.setProperty("--ct",(vh-bh)/2+"px");g.style.setProperty("--cl",(vw-bw)/2+"px");
+  const pg=(i,html)=>{const t=T[i],s=T[i-1];return `<div class="cbk-pg${t?" turn":""}" style="--z:${n-i};--zt:${10+i}${t?`;animation-delay:${t[0]}s;animation-duration:${t[1]}s`:""}"><div class="cbk-f${t?"":" cbk-last"}">${html}${s?`<i class="cbk-sh" style="animation-delay:${s[0]}s;animation-duration:${s[1]}s"></i>`:""}</div>${t?`<div class="cbk-b${i?"":" cv"}"></div>`:""}</div>`};
+  const b=document.createElement("div");b.className="cbk-wrap";b.setAttribute("aria-hidden","true");
+  b.innerHTML=`<div class="cbk-book" style="width:${bw}px;--zs:${1/k}">${pg(0,"")}${pages.map((p,i)=>pg(i+1,`<img src="brand/cpg/${p}.webp" alt="">`)).join("")}${pg(n-1,"")}</div>`;
+  const strip=e=>{e.removeAttribute("id");e.querySelectorAll("[id]").forEach(x=>x.removeAttribute("id"));return e};
+  const cv=strip(g.cloneNode(true));cv.removeAttribute("style");cv.className="gate cbk-gclone";b.querySelector(".cbk-f").prepend(cv);
+  openLesson(id);const pl=document.getElementById("player");
+  const sl=strip(pl.cloneNode(true));sl.classList.add("cbk-pclone");sl.style.cssText=`width:${vw}px;height:${vh}px;transform:translate(-50%,-50%) scale(${k})`;b.querySelector(".cbk-last").prepend(sl);pl.classList.add("cbk-wait");
+  document.body.appendChild(b);g.classList.add("opening");tm.push(setTimeout(()=>g.classList.add("cbk-hide"),T[0][0]*1000));
+  const snd=s=>{if(typeof txSound==="function")txSound(s)};T.forEach((t,i)=>tm.push(setTimeout(()=>snd(i?"page":"cover"),(t[0]+t[1]*(i?.35:.25))*1000)));
+  let done=false;const key=e=>{if(["Escape","Enter"," "].includes(e.key)){e.preventDefault();e.stopPropagation();fin(true)}};
+  const fin=skip=>{if(done)return;done=true;tm.forEach(clearTimeout);document.removeEventListener("keydown",key,true);
+    const show=()=>{pl.classList.remove("cbk-wait");g.classList.remove("opening","cbk-hide");g.style.removeProperty("--ct");g.style.removeProperty("--cl")};if(skip){show();b.classList.add("skip");setTimeout(()=>b.remove(),320)}else{b.classList.add("zoom");setTimeout(()=>{show();b.remove()},700)}};
+  b.addEventListener("pointerdown",()=>fin(true));document.addEventListener("keydown",key,true);
+  const z=T[T.length-1];tm.push(setTimeout(()=>fin(false),(z[0]+z[1]+.2)*1000));}
 function render(){
   renderNav();
   const mn=document.getElementById("main");mn.classList.toggle("wide",view==="reference");mn.classList.toggle("homewide",view==="home");
@@ -288,7 +311,7 @@ function render(){
   // first-launch gate: until Welcome is done, the only way in is Start Here (the player sits above it)
   let g=document.getElementById("gate");const need=!S.done["in-1"];
   if(need&&!g){g=document.createElement("div");g.id="gate";g.className="gate";g.setAttribute("role","dialog");g.setAttribute("aria-modal","true");g.setAttribute("aria-labelledby","gateT");document.body.appendChild(g);}
-  if(need&&!g.dataset.built){g.dataset.built=1;g.innerHTML=gateHTML();let seen=false;try{seen=sessionStorage.getItem("cpg26-gate")==="1";sessionStorage.setItem("cpg26-gate","1")}catch(e){}
+  if(need&&!g.dataset.built){g.dataset.built=1;g.innerHTML=gateHTML();CPG_PAGES.forEach(p=>{new Image().src=`brand/cpg/${p}.webp`});let seen=false;try{seen=sessionStorage.getItem("cpg26-gate")==="1";sessionStorage.setItem("cpg26-gate","1")}catch(e){}
     if(GATE_INTRO&&!seen&&!matchMedia("(prefers-reduced-motion: reduce)").matches){g.classList.add("intro");const end=()=>g.classList.remove("intro");g.addEventListener("pointerdown",e=>{if(!e.target.closest(".gh-cta"))end()});setTimeout(end,3200);}
     if(!P)g.querySelector(".gh-cta").focus({preventScroll:true});}
   else if(!need&&g)g.remove();
