@@ -343,7 +343,7 @@ function openLesson(lid,opts={}){
   benchResume(f);resetStep();
   document.getElementById("player").hidden=false;document.body.style.overflow="hidden";drawPlayer();
 }
-function resetStep(){P.watchDone=false;P.vfold=undefined;P.pinOpen=false;P.spBig=false;P.sx=null;P.chartOpen=false;P.sel=null;P.val="";P.multi=[];P.sort={};P.match={};P.matchSel=null;P.matchOrd=null;P.sortOrd=null;P.ord=[];P.ordMix=null;P.status="idle";P.firstTry=true;P.conf=null;P.tries=0;P.cur=null;P.trail=[];P.why=null;P.whyIdx=null;P.walkMiss=false;P.wOrd={};P.wMiss=[];P.wRun=1;P.sv=null;P.scC=null;P.goalMet=false;P.rb=null;P.rbPick={};P.ci=0;P.chainMiss=false;P.scRes=null;P.scMiss=false;}
+function resetStep(){P.usI=0;P.usSeen=[0];P.watchDone=false;P.vfold=undefined;P.pinOpen=false;P.spBig=false;P.sx=null;P.chartOpen=false;P.sel=null;P.val="";P.multi=[];P.sort={};P.match={};P.matchSel=null;P.matchOrd=null;P.sortOrd=null;P.ord=[];P.ordMix=null;P.status="idle";P.firstTry=true;P.conf=null;P.tries=0;P.cur=null;P.trail=[];P.why=null;P.whyIdx=null;P.walkMiss=false;P.wOrd={};P.wMiss=[];P.wRun=1;P.sv=null;P.scC=null;P.goalMet=false;P.rb=null;P.rbPick={};P.ci=0;P.chainMiss=false;P.scRes=null;P.scMiss=false;}
 let simOpen=false;
 function openSim(){
   const w=document.getElementById("simwrap");simOpen=true;w.hidden=false;
@@ -381,6 +381,7 @@ const locked=()=>P.status==="right"||P.status==="revealed";
 
 function stepBody(s){
   const lab=s.label?`<span class="label">${s.label}</span>`:"";
+  if(s.type==="read"&&s.stepper) return `${badges(s)}<h2>${s.title}</h2>${s.body?`<p>${s.body}</p>`:""}${stepperHTML(s)}${srcLine(s)}`;
   if(s.type==="read") return `${badges(s)}${s.top&&s.visual?`<div class="visual">${V[s.visual]}</div>`:""}<h2>${s.title}</h2>${s.body?`<p>${s.body}</p>`:""}${s.ptitle?`<span class="label">${s.ptitle}</span>`:""}${s.points?`<${s.ol?"ol":"ul"}>${s.points.map(p=>`<li>${p}</li>`).join("")}</${s.ol?"ol":"ul"}>`:""}${s.visual&&!s.top?`<div class="visual">${V[s.visual]}</div>`:""}${s.foot?`<p class="note">${s.foot}</p>`:""}${pendingBox(s.pending)}${srcLine(s)}`;
   if(s.type==="choice") return `${badges(s)}${s.intro?`<div class="info">${s.intro}</div>`:""}${lab}<h2>${s.prompt}</h2>${s.visual?vfold(s.visual):""}<div class="opts" role="radiogroup" aria-label="Answer options">${s.options.map((o,i)=>{
       const L=locked(),rv=P.status==="revealed"&&P.sel!==null&&P.sel!==s.answer;if(L&&i!==s.answer&&!(rv&&i===P.sel))return ""; // after answering, keep only the correct option (and the learner's wrong pick when revealed)
@@ -426,13 +427,13 @@ function stepBody(s){
   if(s.type==="walk"){const cur=P.cur||s.start,n=s.nodes[cur],ord=n.opts?(P.wOrd[cur]||(P.wOrd[cur]=shuffle(n.opts.map((_,i)=>i)))):[];
     const asked=P.trail.length,miss=P.wMiss.length,firstOk=asked-miss,again=walkNeedsRerun(s),ev=P.why&&n.opts?n.opts[P.whyIdx].ev:undefined;
     const caseBox=s.facts?`<div class="case wcase"><span class="label wc-l">${WIC.clip} Case</span><div class="wfacts">${s.facts.map((t,i)=>`<span class="wfact ${ev===i?"hl":""}">${t}</span>`).join("")}</div></div>`:`<div class="case"><span class="label">Case</span><p>${s.case}</p></div>`;
-    return `${badges(s)}<span class="label">${s.label}</span><h2>${s.title}</h2>${caseBox}
+    return `${badges(s)}<span class="label">${s.label}</span><h2>${s.title}</h2>${s.group?walkSet(s):""}${caseBox}
     ${P.wRun>1?`<p class="note wrun">Second run</p>`:""}
     ${s.vis?walkVis(s,cur):""}<div class="wgrid ${n.end?"ended":""}"><div class="wmapcol">${walkMap(s,!!n.end)}</div><div class="wqcol">
-    ${n.end?`<div class="wend ${n.tone}" role="status"><span class="label">Outcome</span><b>${n.end}</b></div>
-      <div class="wsum ${miss?(again?"bad":"mid"):"good"}" role="status"><span class="label">${P.wRun>1?"Second run":"Result"}</span><b>${firstOk} of ${asked} steps correct first time</b>
+    ${n.end?`${s.group?`<div class="wend wone mk-${n.mk}" role="status"><span class="wone-ic" aria-hidden="true">${WICX(n.ic)}</span><span class="label">Outcome</span><b>${n.end}</b>`:`<div class="wend ${n.tone}" role="status"><span class="label">Outcome</span><b>${n.end}</b></div>`}
+      <div class="wsum ${miss?(again?"bad":"mid"):"good"}${s.group?" in":""}" role="status"><span class="label">${P.wRun>1?"Second run":"Result"}</span><b>${firstOk} of ${asked} steps correct first time</b>
       ${miss?`<ul>${P.wMiss.map(m=>`<li><span>${m.q}</span><b>${m.a}</b></li>`).join("")}</ul>${P.mode==="practice"?`<p class="note">Missed steps are added to the review queue.</p>`:""}`:""}
-      ${again?`<p class="note">2 or more steps were missed. Complete one more run to continue.</p>`:""}</div>
+      ${again?`<p class="note">2 or more steps were missed. Complete one more run to continue.</p>`:""}</div>${s.group?"</div>":""}
       ${s.ref?`<button class="wref" data-refpeek="${s.ref}">${I.book} Open this algorithm in Reference</button>`:""}`
       :`<div class="wq"><span class="label">Step ${walkPath(s).indexOf(cur)+1} of ${walkPath(s).length-1}</span><h3>${n.q}</h3>${P.why?`<div class="why" role="status"><b>Incorrect.</b> <span class="wpick">You chose: ${n.opts[P.whyIdx].t}</span> ${P.why}${ev!==undefined?`<span class="wev">The deciding fact is highlighted in the case.</span>`:""}</div><button class="btn ghost" data-walkretry="1">Try again</button>`
         :`<div class="wopts">${ord.map(i=>{const o=n.opts[i],ic=o.ic&&WIC[o.ic];return `<button class="opt${ic?" has-ic":""}" data-walk="${i}">${ic?`<span class="oic ${o.ic}${WIC_ART[o.ic]?" art":""}" aria-hidden="true">${ic}</span>`:""}<span>${o.t}</span></button>`}).join("")}</div>`}</div>`}</div></div>${srcLine(s)}`;}
@@ -531,13 +532,18 @@ const picHTML=s=>{let k=s.pic,cap="";if(s.type==="walk"){const n=s.nodes[P.cur||
 // the other answers as faint side branches; action steps stay hidden until answered so the map never gives an answer away.
 const walkPath=s=>{const ids=[];let id=s.start;while(id&&!ids.includes(id)){ids.push(id);const n=s.nodes[id];if(!n||n.end)break;const o=n.opts.find(x=>x.to);id=o&&o.to;}return ids};
 const walkDec=n=>n.branch!==undefined?n.branch:!!n.opts&&n.opts.length>1&&n.opts.every(o=>o.t.length<=24);
+// group of walk steps (s.group): one marker per walk, filled with its method colour (s.mk, short name s.gl) once finished
+const WICX=k=>k&&WIC[k]?`<span class="oic ${k}${WIC_ART[k]?" art":""}">${WIC[k]}</span>`:"";
+function walkSet(s){const g=P.steps.map((x,j)=>[x,j]).filter(([x])=>x.type==="walk"&&x.group===s.group);
+  return `<ol class="wset" aria-label="Progress through this set">${g.map(([x,j],k)=>{const done=j<P.i||(j===P.i&&!!x.nodes[P.cur||x.start].end);
+    return `<li class="${done?"done mk-"+x.mk:j===P.i?"cur":""}"><b>${k+1}</b><span>${done?x.gl:j===P.i?"Current":""}</span></li>`}).join("")}</ol>`;}
 function walkMap(s,full){const ids=walkPath(s),cur=P.cur||s.start,ci=ids.indexOf(cur),miss=new Set(P.wMiss.map(m=>m.node));
-  return `<ol class="wmap ${full?"full":""}" aria-label="Algorithm progress">${ids.map((id,i)=>{const n=s.nodes[id],st=i<ci?"done":i===ci?"cur":"todo";
-    if(n.end){const t=n.end.split(/(?<=\.)\s/)[0];return `<li class="wn end ${st} ${n.tone||""}"><span class="wn-b">${st==="cur"?t:"Outcome"}</span></li>`;}
+  return `<ol class="wmap ${full?"full":""}${s.group?" slim":""}" aria-label="Algorithm progress">${ids.map((id,i)=>{const n=s.nodes[id],st=i<ci?"done":i===ci?"cur":"todo";
+    if(n.end&&s.group)return "";if(n.end){const t=n.end.split(/(?<=\.)\s/)[0];return `<li class="wn end ${st} ${n.tone||""}"><span class="wn-b">${st==="cur"?t:"Outcome"}</span></li>`;}
     const ok=n.opts.find(o=>o.to),dec=walkDec(n),lab=n.short?`<b>${n.short}</b>`:"";
-    const box=st==="done"?`${lab}<span>${ok?ok.t:""}</span>`:n.short?lab:`<span>Step ${i+1}</span>`;
-    const alt=dec?`<span class="wn-alt">${n.opts.filter(o=>!o.to).map(o=>`<i>${o.t}</i>`).join("")}</span>`:"";
-    return `<li class="wn ${st}${miss.has(id)&&st==="done"?" miss":""}${dec?" dec":""}"><span class="wn-b">${box}</span>${alt}</li>`;}).join("")}</ol>`;}
+    const box=st==="done"?`${lab}<span>${ok?ok.t:""}</span>`:n.short&&!s.hideNext?lab:`<span>Step ${i+1}</span>`;
+    const alt=dec?`<span class="wn-alt">${n.opts.filter(o=>!o.to).map(o=>o.alt&&(st==="done"||full)?`<i class="to${o.amk?" mk-"+o.amk:""}">${o.alt}</i>`:`<i>${o.t}</i>`).join("")}</span>`:"";
+    return `<li class="wn ${st}${miss.has(id)&&st==="done"?" miss":""}${dec?" dec":""}${st==="done"&&ok&&ok.mk?" mk-"+ok.mk:""}"><span class="wn-b">${box}</span>${alt}</li>`;}).join("")}</ol>`;}
 // step-by-step algorithm (walk): a wrong pick shows why and hides the options until "Try again" (then reshuffled);
 // each node missed on the first try is counted, listed at the end and added to the review queue; 2+ misses = one more run before Continue
 const walkNeedsRerun=s=>P.wRun===1&&P.wMiss.length>=2&&P.mode==="practice"&&!!s.nodes[P.cur||s.start].end;
@@ -615,6 +621,7 @@ function isReady(s){
   return true;
 }
 function footHTML(s){
+  if(s.type==="read"&&s.stepper){const ok=P.usSeen.length>=stepperItems(s.stepper).length;return `<button class="btn wide" data-act="next" ${ok?"":"disabled"}>${ok?"Continue":"Open every step to continue"}</button>`;}
   if(["read","lookup","blocked"].includes(s.type)) return `<button class="btn wide" data-act="next">${s.type==="lookup"?"I've located it":"Continue"}</button>`;
   if(s.type==="video") return `<button class="btn wide" data-act="next" ${P.watched?"":"disabled"}>Continue</button>`;
   if(s.type==="watch") return `<button class="btn wide" data-act="next" ${!s.src||P.watchDone?"":"disabled"}>Continue</button>`;
@@ -631,6 +638,16 @@ function footHTML(s){
   if(P.status==="revealed") return `<div class="fb">${P.mode==="diag"?"<h3>Incorrect</h3>":`<h3 style="color:var(--ink)">Answer</h3>`}${vsHTML(s)}<p>${s.explain||""}</p>${s.src?`<p class="src">Source: ${s.src}</p>`:""}</div><button class="btn wide" data-act="next">Continue</button>`;
 }
 /* ---------- phones: keep cases readable without scrolling back (pinned case, smaller scene photo, folded tables) ---------- */
+// read step with stepper:"ustep": one step of the V visual at a time (letter tabs, Next button, stop rule); Continue once every step is opened
+const STEPPER={};
+function stepperItems(k){if(STEPPER[k])return STEPPER[k];const d=document.createElement("div");d.innerHTML=V[k];
+  return STEPPER[k]=[...d.querySelectorAll("li")].map(li=>({l:li.querySelector(".us-l").textContent,ic:li.querySelector(".us-ic").innerHTML,t:li.querySelector(".us-t").textContent,p:li.querySelector("p").innerHTML}));}
+function stepperHTML(s){const it=stepperItems(s.stepper),i=P.usI,c=it[i],n=it.length,note=(()=>{const d=document.createElement("div");d.innerHTML=V[s.stepper];const e=d.querySelector(".note");return e?e.innerHTML:""})();
+  return `<div class="ustp"><div class="ustp-stop">${WIC.stop||""}<b>Stop at any point if there's a clinical concern or a contraindication.</b></div><div class="ustp-tabs" role="tablist" aria-label="Steps">${it.map((x,k)=>`<button role="tab" aria-selected="${k===i}" class="ustp-tab${k===i?" on":""}${P.usSeen.includes(k)?" seen":""}" data-ustp="${k}"><b>${x.l}</b><span>${x.t}</span></button>`).join("")}</div>
+  <div class="ustp-card" role="tabpanel" aria-live="polite"><span class="ustp-ic" aria-hidden="true">${c.ic}</span><div><span class="label">Step ${i+1} of ${n}</span><h3>${c.t}</h3><p>${c.p}</p></div>
+  <div class="ustp-nav">${i>0?`<button class="btn ghost sm" data-ustp="${i-1}">← Back</button>`:"<span></span>"}${i<n-1?`<button class="btn sm" data-ustp="${i+1}">Next: ${it[i+1].t} →</button>`:""}</div></div>
+  ${note?`<p class="note">${note}</p>`:""}</div>`;}
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-ustp]");if(!b||!P)return;e.preventDefault();P.usI=+b.dataset.ustp;if(!P.usSeen.includes(P.usI))P.usSeen.push(P.usI);drawPlayer(`[data-ustp="${P.usI}"].ustp-tab`);});
 const PHONE=()=>matchMedia("(max-width:600px)").matches;
 // a table inside a question (e.g. the RACE scale): a tap-to-open bar on phones, open on wider screens; remembers its state within the step
 const VFOLD={race:"RACE scale"};

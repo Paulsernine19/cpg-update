@@ -100,7 +100,7 @@ const QB=[
    DRAFT: awaiting clinical review. Modules still to do: newborn, cardiac, stroke. ---------- */
 const FQ=[
  {id:"FT1",mod:"trauma",lesson:"tr-1",scope:"AP",prompt:"After a collision, a driver is alert, follows instructions and has no neurological deficit. The right ankle is deformed, but they can stand on the left leg. Which extrication approach applies?",
-  options:["Self-extrication or minimally assisted extrication","Manual extrication on the combi-carrier","Rapid extrication with gentle handling"],answer:0,
+  options:["Self-extrication or minimally assisted extrication","Full immobilised extraction on a long board","Rapid extrication with gentle handling"],answer:0,
   explain:"The contraindication is injury that prevents standing on at least one leg, so one injured ankle does not rule out self-extrication. Rapid extrication is for hard neurological signs.",src:"CPG 10.13 p.200"},
  {id:"FT2",mod:"trauma",lesson:"tr-1",scope:"AP",prompt:"An adult has been trapped since a collision 20 minutes ago. They are pale and tachycardic, and you suspect major haemorrhage. Civil Defence are still cutting the vehicle. What is the priority while they remain trapped?",
   options:["Control any haemorrhage and consider TXA","Complete a full head-to-toe assessment before giving TXA","Attach full monitoring and repeat full sets of vital signs"],answer:0,

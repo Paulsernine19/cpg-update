@@ -46,8 +46,9 @@ const CHANGES={
 /* img: picture used on the Reference shelf (tape cover + spine). Replace freely. */
 const REF={
  trauma:{visual:"txachart",items:[
-  {t:"<b>Extrication:</b> self-extrication or minimal assistance is first line, including children who follow instructions, neck/back pain, soft neuro signs such as tingling that doesn't follow a nerve pathway (non-dermatomal tingling), and weakness or burning pain in the arms and hands, worse than in the legs (signs of central cord syndrome). Not if unable to follow instructions or stand on at least one leg. Hard neuro signs: rapid extrication, gentle handling.",scope:"AP",src:"CPG 10.13 p.200",img:"tx/hero-ambulance-prep.webp"},
+  {t:"<b>Extrication:</b> self-extrication or minimal assistance is first line, including children who follow instructions, neck/back pain, soft neuro signs such as tingling that doesn't follow a nerve pathway (non-dermatomal tingling), and weakness or burning pain in the arms and hands, worse than in the legs (signs of central cord syndrome). Not if unable to follow instructions or stand on at least one leg. Hard neuro signs: rapid extrication, gentle handling. Can’t get out independently: assisted self-extrication (gentle support and guidance only, e.g. an arm to stand, holding the belt). Can’t follow instructions or stand: rapid extrication with gentle handling (manual extrication) with the combi-carrier or trauma board and a rigid c-collar; consider removing both on the stretcher.",scope:"AP",src:"CPG 10.13 pp.200–202",img:"tx/hero-ambulance-prep.webp"},
   {t:"<b>U-STEP Out:</b> Understand · Support · Try moving · Egress · Plan · Out. Snatch rescue first if immediate threat to life or unconscious with absent/ineffective breathing.",scope:"AP",src:"CPG 10.13 p.201",img:"tx/avatar-pointing-half.webp"},
+  {t:"<b>Civil Defence:</b> take the first step: introduce yourself to the lead. Coordinate with them to relay the patient’s condition or concerns, any need for immediate extrication, a rescue buddy in the vehicle, a brief pause for a lifesaving intervention, and safety concerns.",scope:"AP",src:"CPG 10.13 p.201",img:"tx/avatar-urgent-half.webp"},
   {t:"<b>While trapped:</b> minimal monitoring; only haemorrhage control, TXA if indicated and analgesia (Penthrox or ketamine). No MILS needed if conscious with no neuro deficit. Extrication buddy via Civil Defence.",scope:"AP",src:"CPG 10.13 pp.200–202",img:"tx/avatar-urgent-half.webp"},
   {t:"<b>Paediatric TXA indications (AP &amp; CCP):</b> child under 14, major trauma under 3 hours, with suspected or confirmed major haemorrhage or isolated TBI with GCS ≤12.",scope:"AP",src:"HMCAS Paediatric IV TXA poster",img:"tx/eq-txa-one-ampoule.webp"},
   {t:"<b>TXA contraindications:</b> hypersensitivity to TXA · injury over 3 hours old · significant blood loss unlikely.",scope:"AP",src:"HMCAS Paediatric IV TXA poster",img:"tx/avatar-warning-half.webp"},
@@ -73,7 +74,7 @@ const REF={
   {t:"<b>Targets:</b> SpO₂ &gt;80% and HR &gt;100 by 5 minutes; temperature 36.5–37.5 °C. Fluids NS 10 ml/kg (repeat once). Defib 4 J/kg, pads anterior-posterior.",scope:"AP",src:"CPG 2.5 p.52",img:"rx/monitor.webp"}]},
  cardiac:{visual:"timeline",items:[
   {t:"<b>Adult medical shockable:</b> adrenaline after the 3rd shock, then every 4 minutes. Amiodarone 300 mg after the 3rd, 150 mg after the 5th. Non-shockable: adrenaline as soon as IV/IO is in.",scope:"AP",src:"CPG 2.1 · Summary p.1",img:"tx/eq-adrenaline.webp"},
-  {t:"<b>Adult energy:</b> LP15 200, 300, 360 J · Zoll 150, 200, 200 J. Maximum 3 DSEDs, then standard anterior-posterior pads at maximum joules.",scope:"AP",src:"CPG 2.1 p.37 · Summary p.1",img:"rx/pad-sternum.webp"},
+  {t:"<b>Adult energy:</b> LP15 200, 300, 360 J · Zoll 150, 200, 200 J. Vector change to anterior-posterior after 3 consecutive shocks if still shockable (APs and CCPs); CCPs may go straight to DSED. Maximum 3 DSEDs, then standard anterior-posterior pads at maximum joules.",scope:"AP",src:"CPG 2.1 p.37 · Summary p.1",img:"rx/pad-sternum.webp"},
   {t:"<b>Adult CPR:</b> 100–120/min, 5–6 cm, pauses &lt;5 s; waveform capnography with any advanced airway, aim EtCO₂ ≈25 mmHg; gastric tube via SGA (APs and CCPs).",scope:"AP",src:"CPG 2.1–2.2 · Summary p.1",img:"rx/bvm-adult.webp"},
   {t:"<b>Adult trauma arrest:</b> HOTT first, minimum scene time. Adrenaline only after reversible causes and ≥500 ml NS, then every 4 minutes.",scope:"AP",src:"CPG 2.2 p.35",img:"tx/eq-nacl-500ml-bag.webp"},
   {t:"<b>Paediatric arrest:</b> 5 ventilations, then 15:2. Adrenaline 0.01 mg/kg (max 1 mg): non-shockable ASAP; shockable after 4 min of CPR; every 4 min. Amiodarone 5 mg/kg after the 3rd (max 300 mg) and 5th (max 150 mg) shock. 4 J/kg.",scope:"AP",src:"CPG 2.3 pp.42–43",img:"rx/pad-apex.webp"},
@@ -100,11 +101,11 @@ const REF={
 const BOOK_GROUPS={trauma:"Trauma",newborn:"Newborn",cardiac:"Cardiac arrest",stroke:"Stroke",other:"Others"};
 const REF_BOOKS={
  trauma:[
-  {title:"Spinal trauma",spine:"Spinal trauma",icon:"spine",items:[11,12],img:"sc/scene-07-cant-feel-legs.webp"},
-  {title:"Spinal motion restriction",spine:"Spinal MR",icon:"smr",items:[13],img:"sc/scene-05-on-stretcher-blocks.webp"},
-  {title:"Vehicle extrication and care for the trapped patient",spine:"Extrication",icon:"car",items:[0,1,2],img:"sc/scene-03-self-extrication.webp"},
-  {title:"Trauma bypass criteria",spine:"Bypass",icon:"bypass",items:[10],img:"sc/scene-09-seatbelt-sign.webp"},
-  {title:"Paediatric TXA for AP scope of practice",spine:"Paed TXA",icon:"syringe",items:[3,4,5,6,7,8],visual:"txachart"}],
+  {title:"Spinal trauma",spine:"Spinal trauma",icon:"spine",items:[12,13],img:"sc/scene-07-cant-feel-legs.webp"},
+  {title:"Spinal motion restriction",spine:"Spinal MR",icon:"smr",items:[14],img:"sc/scene-05-on-stretcher-blocks.webp"},
+  {title:"Vehicle extrication and care for the trapped patient",spine:"Extrication",icon:"car",items:[0,1,2,3],img:"sc/scene-03-self-extrication.webp"},
+  {title:"Trauma bypass criteria",spine:"Bypass",icon:"bypass",items:[11],img:"sc/scene-09-seatbelt-sign.webp"},
+  {title:"Paediatric TXA for AP scope of practice",spine:"Paed TXA",icon:"syringe",items:[4,5,6,7,8,9],visual:"txachart"}],
  newborn:[
   {title:"Thermoregulation",spine:"Thermoregulation",icon:"thermo",items:[0,1,2],img:"sc/cover-newborn.webp"},
   {title:"Newborn resuscitation guidelines",spine:"Newborn resus",icon:"newborn",items:[5,3,6,7,8,9,4],visual:"ways",img:"rx/bvm-neo.webp"}],
