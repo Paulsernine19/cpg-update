@@ -38,15 +38,14 @@ Object.keys(REF_BOOKS).forEach(m=>REF_BOOKS[m].forEach((b,k)=>{const mod=b.from|
 // one REF item as a list entry (detail sheet + list view)
 const RS_NUM=/((?:(?:[≤≥<>]|&lt;|&gt;)\s?)?\d+(?:[.,]\d+)?(?:\s?[–-]\s?\d+(?:[.,]\d+)?)?\s?(?:mg\/kg|ml\/kg|mL\/kg|J\/kg|mmol\/L|cmH₂O|mmHg|\/min|mg|ml|mL|cm|J|kg|g|°C|%|min(?:utes)?|hours?|h|s)(?![A-Za-z]))/g;
 const rsNums=h=>h.split(/(<[^>]+>)/).map(p=>p.startsWith("<")?p:p.replace(RS_NUM,'<b class="kv">$1</b>')).join("");
-const rsItemHTML=x=>`<li><p>${rsNums(x.t)}</p><div class="rsd-tags">${refScope(x.scope)}${x.pend?`<span class="badge pend">Details pending</span>`:""}<span class="rsd-src">${x.src}</span></div></li>`;
+const rsItemHTML=x=>`<li><p>${rsNums(x.t)}</p><div class="rsd-tags">${x.pend?`<span class="badge pend">Details pending</span>`:""}<span class="rsd-src">${x.src}</span></div></li>`;
 const RM=matchMedia("(prefers-reduced-motion: reduce)").matches, EASE="cubic-bezier(.2,.8,.2,1)", SHEET_EASE="cubic-bezier(.76,0,.18,1)";
-const rsScope=x=>x==="AP"?"AP &amp; CCP":x==="CCP"?"CCP only":"Scope to verify";
 const rsSmooth=x=>x*x*(3-2*x), rsB=r=>Math.abs(r)<1?(r+Math.sin(Math.PI*r)/Math.PI)/2:Math.sign(r)*.5, rsMod=(a,n)=>((a%n)+n)%n;
 const RS={N:RS_ITEMS.length,s:0,T:0,act:-1,hov:-1,mx:-1e4,my:-1e4,cx:-1e4,cy:-1e4,tiltX:0,tiltY:0,onCover:false,open:false,drag:null,raf:0,lt:0,idle:0,el:null,
   lastMod:null,inited:false,pendingIdx:null,openOnMount:false,wheelT:0,saveT:0,lift:null,G:{},query:"",q:[],mi:0,vis:false};
 
 const rsSpine=(it,v)=>`<div class="rs-sp v${v%3}" style="--c:${RS_COL[it.m]}"><span class="rs-ic">${RS_ICON[it.icon]||""}</span><span class="rs-st${it.spine.length>16?" long":""}">${it.spine}</span><span class="rs-sl">CPG 2.6</span></div>`;
-const rsCover=it=>`<div class="rs-cv" style="--c:${RS_COL[it.m]}"><span class="rs-ck">HMCAS · ${BOOK_GROUPS[it.m]}</span><b class="rs-ct${it.title.split(" ").some(w=>w.length>12)?" long":""}">${it.title}</b><div class="rs-ci${it.photo?" photo":""}"><img src="${it.img}" alt="" draggable="false"></div><div class="rs-cf"><span>${rsScope(it.scope)}</span><span class="rs-cb">v2.6</span></div></div>`;
+const rsCover=it=>`<div class="rs-cv" style="--c:${RS_COL[it.m]}"><span class="rs-ck">HMCAS · ${BOOK_GROUPS[it.m]}</span><b class="rs-ct${it.title.split(" ").some(w=>w.length>12)?" long":""}">${it.title}</b><div class="rs-ci${it.photo?" photo":""}"><img src="${it.img}" alt="" draggable="false"></div><div class="rs-cf"><span>HMCAS CPG</span><span class="rs-cb">v2.6</span></div></div>`;
 const RS_ARROW=d=>`<svg width="18" height="10" viewBox="0 0 18 10" fill="none" stroke="currentColor" stroke-width="1.2">${d<0?'<path d="M5 1 L1 5 L5 9 M1 5 H17"/>':'<path d="M13 1 L17 5 L13 9 M17 5 H1"/>'}</svg>`;
 
 function rsKick(){if(!RS.raf&&RS.el&&RS.el.isConnected){RS.lt=0;RS.idle=0;RS.raf=requestAnimationFrame(rsFrame)}else RS.idle=0;}
@@ -126,7 +125,7 @@ function rsHits(){const h=RS.el.querySelector(".rs-hits");h.textContent=!RS.quer
 
 function rsSetActive(i,dir,first){if(i===RS.act)return;RS.act=i;const it=RS_ITEMS[i],el=RS.el;
   const [t,sub,yr]=el.querySelectorAll(".rs-m");
-  rsSwap(t,it.title,dir,first);rsSwap(sub,`${BOOK_GROUPS[it.m]} · <span>${rsScope(it.scope)}</span>`,dir,first);rsSwap(yr,`${it.its.length} key point${it.its.length>1?"s":""} · ${it.srcShort} · ${String(it.k+1).padStart(2,"0")} / ${REF_BOOKS[it.m].length}`,dir,first);el.style.setProperty("--g",RS_COL[it.m]);
+  rsSwap(t,it.title,dir,first);rsSwap(sub,`${BOOK_GROUPS[it.m]}`,dir,first);rsSwap(yr,`${it.its.length} key point${it.its.length>1?"s":""} · ${it.srcShort} · ${String(it.k+1).padStart(2,"0")} / ${REF_BOOKS[it.m].length}`,dir,first);el.style.setProperty("--g",RS_COL[it.m]);
   el.querySelectorAll(".rs-tab").forEach(b=>b.classList.toggle("on",b.dataset.rsmod===it.m));rsInd();
   if(RS.q.length){const j=RS.q.indexOf(i);if(j>=0&&j!==RS.mi){RS.mi=j;rsHits()}}
   clearTimeout(RS.saveT);RS.saveT=setTimeout(()=>{if(S.refItem!==it.key){S.refItem=it.key;save()}},600);
@@ -206,12 +205,12 @@ function rsPosterTitle(t,title){const max=title.length>34?24:title.length>16?20:
   t.innerHTML=lines.slice(0,3).map((l,i)=>`<tspan x="30" dy="${i?Math.round(fs*1.1):0}">${l.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</tspan>`).join("");}
 function rsFill(it){const d=rsSheet();
   d.querySelector(".rsd-sub").innerHTML=`${BOOK_GROUPS[it.m]} · ${it.its.length} key point${it.its.length>1?"s":""}`;
-  d.querySelector("#rsdT").innerHTML=it.title;d.querySelector(".rsd-meta").innerHTML=`${rsScope(it.scope)} · sources listed under each point`;
+  d.querySelector("#rsdT").innerHTML=it.title;d.querySelector(".rsd-meta").innerHTML=`Sources listed under each point`;
   d.querySelector(".rsd-body").innerHTML=it.its.map(rsItemHTML).join("");d.querySelector(".rsd-cred").textContent=`HMCAS Clinical Practice Guidelines v2.6 · ${BOOK_GROUPS[it.m]}`;
   d.querySelector(".rsd-pos").textContent=`${BOOK_GROUPS[it.m]} ${String(it.k+1).padStart(2,"0")} / ${REF_BOOKS[it.m].length}`;
 
   d.querySelector(".rsd-band").setAttribute("fill",RS_COL[it.m]);const pi=d.querySelector(".rsd-img");pi.setAttribute("href",it.img);pi.setAttribute("preserveAspectRatio",it.photo?"xMidYMid slice":"xMidYMid meet");
-  rsPosterTitle(d.querySelector(".rsd-pm"),it.title);d.querySelector(".rsd-pk").textContent=`HMCAS · ${BOOK_GROUPS[it.m].toUpperCase()}`;d.style.setProperty("--g",RS_COL[it.m]);d.querySelector(".rsd-ps").textContent=rsScope(it.scope).replace("&amp;","&").toUpperCase();
+  rsPosterTitle(d.querySelector(".rsd-pm"),it.title);d.querySelector(".rsd-pk").textContent=`HMCAS · ${BOOK_GROUPS[it.m].toUpperCase()}`;d.style.setProperty("--g",RS_COL[it.m]);d.querySelector(".rsd-ps").textContent="HMCAS CPG V2.6";
   rsVis(it);}
 function rsReveal(textDelay,inkDelay){const d=rsSheet(),circles=[...d.querySelectorAll("#rsMask circle")];circles.forEach(c=>c.setAttribute("r",0));
   d.querySelectorAll(".rsd-m>*").forEach(x=>{x.getAnimations().forEach(a=>a.cancel());x.animate([{transform:"translateY(110%)"},{transform:"translateY(0)"}],{duration:RM?1:900,delay:RM?0:textDelay+[...x.parentNode.parentNode.children].indexOf(x.parentNode)*75,easing:EASE,fill:"both"})});

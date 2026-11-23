@@ -32,6 +32,7 @@ Plain HTML/CSS/JS with no build step and no framework. Users open `index.html` b
 - `walk` steps can set `facts` (case as chips; a wrong option's `ev` highlights the deciding fact), `ref` (Reference book key, opened over the lesson) and per-node `short` (label on the flowchart). `input` and `chain` lines can set `fbv` (feedback for specific wrong values, e.g. {"240":"…"}).
 - Any step can set `pic:"key"` to show a scene picture from `SCENES` above it, plus `after:"key"` and `afterCap` to swap in the next scene once answered correctly (walk steps: at the outcome; walk nodes can also set `pic`/`cap`). Scene pictures are clinical content: they must show correct v2.6 practice and must not give the answer away.
 - Any step can set `story:"…"` to show a case strip that stays on the following steps (`story:""` ends it). Choice steps can set `fb` (one line per option, `null` for the correct one).
+- Phones (max-width 600px), in `js/app.js` before `drawPlayer`: once the case (`.story`, `.case`, or an `.info` starting with "Case") scrolls out of view, a slim copy stays pinned at the top (`casePin`, tap for the full case); scene photos are 34vh with an enlarge button (`.sp-zoom`); a question's `visual` listed in `VFOLD` (e.g. the RACE scale) is a tap-to-open bar (`vfold`); sort and RACE buttons sit on one line. Redrawing the same step keeps the scroll position.
 - Break suggestion (`breakCard` in `js/app.js`): after 30 min of active time a card on the lesson end screen suggests a break; `index.html?break=1` shows it after 1 min for testing.
 - Review queue: first-try misses (from `S.conf`) are asked again from the home card / Progress until answered correctly (`S.fixed`).
 - Progress is saved in localStorage under the key `stepwise-cpg26-v1`. If you change the state shape, keep old saves loading (`S={...blank(),...saved}`).
@@ -40,7 +41,7 @@ Plain HTML/CSS/JS with no build step and no framework. Users open `index.html` b
 - Clinical content must match the **approved HMCAS CPG v2.6 (2026)**. Never invent or "correct" doses, thresholds, time windows or algorithms from general knowledge. If something looks wrong, flag it and ask.
 - Keep the `src` / "CPG x.y p.N" citations next to the content they support. Update the citation whenever you change the content.
 - Unverified items go in the step's pending-verification list, not into the main content.
-- Audience: APs and CCPs. The `scope` field marks each item: `"AP"` shows as "AP & CCP" (both act), `"CCP"` as "CCP only" (APs recognise and escalate). Write in plain, clear English.
+- Audience: APs and CCPs. Every activity is for both, and no role label ("AP & CCP", "CCP only") is shown anywhere. The `scope` field stays in the content as data only. Where an intervention is CCP-only, say so in the text itself (e.g. "CCPs: …"). Write in plain, clear English.
 - Question options: keep all options a similar length so the longest is not a clue. Put the reasoning in the feedback or explanation, not in the correct option. Wrong options must be plausible and clinically wrong.
 - Learner-facing tone: professional, concise and factual, like an official HMCAS course. No chatty or self-evident instructions ("Everyone starts here", "Tap your answer", "help it stick"), no cheerleading, no filler.
 

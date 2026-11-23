@@ -70,8 +70,8 @@ function wbAmp(st,i){if(st.glass["a"+i])return "";const a=st.amps[i],x=i?200:130
    <ellipse cx="${x}" cy="548" rx="17" ry="4" class="wb-shadow"/>
    ${wbImg(a.open?"amp-open":"amp",x-55,392,110,165,'class="wb-ampimg"')}<rect x="${x-13}" y="${547-lv}" width="26" height="${lv}" fill="url(#wbTxa)" rx="3" class="wb-afl2"/>
    <rect x="${x-24}" y="392" width="48" height="160" fill="transparent" data-amp="${i}" data-zone="a${i}" class="wb-dz ${a.open?"":"shut"}" rx="10"/></g>`;}
-function wbScene(st){const b=st.basin,bv=b.nss+b.txa,c=st.cam||wbCam(st);
-  return `<svg class="wb-svg" viewBox="${c.join(" ")}" role="img" aria-label="Preparation tray">
+function wbScene(st){const b=st.basin,bv=b.nss+b.txa,c=st.cam||wbCam(st),[sw,sh]=wbWH(st);
+  return `<svg class="wb-svg" style="--ar:${sw/sh}" viewBox="${c.join(" ")}" role="img" aria-label="Preparation tray">
   <defs><linearGradient id="wbNss" x1="0" x2="1"><stop offset="0" stop-color="#A9D1F5" stop-opacity=".7"/><stop offset=".5" stop-color="#8BBDEE" stop-opacity=".6"/><stop offset="1" stop-color="#6FA9E6" stop-opacity=".75"/></linearGradient>
    <linearGradient id="wbTxa" x1="0" x2="1"><stop offset="0" stop-color="#D2C2F5" stop-opacity=".8"/><stop offset=".5" stop-color="#B7A0EE" stop-opacity=".7"/><stop offset="1" stop-color="#9F84E6" stop-opacity=".85"/></linearGradient>
    <linearGradient id="wbMix" x1="0" x2="1"><stop offset="0" stop-color="#BCC6F4" stop-opacity=".8"/><stop offset="1" stop-color="#8A97E6" stop-opacity=".8"/></linearGradient>

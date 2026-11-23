@@ -66,9 +66,8 @@ I.ask='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="
 const askTime=()=>new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});
 const askEsc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const askChips=list=>list.length?`<div class="ak-chips">${list.map(x=>typeof x==="string"?`<button class="ak-chip" data-aq="${askEsc(x)}">${askEsc(x)}${I.left}</button>`:`<button class="ak-chip" data-adoc="${x.id}">${askEsc(x.title)}${I.left}</button>`).join("")}</div>`:"";
-const askScope=s=>s==="CCP"?`<span class="tag ccp">CCP only</span>`:s==="AP"?`<span class="tag">AP &amp; CCP</span>`:"";
 function askDocHTML(d){const c=courseById(d.mod),lk=d.lid&&lessonById(d.lid),open=lk&&isUnlocked(lk.c,lk.l);
-  return `<div class="ak-ans"><div class="ak-meta"><span class="ak-mod" style="--mc:var(--c-${d.mod})">${MODS[d.mod]||(c&&c.title)||""}</span>${askScope(d.scope)}</div>
+  return `<div class="ak-ans"><div class="ak-meta"><span class="ak-mod" style="--mc:var(--c-${d.mod})">${MODS[d.mod]||(c&&c.title)||""}</span></div>
    <h3>${askEsc(d.title)}</h3><div class="ak-body">${typeof rsNums==="function"?rsNums(d.html):d.html}</div><p class="ak-src">${d.src}</p>
    ${d.book||open?`<div class="ak-acts">${d.book?`<button class="ak-act" data-abook="${d.book}">${I.book} Open in Reference</button>`:""}${open?`<button class="ak-act" data-alesson="${d.lid}" data-astep="${d.step}">${I.play} Lesson: ${askEsc(d.ltitle)}</button>`:""}</div>`:""}</div>`}
 function askReply(q){q=q.trim();if(ASK_HELLO.test(q)&&q.split(/\s+/).length<=3)return {html:`<p>Hello. Ask a question about the CPG v2.6 changes covered in this course, for example a dose, a threshold or a pathway.</p>`,chips:AK.mod&&ASK_SUGG[AK.mod]||ASK_START};

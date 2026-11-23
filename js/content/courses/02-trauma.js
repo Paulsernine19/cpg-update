@@ -136,7 +136,7 @@ COURSES.push(
        options:["MAP 85–90 mmHg","MAP ≥65 mmHg","MAP 70–80 mmHg"], answer:0,
        fb:[null,"≥65 mmHg is for combined haemorrhagic and neurogenic shock. With an isolated cord injury the target is higher.","70–80 mmHg is the adult target for isolated TBI (CPG 10.2). Isolated neurogenic shock: 85–90 mmHg."],
        explain:"Isolated spinal cord injury with neurogenic shock: maintain MAP 85–90 mmHg.", src:"CPG 10.3 p.178 · CPG 10.2 p.174"},
-      {type:"read", title:"Vasopressors and airway", scope:"CCP", points:["Noradrenaline is the preferred vasopressor for adults. Add an adrenaline infusion if bradycardia and hypotension persist","Consider early intubation for high spinal injury (C1–4) with airway or breathing compromise, maintaining in-line stabilisation"], src:"CPG 10.3 pp.177–178"},
+      {type:"read", title:"CCPs: vasopressors and airway", scope:"CCP", points:["Noradrenaline is the preferred vasopressor for adults. Add an adrenaline infusion if bradycardia and hypotension persist","Consider early intubation for high spinal injury (C1–4) with airway or breathing compromise, maintaining in-line stabilisation"], src:"CPG 10.3 pp.177–178"},
       {type:"read", pic:"stretcher-blocks", title:"Spinal motion restriction", scope:"AP",
        points:["Rigid collar: size it correctly, and remove it if it causes discomfort or distress","Combi-carrier: mainly for extrication or carrying. Consider removing it on the stretcher; keep the unconscious patient on it","<b>Head blocks always</b>, on the board or the stretcher"], src:"CPG 10.3 p.178"},
      ]},

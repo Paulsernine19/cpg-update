@@ -245,12 +245,11 @@ ${confSection()}
     ${confirmReset?`<span class="note">Erase all progress in this browser?</span><button class="btn bad" data-act="reset-yes">Yes, reset</button><button class="btn ghost" data-act="reset-no">Cancel</button>`
       :`<button class="btn ghost" data-act="reset">Reset progress</button><button class="btn ghost" data-act="theme">Switch theme</button>`}</div>`)}</div>`;
 }
-const refScope=x=>x==="AP"?`<span class="badge ap">AP &amp; CCP</span>`:x==="CCP"?`<span class="badge ccp">CCP only</span>`:`<span class="badge pend">Scope to verify</span>`;
 // Books view: the shelf is built by rsMount() in js/refshelf.js after render. List view: every book as a foldable row.
 const RV_ICON={books:'<svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2.5" y="3" width="3.5" height="14" rx=".8"/><rect x="7.5" y="3" width="3.5" height="14" rx=".8"/><path d="M12.6 4.2l3.3-.9 2.6 13.2-3.3.9z"/></svg>',
   list:'<svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M7 5h10M7 10h10M7 15h10"/><circle cx="3.5" cy="5" r=".9" fill="currentColor"/><circle cx="3.5" cy="10" r=".9" fill="currentColor"/><circle cx="3.5" cy="15" r=".9" fill="currentColor"/></svg>'};
 const refBooksList=()=>Object.keys(REF_BOOKS).map(g=>`<div class="section"><h2 style="font-size:1.2rem">${BOOK_GROUPS[g]}</h2><div class="rvgroup">${RS_ITEMS.filter(b=>b.m===g).map(b=>
-  foldD("rb-"+b.key,`<span class="rvdot" style="background:${RS_COL[g]}"></span>${b.title}`,`${b.visual?`<div class="visual">${V[b.visual]}</div>`:""}<ul class="rsd-body" style="--g:${RS_COL[g]}">${b.its.map(rsItemHTML).join("")}</ul>`,{meta:`${refScope(b.scope)} ${b.its.length} key point${b.its.length>1?"s":""}`})).join("")}</div></div>`).join("");
+  foldD("rb-"+b.key,`<span class="rvdot" style="background:${RS_COL[g]}"></span>${b.title}`,`${b.visual?`<div class="visual">${V[b.visual]}</div>`:""}<ul class="rsd-body" style="--g:${RS_COL[g]}">${b.its.map(rsItemHTML).join("")}</ul>`,{meta:`${b.its.length} key point${b.its.length>1?"s":""}`})).join("")}</div></div>`).join("");
 function referenceView(){const list=S.refView==="list";
   return topbar()+`<button class="link rvback" data-refback="1">${I.left} Back</button><div class="hello rvhead"><div><h1>Quick reference</h1><p>Key v2.6 changes grouped by topic. Available at any time, including on shift.</p></div>
    <div class="vtog" role="group" aria-label="Reference layout">${["books","list"].map(k=>`<button data-refview="${k}" aria-label="${k==="books"?"Books":"List"} view" aria-pressed="${(k==="list")===list}" title="${k==="books"?"Books":"List"} view">${RV_ICON[k]}</button>`).join("")}</div></div>
@@ -288,9 +287,9 @@ function gateBook(id){const g=document.getElementById("gate");if(!g||g.classList
   const short=!!S.bookSeen;S.bookSeen=true;save();
   const vw=innerWidth,vh=innerHeight,bw=Math.min(vw-28,(vh-48)*.707),bh=bw*1.415,k=Math.min(bw/vw,bh/vh),pages=short?[]:CPG_PAGES,T=short?CBK_SHORT:CBK_T,n=pages.length+2,tm=[];
   g.style.setProperty("--ct",(vh-bh)/2+"px");g.style.setProperty("--cl",(vw-bw)/2+"px");
-  const pg=(i,html)=>{const t=T[i],s=T[i-1];return `<div class="cbk-pg${t?" turn":""}" style="--z:${n-i};--zt:${10+i}${t?`;animation-delay:${t[0]}s;animation-duration:${t[1]}s`:""}"><div class="cbk-f${t?"":" cbk-last"}">${html}${s?`<i class="cbk-sh" style="animation-delay:${s[0]}s;animation-duration:${s[1]}s"></i>`:""}</div>${t?`<div class="cbk-b${i?"":" cv"}"></div>`:""}</div>`};
+  const pg=(i,html)=>{const t=T[i],s=T[i-1];return `<div class="cbk-pg${t?" turn":""}" style="--z:${n-i};--zt:${10+i}${t?`;animation-delay:${t[0]}s;animation-duration:${t[1]}s`:""}"><div class="cbk-f${t?"":" cbk-last"}">${html}${s?`<i class="cbk-sh" style="animation-delay:${s[0]}s;animation-duration:${s[1]}s"></i>`:""}</div>${t?`<div class="cbk-b"></div>`:""}</div>`};
   const b=document.createElement("div");b.className="cbk-wrap";b.setAttribute("aria-hidden","true");
-  b.innerHTML=`<div class="cbk-book" style="width:${bw}px;--zs:${1/k}">${pg(0,"")}${pages.map((p,i)=>pg(i+1,`<img src="brand/cpg/${p}.webp" alt="">`)).join("")}${pg(n-1,"")}</div>`;
+  b.innerHTML=`<div class="cbk-book" style="width:${bw}px;--zs:${1/k};--lt:${T[0][0]+T[0][1]*.45}s"><i class="cbk-gut"></i>${pg(0,"")}${pages.map((p,i)=>pg(i+1,`<img src="brand/cpg/${p}.webp" alt="">`)).join("")}${pg(n-1,"")}</div>`;
   const strip=e=>{e.removeAttribute("id");e.querySelectorAll("[id]").forEach(x=>x.removeAttribute("id"));return e};
   const cv=strip(g.cloneNode(true));cv.removeAttribute("style");cv.className="gate cbk-gclone";b.querySelector(".cbk-f").prepend(cv);
   openLesson(id);const pl=document.getElementById("player");
@@ -344,7 +343,7 @@ function openLesson(lid,opts={}){
   benchResume(f);resetStep();
   document.getElementById("player").hidden=false;document.body.style.overflow="hidden";drawPlayer();
 }
-function resetStep(){P.watchDone=false;P.sx=null;P.chartOpen=false;P.sel=null;P.val="";P.multi=[];P.sort={};P.match={};P.matchSel=null;P.matchOrd=null;P.sortOrd=null;P.ord=[];P.ordMix=null;P.status="idle";P.firstTry=true;P.conf=null;P.tries=0;P.cur=null;P.trail=[];P.why=null;P.whyIdx=null;P.walkMiss=false;P.wOrd={};P.wMiss=[];P.wRun=1;P.sv=null;P.scC=null;P.goalMet=false;P.rb=null;P.rbPick={};P.ci=0;P.chainMiss=false;P.scRes=null;P.scMiss=false;}
+function resetStep(){P.watchDone=false;P.vfold=undefined;P.pinOpen=false;P.spBig=false;P.sx=null;P.chartOpen=false;P.sel=null;P.val="";P.multi=[];P.sort={};P.match={};P.matchSel=null;P.matchOrd=null;P.sortOrd=null;P.ord=[];P.ordMix=null;P.status="idle";P.firstTry=true;P.conf=null;P.tries=0;P.cur=null;P.trail=[];P.why=null;P.whyIdx=null;P.walkMiss=false;P.wOrd={};P.wMiss=[];P.wRun=1;P.sv=null;P.scC=null;P.goalMet=false;P.rb=null;P.rbPick={};P.ci=0;P.chainMiss=false;P.scRes=null;P.scMiss=false;}
 let simOpen=false;
 function openSim(){
   const w=document.getElementById("simwrap");simOpen=true;w.hidden=false;
@@ -372,9 +371,6 @@ const assessMode=()=>P.mode==="diag"||P.mode==="final"||(P.mode==="exit"&&!hasFi
 function badges(s){
   const b=[];
   if(s.pop) b.push(`<span class="badge pop">${s.pop}</span>`);
-  if(s.scope==="AP") b.push(`<span class="badge ap">AP &amp; CCP</span>`);
-  if(s.scope==="CCP") b.push(`<span class="badge ccp">CCP only</span>`);
-  if(s.scope==="verify") b.push(`<span class="badge pend">Scope to verify</span>`);
   if(s.type==="blocked") b.push(`<span class="badge pend">Pending approved source</span>`);
   if(s.id&&CRITICAL.includes(s.id)&&P.mode!=="final") b.push(`<span class="badge crit">Critical item</span>`);
   return b.length?`<div class="badges">${b.join("")}</div>`:"";
@@ -386,7 +382,7 @@ const locked=()=>P.status==="right"||P.status==="revealed";
 function stepBody(s){
   const lab=s.label?`<span class="label">${s.label}</span>`:"";
   if(s.type==="read") return `${badges(s)}${s.top&&s.visual?`<div class="visual">${V[s.visual]}</div>`:""}<h2>${s.title}</h2>${s.body?`<p>${s.body}</p>`:""}${s.ptitle?`<span class="label">${s.ptitle}</span>`:""}${s.points?`<${s.ol?"ol":"ul"}>${s.points.map(p=>`<li>${p}</li>`).join("")}</${s.ol?"ol":"ul"}>`:""}${s.visual&&!s.top?`<div class="visual">${V[s.visual]}</div>`:""}${s.foot?`<p class="note">${s.foot}</p>`:""}${pendingBox(s.pending)}${srcLine(s)}`;
-  if(s.type==="choice") return `${badges(s)}${s.intro?`<div class="info">${s.intro}</div>`:""}${lab}<h2>${s.prompt}</h2>${s.visual?`<div class="visual">${V[s.visual]}</div>`:""}<div class="opts" role="radiogroup" aria-label="Answer options">${s.options.map((o,i)=>{
+  if(s.type==="choice") return `${badges(s)}${s.intro?`<div class="info">${s.intro}</div>`:""}${lab}<h2>${s.prompt}</h2>${s.visual?vfold(s.visual):""}<div class="opts" role="radiogroup" aria-label="Answer options">${s.options.map((o,i)=>{
       const L=locked(),rv=P.status==="revealed"&&P.sel!==null&&P.sel!==s.answer;if(L&&i!==s.answer&&!(rv&&i===P.sel))return ""; // after answering, keep only the correct option (and the learner's wrong pick when revealed)
       let cls="";if(L&&i===s.answer)cls="right";else if((P.status==="wrong"||P.status==="revealed")&&i===P.sel)cls="wrong";
       const tag=rv?`<em class="otag">${i===s.answer?"Correct answer":"Your answer"}</em>`:"";
@@ -406,7 +402,7 @@ function stepBody(s){
       return `<div class="srow ${cls}"><div class="ct">${cd.t}</div><div class="bins" role="group" aria-label="${cd.t}">${s.bins.map((bn,bi)=>`<button class="bin" data-card="${ci}" data-bin="${bi}" aria-pressed="${pick===bi}" ${locked()?"disabled":""}>${bn}</button>`).join("")}</div></div>`}).join("")}</div>${srcLine(s)}`;
   if(s.type==="match"){if(!P.matchOrd)P.matchOrd=shuffle(s.pairs.map((_,i)=>i));const L=locked(),card=(i,on)=>`<button class="mcard ${on?"on":""} ${P.matchSel===i?"sel":""}" data-mcard="${i}" aria-pressed="${P.matchSel===i}" ${L?"disabled":""}>${s.pairs[i].def}</button>`,pool=L?[]:P.matchOrd.filter(i=>!Object.values(P.match).includes(i));
     return `${badges(s)}${lab}<h2>${s.prompt}</h2><p class="note">Drag each definition onto its term, or tap a definition and then a term.</p>${pool.length?`<div class="mpool">${pool.map(i=>card(i)).join("")}</div>`:""}<div class="sort">${s.pairs.map((p,k)=>{const at=L?k:P.match[k],has=at!==undefined,cls=L?"right":P.status==="wrong"&&has?(at===k?"right":"wrong"):"";return `<div class="srow mslot ${cls}" data-k="${k}"><div class="ct">${p.term}</div>${has?card(at,true):`<button class="mdrop" data-mslot="${k}" aria-label="Place definition on ${p.term}">Drop here</button>`}</div>`}).join("")}</div>${srcLine(s)}`;}
-  if(s.type==="input") return `${badges(s)}${lab}<h2>${s.prompt}</h2>${s.visual?`<div class="visual">${V[s.visual]}</div>`:""}<div class="ans"><input id="ansInput" inputmode="decimal" autocomplete="off" aria-label="Your answer" value="${locked()?s.answer:P.val}" ${locked()?"disabled":""}>${s.unit?`<span>${s.unit}</span>`:""}</div>${srcLine(s)}`;
+  if(s.type==="input") return `${badges(s)}${lab}<h2>${s.prompt}</h2>${s.visual?vfold(s.visual):""}<div class="ans"><input id="ansInput" inputmode="decimal" autocomplete="off" aria-label="Your answer" value="${locked()?s.answer:P.val}" ${locked()?"disabled":""}>${s.unit?`<span>${s.unit}</span>`:""}</div>${srcLine(s)}`;
   if(s.type==="watch") return `${badges(s)}<span class="label">Watch first</span><h2>${s.title}</h2><p>${s.body}</p>${s.src?`<div class="vid"><video id="watchvid" src="${s.src}" ${s.poster?`poster="${s.poster}"`:""} controls playsinline preload="metadata" aria-label="${s.title}"></video></div><p class="note" id="watchnote">${P.watchDone?"Video watched.":"Watch to the end to continue."}</p>`:`<div class="pending"><b>Video to be added</b><span>Your video will play here, before the hands-on practice. Until it is added you can continue.</span></div>`}${srcLine(s)}`;
   if(s.type==="lookup") return `${badges(s)}<span class="label">Source lookup</span><h2>${s.title}</h2><p>${s.body}</p><div class="lookup">${I.book}<div><span class="label">Find</span><b>${s.find}</b></div></div>${srcLine(s)}`;
   if(s.type==="blocked") return `${badges(s)}<h2>${s.title}</h2><p>${s.body}</p><div class="pending"><b>Waiting for</b><ul>${s.needs.map(x=>`<li>${x}</li>`).join("")}</ul></div>${srcLine(s)}`;
@@ -529,7 +525,7 @@ const storyHTML=s=>{if(["walk","racebench"].includes(s.type)||!P.steps)return ""
 // scene picture (content in js/content/scenes.js): pic above the question, after + afterCap once answered correctly, walk nodes can set their own
 const picHTML=s=>{let k=s.pic,cap="";if(s.type==="walk"){const n=s.nodes[P.cur||s.start];if(n.pic){k=n.pic;cap=n.cap||"";}else if(n.end&&s.after){k=s.after;cap=s.afterCap||"";}}else if(s.after&&locked()){k=s.after;cap=s.afterCap||"";}
   const p=k&&typeof SCENES!=="undefined"&&SCENES[k];if(!p)return "";
-  if(SCENE_LAYOUT==="overlay") return `<figure class="scenepic full${cap?" after":""}${locked()&&QTYPES.includes(s.type)?" answered":""}"><img src="${p.img}" alt="${p.alt}" style="object-position:${p.pos||"50% 50%"}" draggable="false">${cap?`<span class="sp-cap">${I.check}${cap}</span>`:""}<figcaption class="sp-txt"></figcaption></figure>`;
+  if(SCENE_LAYOUT==="overlay") return `<figure class="scenepic full${P.spBig?" big":""}${cap?" after":""}${locked()&&QTYPES.includes(s.type)?" answered":""}"><img src="${p.img}" alt="${p.alt}" style="object-position:${p.pos||"50% 50%"}" draggable="false">${cap?`<span class="sp-cap">${I.check}${cap}</span>`:""}<figcaption class="sp-txt"></figcaption><button class="sp-zoom" type="button" aria-label="${P.spBig?"Make the picture smaller":"Enlarge the picture"}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg></button></figure>`;
   return `<figure class="scenepic${cap?" after":""}"><img src="${p.img}" alt="${p.alt}" style="object-position:${p.pos||"50% 50%"}" draggable="false">${cap?`<figcaption>${cap}</figcaption>`:""}</figure>`};
 // algorithm map: the correct route as a flowchart. Decision nodes (short options, or branch:true) show their label (node.short) and
 // the other answers as faint side branches; action steps stay hidden until answered so the map never gives an answer away.
@@ -634,6 +630,21 @@ function footHTML(s){
   if(P.status==="wrong") return `<div class="fb"><h3>Incorrect</h3><p>${fbText}</p>${confNote(false)}</div><div class="foot-btns">${P.tries>=2?`<button class="btn ghost" data-act="reveal">Show answer</button>`:""}<button class="btn bad" data-act="retry">Try again</button></div>`;
   if(P.status==="revealed") return `<div class="fb">${P.mode==="diag"?"<h3>Incorrect</h3>":`<h3 style="color:var(--ink)">Answer</h3>`}${vsHTML(s)}<p>${s.explain||""}</p>${s.src?`<p class="src">Source: ${s.src}</p>`:""}</div><button class="btn wide" data-act="next">Continue</button>`;
 }
+/* ---------- phones: keep cases readable without scrolling back (pinned case, smaller scene photo, folded tables) ---------- */
+const PHONE=()=>matchMedia("(max-width:600px)").matches;
+// a table inside a question (e.g. the RACE scale): a tap-to-open bar on phones, open on wider screens; remembers its state within the step
+const VFOLD={race:"RACE scale"};
+const vfold=k=>VFOLD[k]?`<details class="visual vfold"${(P.vfold??!PHONE())?" open":""}><summary>${VFOLD[k]}</summary>${V[k]}</details>`:`<div class="visual">${V[k]}</div>`;
+// once the case scrolls out of view, a slim copy stays pinned at the top of the lesson; tap it to show the case in full
+let casePinIO=null;
+function casePin(el){if(casePinIO){casePinIO.disconnect();casePinIO=null}
+  const pb=el.querySelector(".p-body"),st=pb&&pb.querySelector(".step");if(!st||!PHONE()||typeof IntersectionObserver==="undefined")return;
+  const src=[...st.querySelectorAll(".story,.case,.info")].find(n=>!n.classList.contains("info")||/^\s*Case\b/.test(n.textContent));if(!src)return;
+  const pin=document.createElement("div");pin.className="case-pin"+(P.pinOpen?" open":"");pin.setAttribute("aria-hidden","true");
+  pin.innerHTML=`<div class="cp-in">${src.innerHTML}<span class="cp-more">${P.pinOpen?"Less":"Full case"}</span></div>`;st.prepend(pin);
+  pin.addEventListener("click",()=>{P.pinOpen=!P.pinOpen;pin.classList.toggle("open",P.pinOpen);pin.querySelector(".cp-more").textContent=P.pinOpen?"Less":"Full case";});
+  casePinIO=new IntersectionObserver(([e])=>pin.classList.toggle("on",!e.isIntersecting&&e.boundingClientRect.top<e.rootBounds.top+1),{root:pb,threshold:0});casePinIO.observe(src);}
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest(".sp-zoom");if(!b)return;e.preventDefault();P.spBig=!P.spBig;const f=b.closest(".scenepic");f.classList.toggle("big",P.spBig);b.setAttribute("aria-label",P.spBig?"Make the picture smaller":"Enlarge the picture");});
 function drawPlayer(keepFocus){
   const el=document.getElementById("player");
   // keep the scroll position when the same step is redrawn (a tap on the tray, a card opening), so the screen does not jump
@@ -656,12 +667,15 @@ function drawPlayer(keepFocus){
   el.innerHTML=`<div class="p-top"><button class="x" data-act="close" aria-label="Close lesson">${I.x}</button><div class="bar" role="progressbar" aria-label="Lesson progress" aria-valuenow="${Math.round(pct)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div><span class="count">${P.i+1}/${P.steps.length}</span></div>
     <div class="p-body"><div class="step" ${keepFocus?'style="animation:none"':""}>${storyHTML(s)}${picHTML(s)}${stepBody(s)}</div></div>
     <div class="p-foot ${fcls}"><div class="foot-in">${footHTML(s)}</div></div>`;
+  {const nb=el.querySelector(".p-body");if(nb&&keepY)nb.scrollTop=keepY;}
+  el.querySelectorAll("details.vfold").forEach(d=>d.addEventListener("toggle",()=>{P.vfold=d.open}));
   const wv=el.querySelector("#watchvid");if(wv)wv.addEventListener("ended",()=>{P.watchDone=true;S.videos=S.videos||{};S.videos[P.l.id]=true;save();const b=el.querySelector(".p-foot .btn");if(b)b.disabled=false;const n=el.querySelector("#watchnote");if(n)n.textContent="Video watched.";});
   if(s.type==="scrub")scrubWire(el,s);
   const wm=el.querySelector(".wmap:not(.full)"),wc=wm&&wm.querySelector(".cur");if(wc&&wm.scrollWidth>wm.clientWidth)wm.scrollLeft=wc.offsetLeft-wm.clientWidth/2+wc.offsetWidth/2;
   const spt=el.querySelector(".sp-txt");if(spt){const st=el.querySelector(".step");[":scope>.badges",":scope>.label",":scope>h2",...(s.type==="read"?[":scope>h2+p"]:[])].map(q=>st.querySelector(q)).filter(Boolean).forEach(n=>spt.appendChild(n));
     // nothing left under the picture (e.g. a scene-setting screen): let the picture fill the screen
     const fig=spt.closest(".scenepic");if(![...st.children].some(c=>c!==fig&&c.textContent.trim()))fig.classList.add("solo");}
+  casePin(el);
   const inp=el.querySelector("#ansInput");
   if(inp&&!inp.disabled){inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);
     inp.addEventListener("input",()=>{P.val=inp.value;const b=el.querySelector("[data-act=check]");if(b)b.disabled=!canCheck(s)});}

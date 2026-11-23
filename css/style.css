@@ -197,8 +197,6 @@ dl.terms dd{margin:0;color:var(--muted)}
 .step ul,.step ol{margin:0;padding-left:1.2em;display:grid;gap:6px;font-size:1.02rem}
 .badges{display:flex;gap:8px;flex-wrap:wrap}
 .badge{display:inline-flex;align-items:center;gap:5px;font-size:.74rem;font-weight:700;letter-spacing:.03em;padding:4px 10px;border-radius:999px;border:1px solid transparent}
-.badge.ap{background:var(--good-soft);color:var(--good)}
-.badge.ccp{background:var(--ccp-soft);color:var(--ccp)}
 .badge.pend{background:var(--sun-soft);color:var(--sun)}
 .badge.pop{background:var(--sunken);color:var(--ink)}
 .badge.crit{background:var(--bad-soft);color:var(--bad)}
@@ -1516,7 +1514,8 @@ button.cp-row:hover:not([disabled]){border-color:var(--muted)}
 .wb>.wb-mate p{flex:1;border-radius:14px}
 .wb>.wb-read{margin-top:2px}
 .wb>.wb-read>div{padding:6px 12px;display:flex;align-items:baseline;gap:8px}.wb>.wb-read b{font-size:.9rem}
-@media (min-width:601px){.wb-svg{max-height:calc(100vh - 360px);width:auto;max-width:100%;margin:0 auto}.wb-stage{display:flex;justify-content:center}}
+/* explicit width from the scene shape (--ar, set in wbScene): Safari gives a flex-item SVG with width:auto zero size, so the tray was blank on iPad */
+@media (min-width:601px){.wb-svg{width:min(100%,calc((100vh - 360px)*var(--ar,1.5)));height:auto;aspect-ratio:var(--ar,1.5);max-height:none;flex:0 0 auto;margin:0 auto}.wb-stage{display:flex;justify-content:center}}
 /* workbench: IV giving set and three-way stopcock */
 .wb-clear{fill:rgba(240,246,255,.7);stroke:#fff;stroke-width:1.4}
 .wb-coil{fill:none;stroke:rgba(240,246,255,.85);stroke-width:3}
@@ -1794,12 +1793,16 @@ body.home-on details.pfold{background:color-mix(in srgb,var(--surface) 45%,trans
 .gate.cbk-hide{visibility:hidden}
 .cbk-wrap{position:fixed;inset:0;z-index:44;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 45%,#1f2c44,#070c16 75%);cursor:pointer}
 .cbk-book{position:relative;aspect-ratio:1000/1415;perspective:2000px;border-radius:2px 6px 6px 2px;box-shadow:2px 2px 0 #ece7db,4px 4px 0 #dcd5c5,6px 5px 0 #cbc3b0,8px 6px 0 #bdb49f,0 30px 70px rgba(0,0,0,.65)}
+/* open book: a cream left page with page edges and a shared shadow in the spine fold, shown once the cover passes halfway (--lt) */
+.cbk-book::before{content:"";position:absolute;top:0;bottom:0;right:100%;width:100%;border-radius:6px 2px 2px 6px;background:linear-gradient(90deg,#efeadf 86%,#d9d2c2);box-shadow:-2px 2px 0 #ece7db,-4px 4px 0 #dcd5c5,-6px 5px 0 #cbc3b0,-8px 6px 0 #bdb49f,0 30px 70px rgba(0,0,0,.65);opacity:0;animation:cbkFade .25s ease var(--lt) forwards}
+.cbk-gut{position:absolute;top:0;bottom:0;left:-30px;width:60px;z-index:60;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(60,45,25,.10) 30%,rgba(40,30,15,.30) 47%,rgba(20,15,5,.42) 50%,rgba(40,30,15,.30) 53%,rgba(60,45,25,.10) 70%,transparent);opacity:0;animation:cbkFade .25s ease var(--lt) forwards}
+.cbk-wrap.zoom .cbk-gut,.cbk-wrap.zoom .cbk-book::before{animation:cbkGone .3s ease forwards}
+@keyframes cbkFade{to{opacity:1}}@keyframes cbkGone{from{opacity:1}to{opacity:0}}
 .cbk-pg{position:absolute;inset:0;z-index:var(--z);transform-origin:0 50%;transform-style:preserve-3d}
 .cbk-f,.cbk-b{position:absolute;inset:0;overflow:hidden;border-radius:2px 6px 6px 2px;backface-visibility:hidden;-webkit-backface-visibility:hidden}
 .cbk-f{background:#fff;box-shadow:inset 18px 0 24px -16px rgba(0,0,0,.35)}
 .cbk-f>img{display:block;width:100%;height:100%;object-fit:cover}
 .cbk-b{transform:rotateY(180deg);background:linear-gradient(270deg,#d9d2c2,#f4f0e6 14%,#efeadf)}
-.cbk-b.cv{background:linear-gradient(270deg,#070c16,#1b2a44 14%,#14213a)}
 .cbk-pg.turn{animation-name:cbkTurn;animation-timing-function:cubic-bezier(.45,.05,.35,1);animation-fill-mode:both}
 /* past halfway a turned page moves above the cover and earlier pages (--zt), as in a real book */
 @keyframes cbkTurn{0%{transform:rotateY(0);z-index:var(--z)}35%{transform:rotateY(-55deg) translateZ(30px) skewY(-2deg)}49.9%{z-index:var(--z)}50%{z-index:var(--zt)}100%{transform:rotateY(-180deg);z-index:var(--zt)}}
@@ -1820,3 +1823,31 @@ body.home-on details.pfold{background:color-mix(in srgb,var(--surface) 45%,trans
 .cbk-wrap.skip{z-index:300;pointer-events:none;animation:cbkOut .3s ease forwards}
 @keyframes cbkOut{to{opacity:0}}
 @media (prefers-reduced-motion:reduce){.cbk-wrap{display:none}.gate.opening{animation:none}}
+/* phones: cases readable without scrolling back. Pinned case copy (casePin), smaller scene photo with an enlarge button, folded tables (vfold), one-line answer buttons */
+.case-pin,.sp-zoom{display:none}
+details.vfold>summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-radius:12px;background:var(--sunken);font-weight:700}
+details.vfold>summary::-webkit-details-marker{display:none}
+details.vfold>summary::after{content:"Show";font-size:.8rem;font-weight:700;color:var(--accent)}
+details.vfold[open]>summary{margin-bottom:10px}details.vfold[open]>summary::after{content:"Hide"}
+@media (max-width:600px){
+ .case-pin{display:block;position:sticky;top:-12px;z-index:8;height:0;margin:0 0 -16px}
+ .cp-in{position:absolute;left:-4px;right:-4px;top:0;max-height:5.6em;overflow:hidden;padding:8px 12px 22px;border-radius:0 0 14px 14px;background:var(--surface);border:1px solid var(--line);border-top:0;box-shadow:0 8px 20px rgba(16,24,40,.16);font-size:.86rem;line-height:1.35;opacity:0;transform:translateY(-110%);transition:transform .22s ease,opacity .22s ease;pointer-events:none;cursor:pointer}
+ .case-pin.on .cp-in{opacity:1;transform:none;pointer-events:auto}
+ .case-pin.open .cp-in{max-height:min(60vh,420px);overflow:auto}
+ .cp-in .label{display:inline;margin-right:6px;font-size:.68rem}.cp-in p{display:inline;margin:0;font-size:.86rem!important}.cp-in b{font-size:.86rem}
+ .cp-in ul{margin:2px 0 0;padding-left:16px;gap:0}.cp-in .wfacts{display:inline-flex;flex-wrap:wrap;gap:4px;margin-top:2px}.cp-in .wfact{padding:2px 8px;font-size:.78rem}.cp-in .wc-l svg{width:14px;height:14px}
+ .cp-more{position:absolute;right:10px;bottom:4px;font-size:.72rem;font-weight:800;color:var(--accent);background:var(--surface);padding-left:8px}
+ .case-pin.open .cp-more{position:static;display:block;text-align:right;margin-top:4px}
+ .scenepic.full:not(.solo){height:34vh}
+ .scenepic.full.big:not(.solo){height:72vh}
+ .scenepic.full{transition:height .25s ease}
+ .sp-zoom{display:grid;place-items:center;position:absolute;z-index:2;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:0;background:rgba(8,14,28,.55);color:#fff}
+ .sp-zoom svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+ .srow{padding:10px 12px;gap:8px}
+ .srow .bins{display:grid;grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px}
+ .srow .bin{padding:9px 6px;font-size:.84rem;line-height:1.2;min-height:42px}
+ .rbs .srow.num{grid-template-columns:1fr auto;align-items:center}
+ .rbs .srow.num .bins{grid-auto-columns:46px}
+ .rbs .srow.num .bin{padding:9px 0}
+}
+@media (prefers-reduced-motion:reduce){.cp-in,.scenepic.full{transition:none}}

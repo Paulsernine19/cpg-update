@@ -28,8 +28,8 @@ function raceBody(s){
   const pick=P.rbPick,sum=["face","arm","leg","gaze","cort"].reduce((a,k)=>a+(pick[k]??0),0),all=["face","arm","leg","gaze","cort"].every(k=>pick[k]!==undefined);
   return `${badges(s)}<span class="label">${s.label||"RACE practice"}</span><h2>Score this patient</h2>
    <div class="case"><span class="label">Case · BEFAST positive · last known well ${c.h} hours ago</span><p><b>${c.right?"Right":"Left"}-sided weakness.</b></p><ul class="rb-find">${c.find.map(f=>`<li>${f}</li>`).join("")}</ul></div>
-   <div class="sort">${RB_ROWS.map(r=>{const want=c[r.k],v=L?want:pick[r.k];let cls="";if(L)cls="right";else if(P.status==="wrong"&&pick[r.k]!==undefined)cls=pick[r.k]===want?"right":"wrong";
-     return `<div class="srow ${cls}"><div class="ct">${r.t}</div><div class="bins" role="group" aria-label="${r.t}">${r.bins.map((b,i)=>`<button class="bin" data-rb="${r.k}" data-rbv="${i}" aria-pressed="${v===i}" ${L?"disabled":""}>${b}</button>`).join("")}</div></div>`}).join("")}</div>
+   <div class="sort rbs">${RB_ROWS.map(r=>{const want=c[r.k],v=L?want:pick[r.k];let cls="";if(L)cls="right";else if(P.status==="wrong"&&pick[r.k]!==undefined)cls=pick[r.k]===want?"right":"wrong";
+     return `<div class="srow ${cls}${r.bins.every(b=>String(b).length<=2)?" num":""}"><div class="ct">${r.t}</div><div class="bins" role="group" aria-label="${r.t}">${r.bins.map((b,i)=>`<button class="bin" data-rb="${r.k}" data-rbv="${i}" aria-pressed="${v===i}" ${L?"disabled":""}>${b}</button>`).join("")}</div></div>`}).join("")}</div>
    <p class="rb-total" aria-live="polite">Your RACE total: <b>${all||L?(L?c.total:sum):"–"}</b> / 9</p>${srcLine({src:"CPG 3.1 pp.63–64"})}`;
 }
 const rbReady=()=>RB_ROWS.every(r=>P.rbPick[r.k]!==undefined);
