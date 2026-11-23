@@ -23,7 +23,7 @@ const SCRUB={
   src:"CPG 2.1 · Summary p.1"},
 
  txa:{title:"Paediatric TXA by age",
-  intro:"Move through the ages and watch the weight, dose, volume and method change.",
+  intro:"The dose is <b>15 mg/kg</b>, using the chart's estimated weight for age. With 1 g in the 100 mL bag the concentration is <b>10 mg/mL</b>, so volume (mL) = dose (mg) ÷ 10. Give over 10 minutes. Move through the ages to see the weight, dose, volume and method change.",
   controls:()=>{const rows=[...Array.from({length:11},(_,i)=>({m:i+1})),...TX_CHART.filter(r=>r.age<14)];
    return [{k:"i",label:"Age",min:0,max:rows.length-1,step:1,val:12,rows,fmt:i=>rows[i].m?`${rows[i].m} month${rows[i].m>1?"s":""}`:`${rows[i].age} year${rows[i].age>1?"s":""}`}]},
   view:(v,C)=>{const r=C[0].rows[v.i];
