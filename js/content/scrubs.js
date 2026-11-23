@@ -40,16 +40,20 @@ const SCRUB={
   intro:"Don't draw the dose up. With 1 g in the 100 mL bag, <b>draw out and discard</b> the chart volume, then give the <b>remaining volume</b> over 10 minutes. The remainder includes 10 mL to compensate for the administration set.",
   controls:()=>[{k:"x",label:"Drawn out and discarded",min:0,max:60,step:1,val:0,row:TX_CHART.find(r=>r.age===10),fmt:v=>`${v} mL`}],
   view:(v,C,res)=>{const r=C[0].row,left=100-v.x,dose=Math.max(0,left-10)*10,y=ml=>20+200*(1-ml/100),ok=res==="ok";
-   return `<div class="bagv"><svg viewBox="0 0 200 250" class="bag-svg" aria-hidden="true">
-     <rect x="58" y="6" width="84" height="12" rx="4" class="bag-top"/>
-     <rect x="50" y="${y(left)}" width="100" height="${200*left/100}" class="bag-dose"/>
-     <rect x="50" y="${y(10)}" width="100" height="20" class="bag-set"/>
-     <rect x="50" y="20" width="100" height="200" rx="14" class="bag-out"/>
-     ${[20,40,60,80].map(m=>`<path d="M50 ${y(m)}h10" class="bag-tick"/><text x="44" y="${y(m)+4}" text-anchor="end" class="bag-t">${m}</text>`).join("")}
-     <text x="100" y="${y(5)+4}" text-anchor="middle" class="bag-l">10 mL set</text>
-     ${left>16?`<text x="100" y="${(y(left)+y(10))/2+4}" text-anchor="middle" class="bag-l w">${left-10} mL</text>`:""}
-     <path d="M92 220v18h16v-18" class="bag-port"/></svg>
-    <div class="sc-cards">${scCard("Child","10 years · 37 kg")}${scCard("Chart dose",`${r.dose} mg`)}${scCard("Left in the bag",`${left} mL`)}${res?scCard("Dose given",`${dose} mg`,ok?"good":"bad"):""}</div></div>
+   const fy=ml=>258-2*ml,lab=(yy,t,c)=>`<path d="M484 ${yy}h22" class="bagp-ld ${c}"/><text x="510" y="${yy+4}" class="bagp-l ${c}">${t}</text>`;
+   return `<div class="bagv"><svg viewBox="318 8 302 300" class="bag-svg bagp" role="img" aria-label="100 mL bag: ${v.x} mL drawn out, ${left} mL left">
+     <image href="tx/wb/bag.webp" x="320" y="13.8" width="191" height="286.6" preserveAspectRatio="none"/>
+     <clipPath id="bagpClip"><rect x="350" y="36" width="130" height="224" rx="12"/></clipPath>
+     <g clip-path="url(#bagpClip)">
+      ${v.x>0?`<rect x="345" y="${fy(100)}" width="140" height="${2*v.x}" class="bagp-out"/>`:""}
+      <rect x="345" y="${fy(left)}" width="140" height="${Math.max(0,fy(10)-fy(left))}" class="bagp-dose"/>
+      <rect x="345" y="${fy(10)}" width="140" height="${262-fy(10)}" class="bagp-set"/>
+      <path d="M350 ${fy(left)}h130" class="bagp-men"/></g>
+     ${[20,40,60,80,100].map(m=>`<path d="M350 ${fy(m)}h9" class="bagp-tick"/><text x="347" y="${fy(m)+3}" text-anchor="end" class="bagp-t">${m}</text>`).join("")}
+     ${v.x>=8?lab((fy(100)+fy(left))/2,`${v.x} mL out`,"out"):""}
+     ${left>=18?lab((fy(left)+fy(10))/2,`${left-10} mL dose`,"dose"):""}
+     ${lab(fy(5),"10 mL set","set")}
+    </svg><div class="sc-cards">${scCard("Child","10 years · 37 kg")}${scCard("Chart dose",`${r.dose} mg`)}${scCard("Left in the bag",`${left} mL`)}${res?scCard("Dose given",`${dose} mg`,ok?"good":"bad"):""}</div></div>
     ${res?`<div class="sc-due on ${ok?"":"alt"}"><span class="label">${ok?"Correct volume":"Not the right volume"}</span><b>${ok?`${left} mL left: the ${r.volume} mL dose plus 10 mL for the set. Give over 10 minutes.`:`${left} mL left gives ${dose} mg once the 10 mL set compensation is allowed for. The dose is ${r.dose} mg. Draw out ${dose>r.dose?"more":"less"}, then confirm again.`}</b></div>`:`<p class="note">Set the volume to draw out, then confirm.</p>`}`},
   confirm:true,
   goal:{text:"A 10-year-old needs 550 mg. Set how much to draw out and discard, then confirm.",test:(v,C)=>v.x===C[0].row.drawOut,done:"35 mL drawn out and discarded. The remaining 65 mL is the 55 mL dose plus 10 mL to compensate for the administration set."},

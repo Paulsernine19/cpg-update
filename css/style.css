@@ -1938,3 +1938,20 @@ details.vfold[open]>summary{margin-bottom:10px}details.vfold[open]>summary::afte
   .ustp-card p{padding:10px 12px}
   .ustp-nav{margin-top:6px}
 }
+
+/* sort: one-line reason per card (card.why), after Check on all rows, or on wrong rows during a wrong attempt */
+.swhy{margin-top:4px;font-size:.84rem;font-weight:600;line-height:1.35;color:var(--good)}
+.srow.wrong .swhy{color:var(--bad)}
+
+/* "Aged 8 and over" bag: same Baxter 100 mL photo as the TXA tray, fluid drawn over it, labels beside the bag */
+.bagp .bagp-dose{fill:#8BBDEE;mix-blend-mode:multiply;opacity:.8;transition:y .2s,height .2s}
+.bagp .bagp-set{fill:#E8B04B;mix-blend-mode:multiply;opacity:.75}
+.bagp .bagp-out{fill:rgba(220,60,60,.06);stroke:#D64545;stroke-width:1.6;stroke-dasharray:5 4}
+.bagp .bagp-men{stroke:#3B6FC8;stroke-width:2.2}
+.bagp .bagp-tick{stroke:#3a4a68;stroke-width:1.4}.bagp .bagp-t{font-size:9px;font-weight:800;fill:var(--muted)}
+.bagp .bagp-ld{stroke-width:1.5}.bagp .bagp-l{font-size:13px;font-weight:800}
+.bagp .out{stroke:#D64545;fill:#D64545}.bagp .dose{stroke:#2F6BD8;fill:#2F6BD8}.bagp .set{stroke:#B7791F;fill:#B7791F}
+.bagp text.bagp-l{stroke:none}
+.bagv:has(.bagp){grid-template-columns:270px 1fr}
+@media (max-width:560px){.bagv:has(.bagp){grid-template-columns:1fr}.bag-svg.bagp{width:230px}}
+@media (prefers-reduced-motion:reduce){.bagp .bagp-dose{transition:none}}
