@@ -103,9 +103,9 @@ COURSES.push(
     ]},
     {title:"Code clock: hands-on", lessons:[
      {id:"cc-2", title:"Pads On", scene:"code", steps:[{type:"stage",stage:"ccintro"},{type:"stage",stage:"ccpads"}]},
-     {id:"cc-3", title:"Adult Medical Arrest", scene:"code", steps:[{type:"stage",stage:"ccloop"}]},
+     {id:"cc-3", title:"Adult Medical Arrest", scene:"code", steps:[{type:"stage",stage:"ccloop"},{type:"stage",stage:"ccloop",variant:"adultns"}]},
      {id:"cc-4", title:"Adult Trauma Arrest", scene:"code", steps:[{type:"stage",stage:"ccloop",variant:"trauma"}]},
-     {id:"cc-5", title:"Paediatric Arrest", scene:"code", steps:[{type:"stage",stage:"ccpads",variant:"paed"},{type:"stage",stage:"ccloop",variant:"paed"}]},
+     {id:"cc-5", title:"Paediatric Arrest", scene:"code", steps:[{type:"stage",stage:"ccpads",variant:"paed"},{type:"stage",stage:"ccloop",variant:"paed"},{type:"stage",stage:"ccloop",variant:"paedns"}]},
      {id:"cc-6", title:"After ROSC", scene:"code", steps:[{type:"stage",stage:"ccrosc"},{type:"stage",stage:"ccice"}]},
      {id:"cc-7", title:"Solo Run", scene:"code", rxRun:"code", steps:[{type:"stage",stage:"ccpads"},{type:"stage",stage:"ccloop"},{type:"stage",stage:"ccrosc"},{type:"stage",stage:"ccice"}]}
     ]},

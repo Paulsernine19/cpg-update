@@ -13,13 +13,19 @@ function rxNbCase(run){
   return {gest:g[0],weight:g[1],hr:txPick([40,50,80]),rbs:txPick([1.9,2.2,3.4]),spo5:txPick([76,78,84]),temp:txPick([36.1,36.3,36.8])};
 }
 function rxCodeCase(kind){
-  if(kind==="adult") return {pop:"adult",label:"Adult · medical arrest",device:"LP15",rh:["VF","VF","VF","VF","VF","ROSC"],w:80};
-  if(kind==="trauma") return {pop:"trauma",label:"Adult · trauma arrest",device:"LP15",rh:["PEA","PEA","PEA","ROSC"],w:80};
+  // rh: rhythm at each check (VF, PEA, Asys, ROSC); ev: {cycle: event key in CC_EV}, asked at the end of that CPR cycle
+  const evs=(rh,o={})=>({...o,[rh.indexOf("ROSC")]:"etco2"}),AD="Adult · medical arrest",TR="Adult · trauma arrest";
+  if(kind==="adult") return {pop:"adult",label:AD,device:"LP15",rh:["VF","VF","VF","VF","VF","ROSC"],w:80,ev:{2:"consc",5:"etco2"}};
+  if(kind==="adultns") return {pop:"adult",label:AD,device:"LP15",rh:["Asys","PEA","Asys","ROSC"],w:80,ev:{1:"sga",2:"tor",3:"etco2"}};
+  if(kind==="trauma") return {pop:"trauma",label:TR,device:"LP15",rh:["PEA","PEA","PEA","ROSC"],w:80,ev:{2:"move"}};
   if(kind==="paed") return {pop:"paed",label:"Child · 3 years · 15 kg",device:"LP15",rh:["VF","VF","VF","VF","ROSC"],w:15,age:3};
-  const k=txPick(["adult","adult","paed","trauma"]);
-  if(k==="adult") return {pop:"adult",label:"Adult · medical arrest",device:txPick(["LP15","Zoll"]),rh:txPick([["VF","VF","VF","VF","VF","ROSC"],["VF","VF","VF","VF","VF","VF","ROSC"]]),w:80};
-  if(k==="paed"){const p=txPick([[1,10],[3,15],[5,20]]);return {pop:"paed",label:`Child · ${p[0]} year${p[0]>1?"s":""} · ${p[1]} kg`,device:txPick(["LP15","Zoll"]),rh:["VF","VF","VF","VF","ROSC"],w:p[1],age:p[0]};}
-  return {pop:"trauma",label:"Adult · trauma arrest",device:txPick(["LP15","Zoll"]),rh:["PEA","PEA","PEA","ROSC"],w:80};
+  if(kind==="paedns") return {pop:"paed",label:"Child · 1 year · 10 kg",device:"LP15",rh:["Asys","Asys","PEA","ROSC"],w:10,age:1};
+  const k=txPick(["adult","adult","adultns","mixed","paed","paedns","trauma","traumavf"]),dev=txPick(["LP15","Zoll"]);
+  if(k==="adult"){const rh=txPick([["VF","VF","VF","VF","VF","ROSC"],["VF","VF","VF","VF","VF","VF","ROSC"]]);return {pop:"adult",label:AD,device:dev,rh,w:80,ev:evs(rh,{2:"consc"})};}
+  if(k==="adultns"){const rh=txPick([["Asys","PEA","Asys","ROSC"],["PEA","Asys","PEA","ROSC"]]);return {pop:"adult",label:AD,device:dev,rh,w:80,ev:evs(rh,{1:"sga",2:"tor"})};}
+  if(k==="mixed"){const rh=["Asys","VF","VF","VF","VF","ROSC"];return {pop:"adult",label:AD,device:dev,rh,w:80,ev:evs(rh,{1:"sga"})};}
+  if(k==="paed"||k==="paedns"){const p=txPick([[1,10],[3,15],[5,20]]);return {pop:"paed",label:`Child · ${p[0]} year${p[0]>1?"s":""} · ${p[1]} kg`,device:dev,rh:k==="paed"?["VF","VF","VF","VF","ROSC"]:txPick([["Asys","Asys","PEA","ROSC"],["PEA","Asys","Asys","ROSC"]]),w:p[1],age:p[0]};}
+  return {pop:"trauma",label:TR,device:dev,rh:k==="traumavf"?["PEA","VF","VF","VF","ROSC"]:["PEA","PEA","PEA","ROSC"],w:80,ev:{2:"move"}};
 }
 function rxCase(s){
   const run=!!P.l.rxRun;
@@ -42,6 +48,7 @@ function rxTrace(type,rate=75){
     else if(type==="cpr"){const sp=Math.round(100*60/110);while(x+sp<=W+.1){d+=` Q${X(x+sp*.25)} ${B-26} ${X(x+sp*.5)} ${B} Q${X(x+sp*.75)} ${B+10} ${X(x+sp)} ${B}`;x+=sp;}d+=` L${X(W)} ${B}`;}
     else if(type==="sin"){const sp=Math.max(30,W/Math.max(1,Math.round(W/(100*60/rate))));while(x+sp<=W+.1){const p=x+sp*.15;d+=` L${X(p)} ${B} Q${X(p+5)} ${B-6} ${X(p+10)} ${B} L${X(p+16)} ${B} L${X(p+19)} ${B+5} L${X(p+23)} ${B-34} L${X(p+27)} ${B+9} L${X(p+30)} ${B} L${X(p+42)} ${B} Q${X(p+52)} ${B-11} ${X(p+62)} ${B}`;x+=sp;}d+=` L${X(W)} ${B}`;}
     else if(type==="pleth"){const sp=Math.max(30,W/Math.max(1,Math.round(W/(100*60/rate))));while(x+sp<=W+.1){d+=` L${X(x+sp*.2)} ${B+14} Q${X(x+sp*.32)} ${B-26} ${X(x+sp*.48)} ${B-8} Q${X(x+sp*.6)} ${B-2} ${X(x+sp*.7)} ${B+4} L${X(x+sp)} ${B+14}`;x+=sp;}d+=` L${X(W)} ${B+14}`;}
+    else if(type==="asys"){while(x<W-1){const w=Math.min(50,W-x);d+=` Q${X(x+w/2)} ${B-2} ${X(x+w)} ${B}`;x+=w;}}
     else d+=` L${X(W)} ${B}`;
     return d;};
   const y0=type==="pleth"?B+14:B;
@@ -189,11 +196,11 @@ TXS.nrglu={phases:["site","treat"],init:st=>{st.tag="nrglu";st.rx=1;},
 /* ====================== CODE CLOCK ====================== */
 const CC_EN={LP15:[200,300,360],Zoll:[150,200,200]};
 const ccEnergy=(c,n)=>c.pop==="paed"?Math.min(c.w*4,c.device==="Zoll"?200:360):CC_EN[c.device][Math.min(n,2)];
-const ccClock=st=>txFmt(((st.cyc||1)-1)*120+(st.phase==="cpr"?60:0));
+const ccClock=st=>txFmt(((st.cyc||1)-1)*120+(st.phase==="cpr"?60:st.phase==="event"?100:0));
 TXS.ccintro={phases:["intro"],guide:()=>null,
   body:()=>`<div class="scn rxhero mon-hero"><img src="${RXM("monitor")}" alt="" loading="lazy"><div class="scn-t"><span class="label">Cardiac arrest · hands-on</span><h2>Run the code clock</h2></div></div>
    <div class="mate big"><img src="${TXM("avatar-welcome-half.webp")}" alt="Your crew mate" width="150"><div class="bubble"><p>You're the team leader. Start with the pads: each one goes on its own landmark, one at a time. Then you'll read every rhythm check, pick the energy and give each drug on the v2.6 timeline.</p><p>Adult medical, trauma and paediatric arrests each run differently. Don't carry the rules from one to another.</p></div></div>
-   <ol class="stages">${["Pads on","Rhythm checks & shocks","Drugs on time","ROSC: oxygen & BP","Cooling"].map((x,i)=>`<li><b>${i+1}</b>${x}</li>`).join("")}</ol>`,
+   <ol class="stages">${["Pads on","Rhythm checks & shocks","Drugs on time","ROSC care","Cooling"].map((x,i)=>`<li><b>${i+1}</b>${x}</li>`).join("")}</ol>`,
   foot:()=>`<button class="btn wide" data-tx="intro-go">Start</button>`};
 
 const CC_PADZ={
@@ -230,49 +237,98 @@ TXS.ccpads={phases:["place"],init:(st,c)=>{st.tag="ccpads";st.rx=1;st.placed={};
 
 function ccDue(c,st){
   const d=[];const adrGap=st.lastAdr==null||st.cyc-st.lastAdr>=2;
-  if(c.pop==="trauma"){ if(st.fluid>=500&&st.hott.length===4&&adrGap) d.push("adr"); }
-  else if(c.pop==="paed"){ if(st.cyc>=3&&adrGap) d.push("adr"); }
-  else { if(st.shocks>=3&&adrGap) d.push("adr"); }
-  if(c.pop!=="trauma"){ if(st.shocks>=3&&!st.amio1) d.push("amio1"); else if(st.shocks>=5&&st.amio1&&!st.amio2) d.push("amio2"); }
+  if(c.pop==="trauma"){ if(st.fluid>=500&&ccTxDone(st)&&adrGap) d.push("adr"); }
+  else if(c.pop==="paed"){ if((st.ns||st.cyc>=3)&&adrGap) d.push("adr"); }
+  else { if((st.ns||st.shocks>=3)&&adrGap) d.push("adr"); }
+  if(st.shocks>=3&&!st.amio1) d.push("amio1"); else if(st.shocks>=5&&st.amio1&&!st.amio2) d.push("amio2");
   return d.filter(x=>!st.given.includes(x));
 }
-const CC_HOTT=[["h","Hypovolaemia: control bleeding, give fluid"],["o","Oxygenation: airway and ventilation"],["t1","Tension pneumothorax: assess, CCP to decompress"],["t2","Tamponade: assess and escalate"]];
-TXS.ccloop={phases:["start","check","defib","cpr"],init:(st,c)=>{st.tag="ccloop";st.rx=1;st.cyc=1;st.shocks=0;st.lastAdr=null;st.amio1=false;st.amio2=false;st.given=[];st.fluid=0;st.hott=[];st.energy=c.pop==="paed"?50:150;st.charged=false;st.log=[];st.vec=false;if(c.pop==="adult")st.phase="check";},
-  guide:s=>P.txMode!=="guided"?[["neutral","Run the arrest. Rhythm checks every 2 minutes."]]:(s.variant==="trauma"?[["thinking","Adult trauma arrest after a collision. Work on HOTT while CPR continues. Adrenaline is locked until the reversible causes and at least 500 ml of saline are done."]]:s.variant==="paed"?[["thinking","Child in cardiac arrest, 15 kg. Start the paediatric way, then dose everything by weight."]]:[["thinking","Adult medical arrest. Every rhythm check, decide. Then give drugs exactly when they're due and continue CPR."]]),
+// trauma arrest: reversible-cause interventions (CPG 2.2 pp.38–40). ok:1 = needed for this patient
+const CC_TCLUE="Motorcyclist, high-speed collision. No pulse. Heavy bleeding from a left thigh wound; the pelvis is unstable; no breathing.";
+const CC_TX=[
+ {k:"tq",t:"Tourniquet to the bleeding thigh",ok:1,f:"Catastrophic external haemorrhage controlled."},
+ {k:"col",t:"Rigid collar before compressions",ok:0,f:"Don't delay the resuscitation for spinal immobilisation. Treat the reversible causes alongside compressions."},
+ {k:"dec",t:"Bilateral chest decompression",ok:1,f:"Bilateral finger thoracostomy (CCP) or needle decompression (Delta/CCP)."},
+ {k:"air",t:"SGA and 100% oxygen",ok:1,f:"Airway secured and oxygenation maximised."},
+ {k:"sec",t:"Full secondary survey on scene",ok:0,f:"Keep scene time to a minimum. Treat the reversible causes and transport."},
+ {k:"pel",t:"Pelvic binder",ok:1,f:"Pelvis splinted."}];
+const ccTxDone=st=>CC_TX.every(x=>!x.ok||st.hott.includes(x.k));
+// events during a CPR cycle (case field ev); a = index of the correct option
+const CC_EV={
+ consc:{st:"<b>CPR in progress</b> · the patient opens his eyes and moves his arms",q:"The patient opens his eyes and moves his arms during compressions. What do you give?",
+  o:["Rocuronium IV/IO to stop the movement","Ketamine 1 mg/kg IV/IO bolus","Nothing: pause CPR and reassess him"],a:1,
+  ok:"CPR-induced consciousness: ketamine 1 mg/kg IV/IO bolus, and continue CPR.",no:["Neuromuscular blocking drugs must not be given for CPR-induced consciousness.",null,"This is CPR-induced consciousness, not ROSC. Keep compressing and give ketamine 1 mg/kg."],h:"CPR-induced consciousness has its own drug in v2.6.",src:"CPG 2.1 p.35"},
+ sga:{st:"<b>CPR in progress</b> · SGA inserted",q:"The SGA is in. How do you confirm placement and monitor CPR quality?",
+  o:["Waveform capnography, aiming for EtCO₂ about 25 mmHg","Chest auscultation; capnography only after ROSC","SpO₂ trace, aiming for EtCO₂ about 45 mmHg"],a:0,
+  ok:"Waveform capnography is mandatory with every advanced airway: it confirms placement, monitors CPR quality and helps detect ROSC. Aim for about 25 mmHg. Consider a gastric tube via the SGA.",no:[null,"Waveform capnography is mandatory with all advanced airways, during CPR as well.","Use waveform capnography. The target during CPR is about 25 mmHg."],h:"Advanced airway: waveform capnography is mandatory.",src:"CPG 2.1 p.35"},
+ tor:{st:"<b>CPR in progress</b> · asystole",q:"Your crew mate asks: if he stays in asystole, when could resuscitation stop?",
+  o:["After 10 minutes of asystole, if the family agrees","After 20 minutes of asystole, reversible causes managed","After 20 minutes of CPR in any rhythm, no consultation"],a:1,
+  ok:"Termination needs all of these: no breathing and no pulses; asystole or broad PEA under 40/min for 20 minutes or more; reversible causes managed; verbal consent from the family if present. With no CCP on scene, APs contact CC: Emergency to confirm.",no:["The minimum is 20 minutes of asystole or broad PEA under 40/min, with reversible causes managed.",null,"The rhythm must be asystole or broad PEA under 40/min, and APs without a CCP on scene contact CC: Emergency to confirm."],h:"Termination of resuscitation: CPG 2.7.",src:"CPG 2.7 p.57"},
+ etco2:{co2:44,st:"<b>CPR in progress</b> · EtCO₂ rising",q:"EtCO₂ rises suddenly from 24 to 44 mmHg during compressions. What does it suggest?",
+  o:["Hyperventilation: slow the ventilation rate","Possible ROSC: check the rhythm and pulse","Displaced SGA: remove it and use the BVM"],a:1,
+  ok:"A sudden rise in EtCO₂ can be the first sign of ROSC. Check the rhythm and pulse.",no:["Hyperventilation lowers EtCO₂; it doesn't raise it.",null,"A displaced SGA makes EtCO₂ fall or disappear, not rise."],h:"Capnography helps detect ROSC.",src:"CPG 2.1 p.35"},
+ move:{st:"<b>CPR in progress</b> · still PEA",q:"Reversible causes treated, still PEA, CPR ongoing. What now?",
+  o:["Stay on scene until ROSC, then transport","Apply LUCAS and transport rapidly, treating en route","Terminate now: the reversible causes are treated"],a:1,
+  ok:"Keep scene time to a minimum: consider LUCAS and rapid transport to the TRU, continuing treatment en route.",no:["Scene time must be kept to a minimum in trauma arrest. Transport and treat en route.",null,"Termination needs at least 20 minutes of CPR. Here, transport for definitive surgical care."],h:"Trauma arrest: minimise scene time.",src:"CPG 2.2 pp.39–40"}};
+// vector change: anterior-posterior pads (CPG v2.6 p.34). The back is a drawing until an adult back photo is available.
+const CC_VEC=[
+ {id:"back",label:"Pad 1: posterior",name:"posterior",view:"back",lab:"Back",tip:"Pad 1: left back, left of the spine, just below the scapula.",
+  zones:[{id:"bk",label:"Left of the spine, just below the scapula",z:[30,46,17,13],ok:1},{id:"mid",label:"Between the shoulder blades",z:[41,27,18,12]},{id:"rbk",label:"Right of the spine, below the scapula",z:[53,46,17,13]},{id:"low",label:"Lower back",z:[41,70,18,12]}]},
+ {id:"front",label:"Pad 2: anterior",name:"anterior",view:"front",lab:"Chest",photo:{src:"rx/adult-chest.webp",w:240,h:160},tip:"Pad 2: left chest, between the midline and the left nipple.",
+  zones:[{id:"lch",label:"Left chest, between the midline and the nipple",z:[51,56,17,18.6],ok:1},{id:"rsub",label:"Below the right clavicle",z:[26,44,18,18.6]},{id:"lax",label:"Left side, mid-axillary line",z:[70,60,10,20]},{id:"abd",label:"Upper abdomen",z:[42,82,16,15]}]}];
+TXS.ccloop={phases:["start","check","defib","cpr"],init:(st,c)=>{st.tag="ccloop";st.rx=1;st.cyc=1;st.shocks=0;st.lastAdr=null;st.amio1=false;st.amio2=false;st.given=[];st.fluid=0;st.hott=[];st.energy=c.pop==="paed"?50:150;st.charged=false;st.log=[];st.vec=false;st.ns=false;st.evd={};st.vk=0;st.vplaced={};if(c.pop==="adult")st.phase="check";},
+  guide:s=>P.txMode!=="guided"?[["neutral","Run the arrest. Rhythm checks every 2 minutes."]]:({
+   trauma:[["thinking","Adult trauma arrest after a collision. Treat the reversible causes while CPR continues. Adrenaline is locked until they're treated and at least 500 ml of saline is in."]],
+   paed:[["thinking","Child in cardiac arrest, 15 kg. Start the paediatric way, then dose everything by weight."]],
+   paedns:[["thinking","A second child: 1 year, 10 kg. Read the first rhythm carefully: it decides the drug timing."]],
+   adultns:[["thinking","A second adult medical arrest. Read each rhythm carefully: non-shockable rhythms change the drug timing."]]}[s.variant]||[["thinking","Adult medical arrest. Every rhythm check, decide. Then give drugs exactly when they're due and continue CPR."]]),
   hint:(c,st)=>{
-   if(st.phase==="start") return c.pop==="paed"?"Paediatric CPR starts with 5 ventilations, then 15:2.":"Treat HOTT simultaneously with compressions.";
-   if(st.phase==="check"){const r=c.rh[st.cyc-1];return r==="VF"?"VF is shockable.":r==="PEA"||r==="ROSC"?"An organised rhythm: check for a pulse.":"";}
+   if(st.phase==="start") return c.pop==="paed"?"Paediatric CPR starts with 5 ventilations, then 15:2.":"Treat the reversible causes alongside compressions.";
+   if(st.phase==="check"){const r=c.rh[st.cyc-1];return r==="VF"?"VF is shockable.":r==="Asys"?"A flat line: asystole. Nothing to shock.":r==="PEA"||r==="ROSC"?"An organised rhythm: check for a pulse.":"";}
    if(st.phase==="vector") return "After 3 consecutive shocks with VF persisting: change the vector.";
+   if(st.phase==="vecpads") return CC_VEC[Math.min(st.vk,1)].tip;
+   if(st.phase==="event") return CC_EV[st.evk].h;
    if(st.phase==="defib") return c.pop==="paed"?`4 J/kg × ${c.w} kg.`:`${c.device}: ${CC_EN[c.device].join(", ")} J for shocks 1, 2, 3+.`;
-   const d=ccDue(c,st);return d.length?"Due now: "+d.map(x=>({adr:"adrenaline",amio1:"first amiodarone",amio2:"second amiodarone"}[x])).join(" and ")+".":(c.pop==="trauma"&&st.fluid<500?"Adrenaline is locked: HOTT and at least 500 ml first.":"Nothing is due this cycle. Continue CPR.");},
+   const d=ccDue(c,st);
+   if(c.pop==="trauma"&&(!ccTxDone(st)||st.fluid<500)) return "Adrenaline is locked: treat the reversible causes and give at least 500 ml first.";
+   if(d.includes("adr")&&st.ns&&st.lastAdr==null) return "Non-shockable rhythm: adrenaline as soon as IV/IO access is in.";
+   return d.length?"Due now: "+d.map(x=>({adr:"adrenaline",amio1:"first amiodarone",amio2:"second amiodarone"}[x])).join(" and ")+".":"Nothing is due this cycle. Continue CPR.";},
   body:(st,c)=>{
-   const r=c.rh[st.cyc-1],cpr=st.phase==="cpr"||st.phase==="start";
-   const rhythm=cpr?"cpr":(r==="VF"?"VF":"sin"),rate=r==="PEA"?48:r==="ROSC"?92:60;
-   const mon=rxMonitor({rhythm,rate,hr:cpr?"CPR":r==="VF"?"---":rate,co2:cpr?(r==="ROSC"?38:22):null,energy:st.phase==="defib"?st.energy:null,clock:ccClock(st),aria:cpr?"CPR in progress":"Rhythm check",status:cpr?"<b>CPR in progress</b> · compressions 100–120/min":`<b>Rhythm check ${st.cyc}</b> · pause under 5 s`});
-   const strip=`<div class="ccstrip"><span>Shocks <b>${st.shocks}</b></span><span>Adrenaline <b>${st.log.filter(x=>x.startsWith("Adr")).length}</b></span>${c.pop!=="trauma"?`<span>Amiodarone <b>${(st.amio1?1:0)+(st.amio2?1:0)}</b></span>`:`<span>Fluid <b>${st.fluid} ml</b></span>`}<span>Device <b>${c.device}</b></span></div>`;
+   const r=c.rh[st.cyc-1],cpr=st.phase==="cpr"||st.phase==="start"||st.phase==="event",ev=st.phase==="event"&&CC_EV[st.evk];
+   const rhythm=cpr?"cpr":(r==="VF"?"VF":r==="Asys"?"asys":"sin"),rate=r==="PEA"?48:r==="ROSC"?92:60;
+   const mon=rxMonitor({rhythm,rate,hr:cpr?"CPR":r==="VF"||r==="Asys"?"---":rate,co2:cpr?(ev&&ev.co2||(r==="ROSC"?38:22)):null,energy:st.phase==="defib"?st.energy:null,clock:ccClock(st),aria:cpr?"CPR in progress":"Rhythm check",status:ev?ev.st:cpr?"<b>CPR in progress</b> · compressions 100–120/min":`<b>Rhythm check ${st.cyc}</b> · pause under 5 s`});
+   const strip=`<div class="ccstrip"><span>Shocks <b>${st.shocks}</b></span><span>Adrenaline <b>${st.log.filter(x=>x.startsWith("Adr")).length}</b></span><span>Amiodarone <b>${(st.amio1?1:0)+(st.amio2?1:0)}</b></span>${c.pop==="trauma"?`<span>Fluid <b>${st.fluid} ml</b></span>`:`<span>Device <b>${c.device}</b></span>`}</div>`;
    if(st.phase==="start") return mon+strip+rxHead(c.pop==="paed"?"How does CPR start for this child?":"Trauma arrest. How do you work?")+rxOpts("ccstart",c.pop==="paed"?["5 ventilations, then CPR at 15:2","30:2 straight away","Compressions only until the pads are on"]:["Treat HOTT at the same time as compressions; keep scene time to a minimum","Give adrenaline first, then look for causes","Run the adult medical algorithm unchanged"]);
    if(st.phase==="check") return mon+strip+rxHead(`Rhythm check ${st.cyc}. What do you do?`)+rxOpts("cccheck",["Shockable: charge and shock","Non-shockable: resume CPR","Organised rhythm: check for a pulse"]);
    if(st.phase==="vector") return mon+strip+rxHead("Still VF after 3 consecutive shocks. Before shock 4?")+rxOpts("ccvec",["Keep the pads where they are and shock again","Vector change: move the pads to anterior-posterior","Keep the pads; only CCPs change the vector"]);
+   if(st.phase==="vecpads"){const k=Math.min(st.vk,1),p=CC_VEC[k],pz=st.vplaced[p.id]&&p.zones.find(z=>z.id===st.vplaced[p.id]);
+     return strip+rxHead(`Vector change · ${p.label}`,`Tap where the ${p.name} pad goes.`)+`<div class="ccsteps">${CC_VEC.map((q,i)=>`<span class="ccstep ${st.vplaced[q.id]?"done":i===k?"on":""}">${st.vplaced[q.id]?I.check:i+1} ${q.label}</span>`).join("")}</div>
+      <div class="ccpad1">${rxBody(p.view,st.vplaced[p.id]?[]:p.zones,pz?[{z:pz.z,cls:"padp"}]:[],st,"ccvz",p.lab,p.photo)}</div>
+      <div class="src">Source: CPG v2.6 p.34 (vector change, anterior-posterior pad position)</div>`;}
+   if(ev) return mon+strip+rxHead(ev.q)+rxOpts("ccev",ev.o)+`<div class="src">Source: ${ev.src}</div>`;
    if(st.phase==="defib"){const paed=c.pop==="paed";return mon+strip+rxHead(paed?`Set the energy for ${c.w} kg`:`Shock ${st.shocks+1}: set the energy on the ${c.device}`)+`<div class="stp" style="max-width:360px;margin:0 auto"><span class="label">Energy</span>${paed?`<div><button class="iconbtn" data-tx="ccen" data-d="-10" aria-label="Lower energy">−</button><output aria-live="polite">${st.energy} J</output><button class="iconbtn" data-tx="ccen" data-d="10" aria-label="Raise energy">+</button></div>`:`<div class="seg">${[120,150,200,300,360].map(v=>`<button class="segb" data-tx="ccenv" data-v="${v}" aria-pressed="${st.energy===v}">${v}</button>`).join("")}</div>`}</div>
      <div class="rxbtns"><button class="btn big ${st.charged?"ghost":""}" data-tx="cccharge" ${st.charged?"disabled":""}>${st.charged?"Charged ✓":"Charge"}</button><button class="btn big shock" data-tx="ccshock" ${st.charged?"":"disabled"}>⚡ Shock</button></div><p class="note" style="text-align:center">Compressions continue while charging. Everyone clear before the shock.</p>`;}
-   const paed=c.pop==="paed",aD=Math.min(+(c.w*.01).toFixed(2),1),mD=Math.min(c.w*5,st.amio1?150:300);
-   const drugs=c.pop==="trauma"?`<div class="ccdrugs"><div class="hottl"><span class="label">HOTT</span>${CC_HOTT.map(([k,t])=>`<button class="tog" data-tx="cchott" data-k="${k}" aria-pressed="${st.hott.includes(k)}"><i>${st.hott.includes(k)?I.check:""}</i>${t}</button>`).join("")}</div>
-      <div class="rxbtns"><button class="btn ghost" data-tx="ccfluid">+250 ml normal saline</button><button class="btn ghost" data-tx="ccadr">Adrenaline 1 mg</button></div></div>`
+   const paed=c.pop==="paed";
+   const amio=`<button class="btn ghost" data-tx="ccamio" data-v="300">Amiodarone 300 mg</button><button class="btn ghost" data-tx="ccamio" data-v="150">Amiodarone 150 mg</button>`;
+   const drugs=c.pop==="trauma"?`<div class="ccdrugs"><p class="note cctclue">${CC_TCLUE}</p><div class="hottl"><span class="label">Reversible causes</span>${CC_TX.map(x=>`<button class="tog" data-tx="cctx" data-k="${x.k}" aria-pressed="${st.hott.includes(x.k)}"><i>${st.hott.includes(x.k)?I.check:""}</i>${x.t}</button>`).join("")}</div>${st.txf?`<p class="note" role="status">${st.txf}</p>`:""}
+      <div class="rxbtns"><button class="btn ghost" data-tx="ccfluid">+250 ml normal saline</button><button class="btn ghost" data-tx="ccadr">Adrenaline 1 mg</button>${st.shocks?amio:""}</div></div>`
     :paed?`<div class="ccdrugs paed"><div class="drow"><label for="ccadrin">Adrenaline</label><input id="ccadrin" inputmode="decimal" autocomplete="off"><span class="unit">mg</span><button class="btn ghost sm" data-tx="ccadr">Give</button></div><div class="drow"><label for="ccamin">Amiodarone</label><input id="ccamin" inputmode="decimal" autocomplete="off"><span class="unit">mg</span><button class="btn ghost sm" data-tx="ccamio">Give</button></div></div>`
-    :`<div class="rxbtns"><button class="btn ghost" data-tx="ccadr">Adrenaline 1 mg</button><button class="btn ghost" data-tx="ccamio" data-v="300">Amiodarone 300 mg</button><button class="btn ghost" data-tx="ccamio" data-v="150">Amiodarone 150 mg</button></div>`;
+    :`<div class="rxbtns"><button class="btn ghost" data-tx="ccadr">Adrenaline 1 mg</button>${amio}</div>`;
    return mon+strip+rxHead(`Cycle ${st.cyc}: 2 minutes of CPR`,"Give anything that's due now, then continue CPR.")+drugs+(st.log.length?`<p class="note" style="text-align:center">Given: ${st.log.join(" · ")}</p>`:"");},
   foot:st=>st.phase==="cpr"?`<button class="btn wide" data-tx="cccont">Continue CPR · next rhythm check</button>`:""};
 
-TXS.ccrosc={phases:["o2","bp"],init:(st,c)=>{st.tag="ccrosc";st.rx=1;st.fi=15;},
-  guide:rxG([["happy","ROSC. Now protect the brain: titrate oxygen to the target, then support the blood pressure."]],"ROSC achieved."),
-  hint:(c,st)=>st.phase==="o2"?"Target SpO₂ 94–98%. Turn the flow down until you're in range, then confirm.":c.pop==="paed"?"Paediatric boluses are 10 ml/kg.":"Adults: 250 ml boluses.",
+TXS.ccrosc={phases:["o2","bp","co2","dest"],init:(st,c)=>{st.tag="ccrosc";st.rx=1;st.fi=15;},
+  guide:rxG([["happy","ROSC. Now protect the brain: titrate oxygen to the target, support the blood pressure and plan the move."]],"ROSC achieved."),
+  hint:(c,st)=>({o2:"Target SpO₂ 94–98%. Turn the flow down until you're in range, then confirm.",bp:c.pop==="paed"?"Paediatric boluses are 10 ml/kg.":"Adults: 250 ml boluses.",co2:"A high EtCO₂ is expected after ROSC.",dest:"Rapid movement soon after ROSC can cause re-arrest."}[st.phase]),
   body:(st,c)=>{
    const STEPS=[0,1,2,3,4,5,6,7,9,12,15,25],spo=st.fi>=6?100:[88,92,94,96,97,98][st.fi]??100;st.spo=spo;
    if(st.phase==="o2"){const ang={0:90,1:62,2:34,3:3,4:-24,5:-50,6:-90,7:-118,9:-148,12:180,15:150,25:122}[st.fi]*Math.PI/180;
     return rxMonitor({rhythm:"sin",rate:96,hr:96,spo,co2:42,bp:c.pop==="paed"?"72/40":"84/50",aria:`SpO2 ${spo}%`,status:"ROSC · ventilated with oxygen"})+rxHead(`SpO₂ ${spo}%. Titrate the oxygen.`,"Target 94–98%. Avoid hyperoxaemia.")+`<div class="split"><div class="rxphoto flow"><img src="${RXM("flowmeter")}" alt="Oxygen flowmeter dial"><span class="fdot" style="left:${46.4+Math.cos(ang)*17.5}%;top:${54.8+Math.sin(ang)*19.5}%"></span></div>
      <div class="thtemp"><div class="stp"><span class="label">Oxygen flow</span><div><button class="iconbtn" data-tx="ccfi" data-d="-1" aria-label="Lower flow">−</button><output aria-live="polite">${st.fi} L/min</output><button class="iconbtn" data-tx="ccfi" data-d="1" aria-label="Raise flow">+</button></div></div><div class="readout2"><span class="label">SpO₂</span><b>${spo}%</b><span>${spo>98?"Too high: hyperoxaemia":spo<94?"Too low":"In target range"}</span></div></div></div>`;}
+   if(st.phase==="co2") return rxMonitor({rhythm:"sin",rate:94,hr:94,spo:96,co2:52,bp:c.pop==="paed"?"84/50":"104/62",aria:"EtCO2 52",status:"ROSC · ventilated"})+rxHead("EtCO₂ 52 mmHg after ROSC. How do you ventilate?")+rxOpts("ccco2",["Raise the rate until EtCO₂ is back to 35–45","Tidal volume for ideal body weight; don't chase EtCO₂","Larger tidal volumes to wash out the CO₂"])+`<div class="src">Source: CPG 2.6 p.54</div>`;
+   if(st.phase==="dest") return rxMonitor({rhythm:"sin",rate:90,hr:90,spo:96,co2:44,bp:"106/64",aria:"ROSC, STEMI on 12-lead",status:"12-lead ECG: <b>STEMI</b>"})+rxHead("The post-ROSC 12-lead ECG shows a STEMI. What's the plan?")+rxOpts("ccdest",["Move him now and go to the nearest emergency department","Avoid rapid movement up to 10 min, then PCI with prenotification","Move him now to a PCI facility; prenotify on arrival"])+`<div class="src">Source: CPG 2.6 pp.54–55</div>`;
    const tgt=c.pop==="paed"?`SBP target (age × 2) + 70 = ${c.age*2+70} mmHg`:"Target SBP >90 or MAP >65 mmHg";
-   return rxMonitor({rhythm:"sin",rate:96,hr:96,spo:96,co2:40,bp:c.pop==="paed"?"66/38":"82/48",aria:"Hypotensive",status:tgt})+rxHead("Hypotensive after ROSC. Which fluid bolus?")+rxOpts("ccbp",c.pop==="paed"?[`10 ml/kg: ${c.w*10} ml`,`20 ml/kg: ${c.w*20} ml`,"No fluid: start an adrenaline infusion yourself"]:["250 ml bolus, reassess","2 L wide open","No fluid: SBP 82 is acceptable"]);}
+   return rxMonitor({rhythm:"sin",rate:96,hr:96,spo:96,co2:40,bp:c.pop==="paed"?"66/38":"82/48",aria:"Hypotensive",status:tgt})+rxHead("Hypotensive after ROSC. Which fluid bolus?")+rxOpts("ccbp",c.pop==="paed"?[`10 ml/kg: ${c.w*10} ml, then reassess`,"No fluid: SBP 66 is acceptable at this age","No fluid: start an adrenaline infusion first"]:["250 ml bolus, reassess","2 L wide open","No fluid: SBP 82 is acceptable"]);}
 };
 
 const ICEZ=[{id:"rax",label:"Right axilla",z:[8,34,16,14],ok:1},{id:"lax",label:"Left axilla",z:[76,34,16,14],ok:1},{id:"groin",label:"Groin",z:[36,86,28,10],ok:1},{id:"head",label:"Forehead",z:[40,2,20,10]},{id:"neck",label:"Neck",z:[42,20,16,8]},{id:"chest",label:"Centre of the chest",z:[38,38,24,18]}];
@@ -348,25 +404,36 @@ function rxClick(t,st){
     if(st.k>=L.length) txOk(c.pop==="paed"&&c.w<25?"Anterior and posterior pads in position: first choice under 25 kg.":"Anterior and lateral pads in position with good contact.",{next:"END"});else drawPlayer();return true;}
   case "ccstart": return pick(i===0,c.pop==="paed"?"Five ventilations, then 15:2.":"HOTT alongside compressions, minimum scene time.","check","Start",c.pop==="paed"?"Paediatric CPR starts with 5 ventilations, then 15:2.":"Trauma arrest: correct reversible causes alongside compressions. Adrenaline comes only after HOTT and volume."),true;
   case "cccheck": {const r=c.rh[st.cyc-1];
-    if(r==="VF") return pick(i===0,"VF: shockable. Charge and shock.",c.pop==="adult"&&st.shocks>=3&&!st.vec?"vector":"defib","Rhythm check","This is VF, a shockable rhythm. Shock without delay.","Every minute without defibrillation in VF lowers survival."),true;
-    if(i!==2) return txErr("Rhythm check","This is an organised rhythm. Check for a pulse.",undefined,{always:true}),true;
+    if(r==="VF") return pick(i===0,"VF: shockable. Charge and shock.",c.pop!=="paed"&&st.shocks>=3&&!st.vec?"vector":"defib","Rhythm check","This is VF, a shockable rhythm. Shock without delay.","Every minute without defibrillation in VF lowers survival."),true;
+    if(r==="Asys"){if(i!==1) return txErr("Rhythm check",i===0?"This is asystole, not VF. There is nothing to shock: resume CPR immediately.":"Asystole is a flat line, not an organised rhythm. Resume CPR immediately.",undefined,{always:true}),true;
+      st.ns=true;st.given=[];st.phase="cpr";txLog(true,"Asystole recognised");txSound("ok");drawPlayer();return true;}
+    if(i!==2) return txErr("Rhythm check",i===0?"This is an organised rhythm, not VF. It isn't shockable: check for a pulse.":"There is an organised rhythm on the monitor. Check for a pulse before resuming CPR.",undefined,{always:true}),true;
     if(r==="ROSC"){txOk("Pulse present: ROSC. Avoid rapid movement for up to 10 minutes, then move to post-ROSC care.",{next:"END"});return true;}
-    st.given=[];st.phase="cpr";txLog(true,"PEA recognised");txSound("ok");drawPlayer();return true;}
-  case "ccvec": if(i===1)st.vec=true;return pick(i===1,"Pads moved to anterior-posterior: pad 1 on the left back, left of the spine below the scapula; pad 2 on the left chest between the midline and the left nipple.","defib","Vector change","After 3 consecutive shocks with the rhythm still shockable, APs and CCPs change the vector: move the pads to the anterior-posterior position."),true;
+    st.ns=true;st.given=[];st.phase="cpr";txLog(true,"PEA recognised");txSound("ok");drawPlayer();return true;}
+  case "ccvec": if(i===1)st.vec=true;return pick(i===1,"Correct: VF after 3 consecutive shocks. Change the vector: move the pads to the anterior-posterior position.","vecpads","Vector change","After 3 consecutive shocks with the rhythm still shockable, APs and CCPs change the vector: move the pads to the anterior-posterior position."),true;
   case "ccen": st.energy=Math.max(10,Math.min(200,st.energy+ +t.dataset.d));txSound("click");drawPlayer(`[data-tx="ccen"][data-d="${t.dataset.d}"]`);return true;
   case "ccenv": st.energy=+t.dataset.v;txSound("click");drawPlayer(`[data-tx="ccenv"][data-v="${t.dataset.v}"]`);return true;
   case "cccharge": {const want=ccEnergy(c,st.shocks);
     if(st.energy!==want) return txErr(`${st.energy} J`,c.pop==="paed"?`4 J/kg × ${c.w} kg = ${want} J.`:`${c.device}: ${CC_EN[c.device].join(", ")} J for shocks 1, 2 and 3 onwards. Shock ${st.shocks+1} is ${want} J.`,undefined,{always:true}),true;
     st.charged=true;txSound("alert");drawPlayer('[data-tx="ccshock"]');return true;}
   case "ccshock": st.shocks++;st.charged=false;st.given=[];txSound("snap");txLog(true,"Shock "+st.shocks);st.phase="cpr";drawPlayer();return true;
-  case "cchott": {const k=t.dataset.k;st.hott=st.hott.includes(k)?st.hott.filter(x=>x!==k):[...st.hott,k];txSound("click");drawPlayer(`[data-tx="cchott"][data-k="${k}"]`);return true;}
-  case "ccfluid": st.fluid+=250;st.log.push("NS 250 ml");txSound("click");drawPlayer('[data-tx="ccfluid"]');return true;
+  case "ccvz": {const p=CC_VEC[st.vk],z=p&&p.zones.find(x=>x.id===t.dataset.z);if(!z)return true;
+    if(!z.ok){st.wrongId=z.id;return txErr(z.label,p.tip,"Poor pad placement leads to ineffective defibrillation.",{always:true}),true;}
+    st.vplaced[p.id]=z.id;st.wrongId=null;st.hint=false;txSound("snap");st.vk++;
+    if(st.vk>=CC_VEC.length) txOk("Pads in the anterior-posterior position. Continue with shock 4. CCPs may instead proceed directly to DSED.",{next:"defib"});else drawPlayer();return true;}
+  case "cctx": {const k=t.dataset.k,it=CC_TX.find(q=>q.k===k);if(!it||st.hott.includes(k))return true;
+    if(!it.ok) return txErr(it.t,it.f,undefined,{always:true}),true;
+    st.hott.push(k);st.txf=it.f;txSound("ok");txLog(true,it.t);drawPlayer(`[data-tx="cctx"][data-k="${k}"]`);return true;}
+  case "ccev": {const ev=CC_EV[st.evk];if(i!==ev.a) return txErr("Not quite",ev.no[i],undefined,{always:true}),true;
+    st.cyc++;st.given=[];txOk(ev.ok,{next:"check"});return true;}
+  case "ccfluid": if(st.fluid>=1000) return txErr("1000 ml given","Trauma arrest: 500–1000 ml normal saline. Adrenaline once at least 500 ml is in.",undefined,{always:true}),true;
+    st.fluid+=250;st.log.push("NS 250 ml");txSound("click");drawPlayer('[data-tx="ccfluid"]');return true;
   case "ccadr": {const due=ccDue(c,st).includes("adr");
     if(c.pop==="paed"){const v=+(document.getElementById("ccadrin")||{}).value,want=Math.min(+(c.w*.01).toFixed(2),1);
       if(!due) return txErr("Adrenaline not due",st.lastAdr!=null?"Adrenaline repeats every 4 minutes (every second cycle).":"Shockable paediatric arrest: first adrenaline after 4 minutes of CPR.",undefined,{always:true}),true;
       if(Math.abs(v-want)>0.005) return txErr(`Adrenaline ${v||"blank"} mg`,`0.01 mg/kg × ${c.w} kg = ${want} mg (${(want*10).toFixed(1)} ml of 1:10,000).`,v>want?"A tenfold error with adrenaline in a child can cause dangerous arrhythmias.":undefined,{always:true}),true;
     } else if(!due){
-      const why=c.pop==="trauma"?(st.hott.length<4||st.fluid<500?`Not yet: manage HOTT and give at least 500 ml normal saline first (${st.fluid} ml so far).`:"Adrenaline repeats every 4 minutes (every second cycle)."):st.lastAdr!=null?"Adrenaline repeats every 4 minutes (every second cycle).":"Adult medical shockable arrest: first adrenaline after the third shock.";
+      const why=c.pop==="trauma"?(!ccTxDone(st)||st.fluid<500?`Not yet: treat the reversible causes and give at least 500 ml normal saline first (${st.fluid} ml so far).`:"Adrenaline repeats every 4 minutes (every second cycle)."):st.lastAdr!=null?"Adrenaline repeats every 4 minutes (every second cycle).":"Adult medical shockable arrest: first adrenaline after the third shock.";
       return txErr("Adrenaline not due",why,c.pop==="trauma"&&st.fluid<500?"Adrenaline into an empty circulation won't restore output.":undefined,{always:true}),true;}
     st.given.push("adr");st.lastAdr=st.cyc;st.log.push(c.pop==="paed"?`Adr ${(c.w*.01).toFixed(2)} mg`:"Adr 1 mg");txLog(true,"Adrenaline cycle "+st.cyc);txSound("ok");drawPlayer();return true;}
   case "ccamio": {const d=ccDue(c,st),first=!st.amio1,want=c.pop==="paed"?Math.min(c.w*5,first?300:150):(first?300:150);
@@ -375,12 +442,15 @@ function rxClick(t,st){
     if(v!==want) return txErr(`Amiodarone ${v||"blank"} mg`,c.pop==="paed"?`5 mg/kg × ${c.w} kg = ${c.w*5} mg (max ${first?300:150} mg).`:first?"First dose after the third shock: 300 mg.":"Second dose after the fifth shock: 150 mg.",undefined,{always:true}),true;
     if(first){st.amio1=true;st.given.push("amio1");}else{st.amio2=true;st.given.push("amio2");}st.log.push(`Amio ${v} mg`);txLog(true,"Amiodarone "+v);txSound("ok");drawPlayer();return true;}
   case "cccont": {const d=ccDue(c,st);
-    if(c.pop==="trauma"&&st.cyc===1&&(st.hott.length<4||st.fluid<500)) return txErr("HOTT not complete",`Work through all four HOTT causes and give at least 500 ml (${st.fluid} ml so far) during this cycle.`,"Uncorrected reversible causes mean CPR alone won't restore circulation.",{always:true}),true;
+    if(c.pop==="trauma"&&st.cyc===1&&(!ccTxDone(st)||st.fluid<500)) return txErr("Reversible causes not treated",`${ccTxDone(st)?"":"Treat every reversible cause this patient has. "}Give at least 500 ml normal saline (${st.fluid} ml so far) during this cycle.`,"Uncorrected reversible causes mean CPR alone won't restore circulation.",{always:true}),true;
     if(d.length) return txErr("Drug due",`Due now: ${d.map(x=>({adr:"adrenaline",amio1:"amiodarone (first dose)",amio2:"amiodarone (second dose)"}[x])).join(" and ")}.`,undefined,{always:true}),true;
+    const ek=c.ev&&c.ev[st.cyc];if(ek&&!st.evd[st.cyc]){st.evd[st.cyc]=1;st.evk=ek;st.phase="event";txSound("alert");drawPlayer();return true;}
     st.cyc++;st.given=[];st.phase="check";txSound("click");drawPlayer();return true;}
   case "ccfi": {const S2=[0,1,2,3,4,5,6,7,9,12,15,25],k=S2.indexOf(st.fi)+ +t.dataset.d;if(k<0||k>=S2.length)return true;st.fi=S2[k];txSound("click");drawPlayer(`[data-tx="ccfi"][data-d="${t.dataset.d}"]`);return true;}
   case "ccspo": {const s2=st.spo;if(s2>=94&&s2<=98)txOk(`SpO₂ ${s2}%: within 94–98%. Avoid hyperoxaemia after ROSC.`,{next:"bp"});else txErr(`SpO₂ ${s2}%`,s2>98?"Too high. Titrate oxygen down to 94–98%; prolonged 100% is hyperoxaemia.":"Too low. Titrate oxygen up to 94–98%.",undefined,{always:true});return true;}
-  case "ccbp": return pick(i===0,c.pop==="paed"?"10 ml/kg boluses after paediatric ROSC, titrated to the age-based SBP.":"250 ml boluses to SBP >90 / MAP >65, reassessing after each.","END","Fluid",c.pop==="paed"?(i===1?"Paediatric post-ROSC boluses are 10 ml/kg in v2.6.":"Vasopressor support isn't an AP decision; give fluid and escalate."):(i===1?"Give 250 ml boluses and reassess. Avoid overload.":"SBP 82 is below the >90 mmHg target.")),true;
+  case "ccbp": return pick(i===0,c.pop==="paed"?"10 ml/kg fluid boluses as required, titrated to the age-based SBP target.":"250 ml boluses to SBP >90 / MAP >65, reassessing after each.","co2","Fluid",c.pop==="paed"?(i===1?`The SBP target for ${c.age} year${c.age>1?"s":""} is (age × 2) + 70 = ${c.age*2+70} mmHg. 66 is below it.`:"Give a fluid bolus first. An adrenaline infusion is only considered if vasopressor support is still needed."):(i===1?"Give 250 ml boluses and reassess. Avoid overload.":"SBP 82 is below the >90 mmHg target.")),true;
+  case "ccco2": return pick(i===1,"A high EtCO₂ is expected after ROSC. Don't try to normalise it on scene, and don't hyperventilate: use tidal volumes for ideal body weight.",c.pop==="adult"?"dest":"END","Ventilation","Don't try to normalise EtCO₂ before hospital; it is corrected over time in hospital. Use tidal volumes for ideal body weight and don't hyperventilate."),true;
+  case "ccdest": return pick(i===1,"Avoid rapid movement for up to 10 minutes after ROSC, as it can cause re-arrest. A STEMI goes to a PCI facility, with hospital prenotification.","END","Plan",i===0?"A STEMI needs a facility for PCI, and moving him straight away risks re-arrest.":"Avoid rapid movement for up to 10 minutes after ROSC, and prenotify before arrival, not on arrival."),true;
   case "ccicey": {const yes=c.pop==="adult";return pick(i===(yes?0:1),yes?"Comatose adult after a medical arrest: start ice-pack cooling.":"Ice-pack cooling is only for comatose adults after a medical arrest. Monitor temperature and avoid hyperthermia.",yes?"place":"END","Cooling",yes?"This is a comatose adult after a medical arrest, so ice-pack cooling applies.":`Not for this patient (${c.pop==="paed"?"paediatric":"trauma"} arrest).`),true;}
   case "ccicez": {const z=ICEZ.find(x=>x.id===t.dataset.z);if(!z.ok){st.wrongId=z.id;return txErr(z.label,"Place the ice packs in the axillae and groin.",undefined,{always:true}),true;}
     st.wrongId=null;st.ice.push(z.id);txSound("snap");if(st.ice.length===3)txOk("Ice packs in both axillae and the groin.",{next:"temp"});else drawPlayer();return true;}
@@ -399,7 +469,7 @@ TXS.ccrosc.foot=st=>st.phase==="o2"?`<button class="btn wide" data-tx="ccspo">Co
 /* ====================== solo-run results ====================== */
 const RX_RUNS={
  nbr:{title:"Newborn resuscitation: solo run",stages:[["nrkit","Kit","nr-g"],["nrcord","Cord & airway","nr-g"],["nrset","BVM set-up","nr-g"],["nrbreath","Inflation breaths","nr-g"],["nrhr","Heart rate","nr-g"],["nrcomp","Compressions","nr-g"],["nrmon","Reassess","nr-g"],["nrglu","Glucose","nr-g"]]},
- code:{title:"Code clock: solo run",stages:[["ccpads","Pads on","cc-2"],["ccloop","Rhythm checks & drugs","cc-3"],["ccrosc","ROSC oxygen & BP","cc-6"],["ccice","Cooling","cc-6"]]}
+ code:{title:"Code clock: solo run",stages:[["ccpads","Pads on","cc-2"],["ccloop","Rhythm checks & drugs","cc-3"],["ccrosc","ROSC care","cc-6"],["ccice","Cooling","cc-6"]]}
 };
 function rxRunResult(kind){
   const ev=P.txEvents||[],R=RX_RUNS[kind],rows=R.stages.map(([k,t,l])=>{const e=ev.filter(x=>!x.ok&&x.stage===k);const h=(P.thHints&&P.thHints[k])||0;return {k,title:t,lesson:l,errors:e.length,hints:h,choices:[...new Set(e.map(x=>x.text))]};});
