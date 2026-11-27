@@ -146,7 +146,7 @@ const DQ=[
  {id:"D5",mod:"newborn",short:"Newborn suction order",prompt:"“If a newborn needs suction, suction the mouth first, then the nose.”",options:TC,answer:0,
   explain:"Unchanged: mouth first, then nose. What changed is when suction is used. Covered in Module 2.",src:"CPG 2.5 p.51"},
  {id:"D11",mod:"newborn",short:"Preterm thermal care",prompt:"“A preterm baby under 32 weeks is placed in a plastic wrap without drying, to reduce heat loss.”",options:TC,answer:0,
-  explain:"Correct practice. Drying a baby under 32 weeks increases heat loss, so the baby goes straight into the plastic wrap. All preterm babies (under 37 weeks) also need a thermal mattress and plastic bag wrap. Covered in Module 2.",src:"HMCAS consultant guidance (newborn thermal care video) · CPG 12.13 p.247"},
+  explain:"Correct practice. Under 32 weeks, the baby goes directly into the polyethylene wrap without drying the body: the wrap reduces heat loss through evaporation. Then cap, towel and thermal blanket as for a term newborn. All preterm babies (under 37 weeks) also need a thermal mattress and plastic bag wrap. Covered in Module 2.",src:"HMCAS consultant guidance (newborn thermal care video) · CPG 12.13 p.247"},
  {id:"D6",mod:"cardiac",short:"First amiodarone dose",prompt:"“Adult shockable arrest: the first amiodarone dose (300 mg) is given after the 3rd shock.”",options:TC,answer:0,
   explain:"Unchanged: 300 mg after the 3rd shock. Other parts of the arrest algorithm did change. Covered in Module 3.",src:"CPG 2.1 p.35"},
  {id:"D7",mod:"cardiac",short:"Broad-complex cardioversion energy",prompt:"“Adult broad-complex synchronised cardioversion starts at 200 J.”",options:TC,answer:1,

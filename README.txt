@@ -13,7 +13,7 @@ css/        Course styling
 js/         Course content (modules, questions, quick reference) and hands-on activities
 brand/     HMCAS logos, cover photos, CPG page pictures (brand/cpg/)
 tx/         TXA preparation activity photos, avatar and video
-th/         Newborn thermal care activity photos
+th/         Newborn thermal care activity photos and the thermoregulation poster
 rx/         Newborn resuscitation, code clock and spinal stretcher equipment photos
 sc/         Trauma scene pictures
 

@@ -343,7 +343,7 @@ function openLesson(lid,opts={}){
   benchResume(f);resetStep();
   document.getElementById("player").hidden=false;document.body.style.overflow="hidden";drawPlayer();
 }
-function resetStep(){P.dq=null;P.dlast=null;P.dropMiss=false;P.usI=0;P.usSeen=[0];P.watchDone=false;P.vfold=undefined;P.pinOpen=false;P.spBig=false;P.sx=null;P.chartOpen=false;P.sel=null;P.val="";P.multi=[];P.sort={};P.match={};P.matchSel=null;P.matchOrd=null;P.sortOrd=null;P.ord=[];P.ordMix=null;P.status="idle";P.firstTry=true;P.conf=null;P.tries=0;P.cur=null;P.trail=[];P.why=null;P.whyIdx=null;P.walkMiss=false;P.wOrd={};P.wMiss=[];P.wRun=1;P.sv=null;P.scC=null;P.goalMet=false;P.rb=null;P.rbPick={};P.ci=0;P.chainMiss=false;P.scRes=null;P.scMiss=false;}
+function resetStep(){P.dq=null;P.dlast=null;P.dropMiss=false;P.dst=null;P.usI=0;P.usSeen=[0];P.watchDone=false;P.vfold=undefined;P.pinOpen=false;P.spBig=false;P.sx=null;P.chartOpen=false;P.sel=null;P.val="";P.multi=[];P.sort={};P.match={};P.matchSel=null;P.matchOrd=null;P.sortOrd=null;P.ord=[];P.ordMix=null;P.status="idle";P.firstTry=true;P.conf=null;P.tries=0;P.cur=null;P.trail=[];P.why=null;P.whyIdx=null;P.walkMiss=false;P.wOrd={};P.wMiss=[];P.wRun=1;P.sv=null;P.scC=null;P.goalMet=false;P.rb=null;P.rbPick={};P.ci=0;P.chainMiss=false;P.scRes=null;P.scMiss=false;}
 let simOpen=false;
 function openSim(){
   const w=document.getElementById("simwrap");simOpen=true;w.hidden=false;
@@ -382,7 +382,7 @@ const locked=()=>P.status==="right"||P.status==="revealed";
 function stepBody(s){
   const lab=s.label?`<span class="label">${s.label}</span>`:"";
   if(s.type==="read"&&s.stepper) return `${badges(s)}<h2>${s.title}</h2>${s.body?`<p>${s.body}</p>`:""}${stepperHTML(s)}${srcLine(s)}`;
-  if(s.type==="read") return `${badges(s)}${s.top&&s.visual?`<div class="visual">${V[s.visual]}</div>`:""}<h2>${s.title}</h2>${s.body?`<p>${s.body}</p>`:""}${s.ptitle?`<span class="label">${s.ptitle}</span>`:""}${s.points?`<${s.ol?"ol":"ul"}>${s.points.map(p=>`<li>${p}</li>`).join("")}</${s.ol?"ol":"ul"}>`:""}${s.visual&&!s.top?`<div class="visual">${V[s.visual]}</div>`:""}${s.foot?`<p class="note">${s.foot}</p>`:""}${pendingBox(s.pending)}${srcLine(s)}`;
+  if(s.type==="read") return `${badges(s)}${s.top&&s.top!=="title"&&s.visual?`<div class="visual">${V[s.visual]}</div>`:""}<h2>${s.title}</h2>${s.top==="title"&&s.visual?`<div class="visual">${V[s.visual]}</div>`:""}${s.body?`<p>${s.body}</p>`:""}${s.ptitle?`<span class="label">${s.ptitle}</span>`:""}${s.points?`<${s.ol?"ol":"ul"}>${s.points.map(p=>`<li>${p}</li>`).join("")}</${s.ol?"ol":"ul"}>`:""}${s.visual&&!s.top?`<div class="visual">${V[s.visual]}</div>`:""}${s.foot?`<p class="note">${s.foot}</p>`:""}${pendingBox(s.pending)}${srcLine(s)}`;
   if(s.type==="choice") return `${badges(s)}${s.intro?`<div class="info">${s.intro}</div>`:""}${lab}<h2>${s.prompt}</h2>${s.visual?vfold(s.visual):""}<div class="opts" role="radiogroup" aria-label="Answer options">${s.options.map((o,i)=>{
       const L=locked(),rv=P.status==="revealed"&&P.sel!==null&&P.sel!==s.answer;if(L&&i!==s.answer&&!(rv&&i===P.sel))return ""; // after answering, keep only the correct option (and the learner's wrong pick when revealed)
       let cls="";if(L&&i===s.answer)cls="right";else if((P.status==="wrong"||P.status==="revealed")&&i===P.sel)cls="wrong";
@@ -654,16 +654,25 @@ function stepperHTML(s){const it=stepperItems(s.stepper),i=P.usI,c=it[i],n=it.le
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-ustp]");if(!b||!P)return;e.preventDefault();P.usI=+b.dataset.ustp;if(!P.usSeen.includes(P.usI))P.usSeen.push(P.usI);drawPlayer(`[data-ustp="${P.usI}"].ustp-tab`);});
 /* ---------- card drop (sort step with drop:true): one card at a time, drop it on a zone (drag, swipe left/right with two zones, or tap a zone).
    Immediate feedback with the card's why; a wrong card goes to the back of the deck. Done when every card is placed; first try = no wrong drop. ---------- */
-function dropHTML(s,lab){if(!P.dq)P.dq=[...P.sortOrd];const n=s.cards.length,ci=P.dq[0],two=s.bins.length===2,last=P.dlast,placed=n-P.dq.length;
-  const zone=(b,i)=>`<button class="dk-z" data-dz="${i}" aria-label="${b}">${two&&i===0?"<i aria-hidden=\"true\">←</i>":""}<b>${b}</b>${two&&i===1?"<i aria-hidden=\"true\">→</i>":""}<span>${Object.values(P.sort).filter(v=>v===i).length}</span></button>`;
+function dropHTML(s,lab){if(!P.dq)P.dq=[...P.sortOrd];P.dst=P.dst||{};const n=s.cards.length,ci=P.dq[0],two=s.bins.length===2,last=P.dlast,placed=n-P.dq.length;
+  const stack=i=>{const k=Object.values(P.sort).filter(v=>v===i).length;return `<span class="dk-pile" aria-hidden="true">${Array.from({length:Math.min(k,5)},(_,j)=>`<i style="--j:${j}"></i>`).join("")}</span><span class="vh">${k} placed</span>`;};
+  const zone=(b,i)=>`<button class="dk-z" data-dz="${i}" aria-label="Place in ${b}">${two&&i===0?"<i aria-hidden=\"true\">←</i>":""}<b>${b}</b>${two&&i===1?"<i aria-hidden=\"true\">→</i>":""}${stack(i)}</button>`;
+  const dots=P.sortOrd.map(k=>`<i class="${P.dst[k]||""}${k===ci?" cur":""}"></i>`).join("");
+  const keys=two?"Left or right arrow places it in a zone.":`Keys 1 to ${s.bins.length} place it in a zone.`;
+  const next=ci!=null?` Next card: ${s.cards[ci].t}.`:"";
+  const fb=last?`<div class="dk-fb ${last.ok?"ok":"no"}" role="status"><b>${last.ok?"Correct.":"Not quite. Back in the deck."}</b> ${s.cards[last.ci].t}${s.cards[last.ci].why?": "+s.cards[last.ci].why:last.ok?": "+s.bins[s.cards[last.ci].b]:""}<span class="vh">${next}</span></div>`:"";
   return `${badges(s)}${lab}<h2>${s.prompt}</h2><div class="dk${two?" dk2":""}" style="--n:${s.bins.length}">
-   <div class="dk-stage" aria-live="polite">${ci!=null?`<div class="dk-card" data-dc="${ci}"><span class="dk-k">${placed+1} / ${n}</span><p>${s.cards[ci].t}</p></div>`:""}<div class="dk-shadow" aria-hidden="true"></div></div>
+   <div class="dk-dots" aria-hidden="true">${dots}</div>
+   <div class="dk-stage">${ci!=null?`<div class="dk-card${!placed&&!last?" nudge":""}" data-dc="${ci}" tabindex="0" role="button" aria-roledescription="card" aria-label="Card ${placed+1} of ${n}: ${s.cards[ci].t}. ${keys}"><span class="dk-grip" aria-hidden="true"></span><p>${s.cards[ci].t}</p></div>`:""}<div class="dk-shadow" aria-hidden="true"></div></div>
    <div class="dk-zones">${s.bins.map(zone).join("")}</div>
-   ${last?`<div class="dk-fb ${last.ok?"ok":"no"}" role="status"><b>${last.ok?"Correct.":"Not quite. Back in the deck."}</b> ${s.cards[last.ci].t}${s.cards[last.ci].why?": "+s.cards[last.ci].why:last.ok?": "+s.bins[s.cards[last.ci].b]:""}</div>`:""}</div>${srcLine(s)}`;}
-function dropPlace(bi){const s=P.steps[P.i];if(!P.dq||!P.dq.length||locked())return;const ci=P.dq[0],ok=s.cards[ci].b===bi;P.dlast={ci,ok};
-  if(ok){P.sort[ci]=bi;P.dq.shift();}else{P.dropMiss=true;P.dq.push(P.dq.shift());}
+   <div class="dk-fbslot">${fb}</div></div>${srcLine(s)}`;}
+function dropPlace(bi){const s=P.steps[P.i];if(!P.dq||!P.dq.length||locked()||bi<0||bi>=s.bins.length)return;const ci=P.dq[0],ok=s.cards[ci].b===bi;P.dlast={ci,ok};P.dst=P.dst||{};
+  if(ok){P.sort[ci]=bi;P.dq.shift();P.dst[ci]=P.dst[ci]==="miss"?"fix":"ok";}else{P.dropMiss=true;P.dst[ci]="miss";P.dq.push(P.dq.shift());}
   if(typeof txSound==="function")txSound(ok?"ok":"err");
   if(!P.dq.length)return dropDone();drawPlayer(".dk-card");}
+document.addEventListener("keydown",e=>{const c=e.target.closest&&e.target.closest(".dk-card");if(!c||!P||locked())return;const s=P.steps[P.i],two=s.bins.length===2;
+  let bi=null;if(two&&e.key==="ArrowLeft")bi=0;else if(two&&e.key==="ArrowRight")bi=1;else if(/^[1-9]$/.test(e.key))bi=+e.key-1;
+  if(bi!=null&&bi<s.bins.length){e.preventDefault();dropPlace(bi);}});
 function dropDone(){const s=P.steps[P.i],first=!P.dropMiss;P.asked++;if(first)P.right++;P.firstTry=false;
   if(P.mode==="review"){if(first){S.fixed=S.fixed||{};S.fixed[s._key]=true;}save();}
   else if(P.mode!=="diag"&&P.l){S.conf[P.l.id+"#"+P.i]={c:null,ok:first,lesson:P.l.id,label:P.l.title+" · "+(s.label||"question")};save();}
