@@ -343,7 +343,7 @@ function openLesson(lid,opts={}){
   benchResume(f);resetStep();
   document.getElementById("player").hidden=false;document.body.style.overflow="hidden";drawPlayer();
 }
-function resetStep(){P.usI=0;P.usSeen=[0];P.watchDone=false;P.vfold=undefined;P.pinOpen=false;P.spBig=false;P.sx=null;P.chartOpen=false;P.sel=null;P.val="";P.multi=[];P.sort={};P.match={};P.matchSel=null;P.matchOrd=null;P.sortOrd=null;P.ord=[];P.ordMix=null;P.status="idle";P.firstTry=true;P.conf=null;P.tries=0;P.cur=null;P.trail=[];P.why=null;P.whyIdx=null;P.walkMiss=false;P.wOrd={};P.wMiss=[];P.wRun=1;P.sv=null;P.scC=null;P.goalMet=false;P.rb=null;P.rbPick={};P.ci=0;P.chainMiss=false;P.scRes=null;P.scMiss=false;}
+function resetStep(){P.dq=null;P.dlast=null;P.dropMiss=false;P.usI=0;P.usSeen=[0];P.watchDone=false;P.vfold=undefined;P.pinOpen=false;P.spBig=false;P.sx=null;P.chartOpen=false;P.sel=null;P.val="";P.multi=[];P.sort={};P.match={};P.matchSel=null;P.matchOrd=null;P.sortOrd=null;P.ord=[];P.ordMix=null;P.status="idle";P.firstTry=true;P.conf=null;P.tries=0;P.cur=null;P.trail=[];P.why=null;P.whyIdx=null;P.walkMiss=false;P.wOrd={};P.wMiss=[];P.wRun=1;P.sv=null;P.scC=null;P.goalMet=false;P.rb=null;P.rbPick={};P.ci=0;P.chainMiss=false;P.scRes=null;P.scMiss=false;}
 let simOpen=false;
 function openSim(){
   const w=document.getElementById("simwrap");simOpen=true;w.hidden=false;
@@ -397,7 +397,8 @@ function stepBody(s){
   if(s.type==="order"){const L=locked(),mix=P.ordMix||(P.ordMix=shuffle(s.items.map((_,i)=>i))),seq=L?s.items.map((_,i)=>i):P.ord; // items are stored in the correct order
     return `${badges(s)}${lab}<h2>${s.prompt}</h2><p class="note">Select in order.</p><ol class="ord">${seq.map((i,k)=>`<li><button class="opt ${L?"right":P.status==="wrong"?(i===k?"right":"wrong"):""}" data-unord="${k}" ${L?"disabled":""}><span class="k">${k+1}</span>${s.items[i]}</button></li>`).join("")}</ol>
      ${L?"":`<div class="opts">${mix.filter(i=>!P.ord.includes(i)).map(i=>`<button class="opt" data-ord="${i}"><span class="k"></span>${s.items[i]}</button>`).join("")}</div>`}${srcLine(s)}`;}
-  if(s.type==="sort"){if(!P.sortOrd)P.sortOrd=shuffle(s.cards.map((_,i)=>i));} // cards appear in a random order (authored order groups them by answer)
+  if(s.type==="sort"){if(!P.sortOrd)P.sortOrd=shuffle(s.cards.map((_,i)=>i));if(s.drop&&!locked())return dropHTML(s,lab);}
+  if(s.type==="spot") return spotHTML(s,lab); // cards appear in a random order (authored order groups them by answer)
   if(s.type==="sort") return `${badges(s)}${lab}<h2>${s.prompt}</h2><div class="sort">${P.sortOrd.map(ci=>{const cd=s.cards[ci];
       const pick=locked()?cd.b:P.sort[ci];let cls="";if(locked())cls="right";else if(P.status==="wrong")cls=P.sort[ci]===cd.b?"right":"wrong";
       const why=cd.why&&(locked()||cls==="wrong")?`<div class="swhy">${cd.why}</div>`:"";
@@ -580,7 +581,7 @@ function chainBody(s){const L=locked(),lab=s.label?`<span class="label">${s.labe
     const done=L||i<P.ci,cur=!L&&i===P.ci,st=done?"ok":cur?(P.status==="wrong"?"wrong":"cur"):"todo";
     return `<li class="ch-l ${st}"><span class="ch-k">${f.lab}</span><span class="ch-e">${f.expr} =</span>
      ${done?`<b class="ch-v">${f.answer} ${f.unit}</b>`:cur?`<span class="ans ch-in"><input id="ansInput" inputmode="decimal" autocomplete="off" aria-label="${f.lab}" value="${P.val}"><span>${f.unit}</span></span>`:`<span class="ch-v ch-q">… ${f.unit}</span>`}</li>`}).join("")}</ol>${srcLine(s)}`;}
-const QTYPES=["choice","multi","sort","match","input","order","racebench","chartpick","chain"];
+const QTYPES=["choice","multi","sort","spot","match","input","order","racebench","chartpick","chain"];
 const needConf=()=>P.mode==="exit"||P.mode==="final";
 const canCheck=s=>isReady(s)&&(!needConf()||P.conf);
 function confNote(ok){
@@ -613,6 +614,7 @@ function isReady(s){
   if(s.type==="choice") return P.sel!==null;
   if(s.type==="multi") return P.multi.length>0;
   if(s.type==="sort") return Object.keys(P.sort).length===s.cards.length;
+  if(s.type==="spot") return P.multi.length>0;
   if(s.type==="match") return Object.keys(P.match).length===s.pairs.length;
   if(s.type==="order") return P.ord.length===s.items.length;
   if(s.type==="input") return P.val.trim()!=="";
@@ -622,6 +624,7 @@ function isReady(s){
   return true;
 }
 function footHTML(s){
+  if(s.type==="sort"&&s.drop&&!locked()) return "";
   if(s.type==="read"&&s.stepper){const ok=P.usSeen.length>=stepperItems(s.stepper).length;return `<button class="btn wide" data-act="next" ${ok?"":"disabled"}>${ok?"Continue":"Open every step to continue"}</button>`;}
   if(["read","lookup","blocked"].includes(s.type)) return `<button class="btn wide" data-act="next">${s.type==="lookup"?"I've located it":"Continue"}</button>`;
   if(s.type==="video") return `<button class="btn wide" data-act="next" ${P.watched?"":"disabled"}>Continue</button>`;
@@ -649,6 +652,37 @@ function stepperHTML(s){const it=stepperItems(s.stepper),i=P.usI,c=it[i],n=it.le
   <div class="ustp-nav">${i>0?`<button class="btn ghost sm" data-ustp="${i-1}">← Back</button>`:"<span></span>"}${i<n-1?`<button class="btn sm" data-ustp="${i+1}">Next: ${it[i+1].t} →</button>`:""}</div></div>
   ${note?`<p class="note">${note}</p>`:""}</div>`;}
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-ustp]");if(!b||!P)return;e.preventDefault();P.usI=+b.dataset.ustp;if(!P.usSeen.includes(P.usI))P.usSeen.push(P.usI);drawPlayer(`[data-ustp="${P.usI}"].ustp-tab`);});
+/* ---------- card drop (sort step with drop:true): one card at a time, drop it on a zone (drag, swipe left/right with two zones, or tap a zone).
+   Immediate feedback with the card's why; a wrong card goes to the back of the deck. Done when every card is placed; first try = no wrong drop. ---------- */
+function dropHTML(s,lab){if(!P.dq)P.dq=[...P.sortOrd];const n=s.cards.length,ci=P.dq[0],two=s.bins.length===2,last=P.dlast,placed=n-P.dq.length;
+  const zone=(b,i)=>`<button class="dk-z" data-dz="${i}" aria-label="${b}">${two&&i===0?"<i aria-hidden=\"true\">←</i>":""}<b>${b}</b>${two&&i===1?"<i aria-hidden=\"true\">→</i>":""}<span>${Object.values(P.sort).filter(v=>v===i).length}</span></button>`;
+  return `${badges(s)}${lab}<h2>${s.prompt}</h2><div class="dk${two?" dk2":""}" style="--n:${s.bins.length}">
+   <div class="dk-stage" aria-live="polite">${ci!=null?`<div class="dk-card" data-dc="${ci}"><span class="dk-k">${placed+1} / ${n}</span><p>${s.cards[ci].t}</p></div>`:""}<div class="dk-shadow" aria-hidden="true"></div></div>
+   <div class="dk-zones">${s.bins.map(zone).join("")}</div>
+   ${last?`<div class="dk-fb ${last.ok?"ok":"no"}" role="status"><b>${last.ok?"Correct.":"Not quite. Back in the deck."}</b> ${s.cards[last.ci].t}${s.cards[last.ci].why?": "+s.cards[last.ci].why:last.ok?": "+s.bins[s.cards[last.ci].b]:""}</div>`:""}</div>${srcLine(s)}`;}
+function dropPlace(bi){const s=P.steps[P.i];if(!P.dq||!P.dq.length||locked())return;const ci=P.dq[0],ok=s.cards[ci].b===bi;P.dlast={ci,ok};
+  if(ok){P.sort[ci]=bi;P.dq.shift();}else{P.dropMiss=true;P.dq.push(P.dq.shift());}
+  if(typeof txSound==="function")txSound(ok?"ok":"err");
+  if(!P.dq.length)return dropDone();drawPlayer(".dk-card");}
+function dropDone(){const s=P.steps[P.i],first=!P.dropMiss;P.asked++;if(first)P.right++;P.firstTry=false;
+  if(P.mode==="review"){if(first){S.fixed=S.fixed||{};S.fixed[s._key]=true;}save();}
+  else if(P.mode!=="diag"&&P.l){S.conf[P.l.id+"#"+P.i]={c:null,ok:first,lesson:P.l.id,label:P.l.title+" · "+(s.label||"question")};save();}
+  P.status="right";drawPlayer();}
+let DK=null;
+const dkZoneAt=(x,y)=>{const z=[...document.querySelectorAll(".dk-z")].find(e=>{const r=e.getBoundingClientRect();return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom});return z?+z.dataset.dz:null;};
+document.addEventListener("pointerdown",e=>{const c=e.target.closest&&e.target.closest(".dk-card");if(!c||!P||locked())return;DK={c,x:e.clientX,y:e.clientY};c.setPointerCapture(e.pointerId);c.classList.add("drag");});
+document.addEventListener("pointermove",e=>{if(!DK)return;const dx=e.clientX-DK.x,dy=e.clientY-DK.y;DK.dx=dx;DK.dy=dy;DK.c.style.transform=`translate(${dx}px,${dy}px) rotate(${dx/18}deg)`;
+  const z=dkZoneAt(e.clientX,e.clientY),two=document.querySelector(".dk.dk2"),sw=two&&Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)?(dx<0?0:1):null;DK.z=z!=null?z:sw;
+  document.querySelectorAll(".dk-z").forEach(el=>el.classList.toggle("hot",+el.dataset.dz===DK.z));});
+const dkEnd=()=>{if(!DK)return;const z=DK.z,c=DK.c;DK=null;c.classList.remove("drag");if(z!=null)return dropPlace(z);c.style.transform="";document.querySelectorAll(".dk-z.hot").forEach(el=>el.classList.remove("hot"));};
+document.addEventListener("pointerup",dkEnd);document.addEventListener("pointercancel",dkEnd);
+document.addEventListener("click",e=>{const z=e.target.closest&&e.target.closest("[data-dz]");if(z&&P)dropPlace(+z.dataset.dz);});
+/* ---------- spot step: a monitor of readings; tap every value that needs action (tiles: {k,v,u,bad,why}) ---------- */
+function spotHTML(s,lab){const L=locked(),rv=P.status==="revealed";
+  return `${badges(s)}${lab}<h2>${s.prompt}</h2>${L?"":`<p class="note">Select all that apply.</p>`}<div class="spm" role="group" aria-label="Monitor readings">${s.tiles.map((t,i)=>{const on=P.multi.includes(i);let cls="";
+    if(L)cls=t.bad?"bad":"okv";else if(P.status==="wrong"&&on!==!!t.bad)cls="wrong";
+    return `<button class="spt ${cls}${on&&!L?" on":""}" data-spot="${i}" aria-pressed="${L?!!t.bad:on}" ${L?"disabled":""}><span class="spk">${t.k}</span><b>${t.v}<small>${t.u||""}</small></b>${L&&t.why?`<em>${t.why}</em>`:""}</button>`}).join("")}</div>${srcLine(s)}`;}
+document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("[data-spot]");if(!t||!P||locked())return;const i=+t.dataset.spot;P.multi=P.multi.includes(i)?P.multi.filter(x=>x!==i):[...P.multi,i];P.status="idle";drawPlayer(`[data-spot="${i}"]`);});
 const PHONE=()=>matchMedia("(max-width:600px)").matches;
 // a table inside a question (e.g. the RACE scale): a tap-to-open bar on phones, open on wider screens; remembers its state within the step
 const VFOLD={race:"RACE scale"};
@@ -704,6 +738,7 @@ function evaluate(s){
   if(s.type==="choice") return P.sel===s.answer;
   if(s.type==="multi") return P.multi.length===s.answer.length&&s.answer.every(i=>P.multi.includes(i));
   if(s.type==="sort") return s.cards.every((cd,ci)=>P.sort[ci]===cd.b);
+  if(s.type==="spot") return s.tiles.every((t,i)=>!!t.bad===P.multi.includes(i));
   if(s.type==="match") return s.pairs.every((_,k)=>P.match[k]===k);
   if(s.type==="order") return P.ord.every((v,k)=>v===k);
   if(s.type==="racebench") return rbEval();

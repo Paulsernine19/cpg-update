@@ -422,7 +422,7 @@ function wbAfterPlunge(st){const b=st.bag,s=st.syr;
 // pointer: drag the syringe to a target, drag the plunger handle, press and hold an ampoule to snap it
 function trAfter(st){wbDrawWire(st);const svg=document.querySelector(".wb-svg");if(!svg)return;
   if(st.done&&!st.debriefShown){st.debriefShown=true;const d=document.querySelector(".wb-debrief");if(d)setTimeout(()=>d.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"end"}),300);}
-  clearInterval(st.hintIv);st.hintIv=setInterval(()=>{if(!svg.isConnected){clearInterval(st.hintIv);return;}wbHintTick(st,svg);},1000);
+  clearInterval(st.hintIv);st.hintIv=setInterval(()=>{if(!svg.isConnected||!P||P.sx!==st){clearInterval(st.hintIv);return;}wbHintTick(st,svg);},1000);
   if(st.hint>=3&&st.ghostKey===null)wbHintApply(st,svg);
   {const g=wbGoal(st);if(st.saidGoal!==g&&!(st.msg&&!st.msg.ok)){st.saidGoal=g;if(P.txMode==="guided")setTimeout(()=>{if(P&&P.sx===st)txSay(g)},400);}}
   st.camA=svg.clientWidth/svg.clientHeight||WB.W/WB.H;

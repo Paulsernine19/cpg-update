@@ -83,7 +83,7 @@ const QB=[
   options:["Loss of movement and feeling in both legs","Tingling in one hand, not along a nerve pathway","Burning pain in the hands, worse than in the legs"],answer:0,
   fb:[null,"Non-dermatomal tingling is a soft sign. It doesn't rule out self-extrication.","Signs of central cord syndrome are in the self-extrication group."],
   explain:"Hard neurological signs (loss of motor and sensory function) mean rapid extrication with gentle handling. Soft signs, such as non-dermatomal tingling or signs of central cord syndrome, don't rule out self-extrication.",src:"CPG 10.13 p.200"},
- {id:"Q22",mod:"newborn",lesson:"nb-4",scope:"AP",prompt:"A term baby has had 30 seconds of BVM ventilation with good chest rise. The heart rate is now 70/min. What next?",
+ {id:"Q22",mod:"newborn",lesson:"nb-3",scope:"AP",prompt:"A term baby has had 30 seconds of BVM ventilation with good chest rise. The heart rate is now 70/min. What next?",
   options:["Continue ventilation and reassess in 30 seconds","Start 3:1 compressions with 100% oxygen","Start 15:2 compressions, oxygen unchanged"],answer:0,
   fb:[null,"Compressions start only if the HR stays below 60 after 30 seconds of ventilation. At 70, keep ventilating.","The newborn ratio is 3:1, and compressions start only if the HR stays below 60."],
   explain:"Bradycardia in the newborn is usually from hypoxia, so effective ventilation comes first. Start compressions (3:1, 100% oxygen) only if the HR stays below 60 after 30 seconds of ventilation. Reassess HR and breathing every 30 seconds.",src:"CPG 2.5 p.52"},

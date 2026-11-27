@@ -398,7 +398,7 @@ TXS.ccrosc.foot=st=>st.phase==="o2"?`<button class="btn wide" data-tx="ccspo">Co
 
 /* ====================== solo-run results ====================== */
 const RX_RUNS={
- nbr:{title:"Newborn resuscitation: solo run",stages:[["nrkit","Kit","nr-1"],["nrcord","Cord & airway","nr-1"],["nrset","BVM set-up","nr-2"],["nrbreath","Inflation breaths","nr-3"],["nrhr","Heart rate","nr-4"],["nrcomp","Compressions","nr-4"],["nrmon","Reassess","nr-5"],["nrglu","Glucose","nr-5"]]},
+ nbr:{title:"Newborn resuscitation: solo run",stages:[["nrkit","Kit","nr-g"],["nrcord","Cord & airway","nr-g"],["nrset","BVM set-up","nr-g"],["nrbreath","Inflation breaths","nr-g"],["nrhr","Heart rate","nr-g"],["nrcomp","Compressions","nr-g"],["nrmon","Reassess","nr-g"],["nrglu","Glucose","nr-g"]]},
  code:{title:"Code clock: solo run",stages:[["ccpads","Pads on","cc-2"],["ccloop","Rhythm checks & drugs","cc-3"],["ccrosc","ROSC oxygen & BP","cc-6"],["ccice","Cooling","cc-6"]]}
 };
 function rxRunResult(kind){
@@ -411,7 +411,7 @@ function rxRunEnd(){
    <div class="mate big"><img src="${TXM((good?"avatar-celebrate":"avatar-happy")+"-half.webp")}" alt="Crew mate" width="150"><div class="bubble"><p><b>${good?"Clean run.":"Your learning summary."}</b> ${good?"Every stage first time, without hints.":"Review the stages that needed another attempt or a hint."}</p></div></div>
    <span class="label">${RX_RUNS[R.kind].title}${R.label?" · "+R.label:""} · ${txFmt(R.time)}</span><h1 style="font-size:2rem">${R.first} / ${R.rows.length} stages first attempt</h1>
    <div class="tiles"><div class="tile"><b style="color:var(--good)">${R.first}</b><span>Without retries or hints</span></div><div class="tile"><b style="color:${R.errors?"var(--bad)":"var(--ink)"}">${R.errors}</b><span>Errors</span></div><div class="tile"><b style="color:var(--sun)">${R.hints}</b><span>Hints</span></div></div>
-   <div class="res">${R.rows.map(r=>`<div class="resrow"><b>${r.title}</b><small class="${r.errors||r.hints?"no":"ok"}">${r.errors?r.errors+" error"+(r.errors>1?"s":""):""}${r.errors&&r.hints?" · ":""}${r.hints?r.hints+" hint"+(r.hints>1?"s":""):""}${!r.errors&&!r.hints?"First attempt":""}</small>${r.choices.length?`<p class="note" style="grid-column:1/-1;margin:0">To review: ${r.choices.join("; ")}.</p>`:""}${r.errors||r.hints?`<div class="revisit"><button class="btn ghost sm" data-revisit="${r.lesson}">Revisit: ${lessonById(r.lesson).l.title}</button></div>`:""}</div>`).join("")}</div>
+   <div class="res">${R.rows.map(r=>`<div class="resrow"><b>${r.title}</b><small class="${r.errors||r.hints?"no":"ok"}">${r.errors?r.errors+" error"+(r.errors>1?"s":""):""}${r.errors&&r.hints?" · ":""}${r.hints?r.hints+" hint"+(r.hints>1?"s":""):""}${!r.errors&&!r.hints?"First attempt":""}</small>${r.choices.length?`<p class="note" style="grid-column:1/-1;margin:0">To review: ${r.choices.join("; ")}.</p>`:""}${r.errors||r.hints?`<div class="revisit"><button class="btn ghost sm" data-revisit="${r.lesson}" data-step="${Math.max(0,lessonById(r.lesson).l.steps.findIndex(s=>s.stage===r.k||s.key===r.k))}">Revisit: ${lessonById(r.lesson).l.title}</button></div>`:""}</div>`).join("")}</div>
   </div></div>
   <div class="p-foot"><div class="foot-in"><div class="foot-btns"><button class="btn ghost" data-act="retake">Run again</button>${finishBtns()}</div></div></div>`;
 }
