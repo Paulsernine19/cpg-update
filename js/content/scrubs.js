@@ -60,14 +60,14 @@ const SCRUB={
   src:"HMCAS Paediatric IV TXA poster"},
 
  stroke:{title:"Route the stroke patient",
-  intro:"BEFAST positive. Set when the patient was last known well and the RACE score, and see which branch of the decision tree applies.",
-  controls:[{k:"h",label:"Last known well",min:0,max:30,step:1,val:4,fmt:v=>`${v} hour${v===1?"":"s"} ago`},{k:"r",label:"RACE score",min:0,max:9,step:1,val:6,fmt:v=>`${v} / 9`}],
-  view:v=>{const h=v.h,mid=h>8&&h<24,b=h<=8?0:mid?(v.r>=5?1:2):3,p1=b<2;
-   const rows=[["≤ 8 hours","P1 to HGH ED · prenotify via CC:E","p1"],["> 8 to < 24 hours, RACE ≥ 5","P1 to HGH ED · prenotify via CC:E","p1"],["> 8 to < 24 hours, RACE < 5","P2 to nearest appropriate ED","p2"],["≥ 24 hours","P2 to nearest appropriate ED","p2"]];
+  intro:"BEFAST positive. Set when the patient was last known well (the far right end is a wake-up or unknown onset) and the RACE score, and see which branch of the decision tree applies.",
+  controls:[{k:"h",label:"Last known well",min:0,max:31,step:1,val:4,fmt:v=>v>30?"Unknown: wake-up stroke":`${v} hour${v===1?"":"s"} ago`},{k:"r",label:"RACE score",min:0,max:9,step:1,val:6,fmt:v=>`${v} / 9`}],
+  view:v=>{const h=v.h,wk=h>30,mid=h>8&&h<24,b=wk?4:h<=8?0:mid?(v.r>=5?1:2):3,p1=b<2||wk;
+   const rows=[["≤ 8 hours","P1 to HGH ED · prenotify via CC:E","p1"],["> 8 to < 24 hours, RACE ≥ 5","P1 to HGH ED · prenotify via CC:E","p1"],["> 8 to < 24 hours, RACE < 5","P2 to nearest appropriate ED","p2"],["≥ 24 hours","P2 to nearest appropriate ED","p2"],["Wake-up or unknown onset","P1 to HGH ED · prenotify via CC:E","p1"]];
    return `<div class="sc-due on ${p1?"":"alt"}"><span class="label">Destination</span><b>${rows[b][1]}</b></div>
     <p class="note">${mid?`RACE decides the destination in this window.`:`RACE does not change the destination here. Include it in the prenotification if done.`}</p>
     <div class="tree sc-tree">${rows.map((x,i)=>`<div class="branch ${i===b?"on":""}"><div class="if">${x[0]}</div><div class="${x[2]}">${x[1]}</div></div>`).join("")}</div>
-    <p class="note">Wake-up or unknown-onset stroke is treated as acute: P1 to HGH ED with prenotification.</p>`},
+    ${wk?`<p class="note">Wake-up or unknown onset is treated as an acute stroke: P1 to HGH ED with prenotification.</p>`:""}`},
   goal:{text:"Find a patient who is under 24 hours but still goes P2.",test:v=>v.h>8&&v.h<24&&v.r<5,done:"In the >8 to <24-hour window, RACE below 5 means P2 to the nearest appropriate ED."},
   src:"CPG 3.1 p.64"},
 

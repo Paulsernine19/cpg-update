@@ -687,9 +687,11 @@ const dkEnd=()=>{if(!DK)return;const z=DK.z,c=DK.c;DK=null;c.classList.remove("d
 document.addEventListener("pointerup",dkEnd);document.addEventListener("pointercancel",dkEnd);
 document.addEventListener("click",e=>{const z=e.target.closest&&e.target.closest("[data-dz]");if(z&&P)dropPlace(+z.dataset.dz);});
 /* ---------- spot step: a monitor of readings; tap every value that needs action (tiles: {k,v,u,bad,why}) ---------- */
-function spotHTML(s,lab){const L=locked(),rv=P.status==="revealed";
-  return `${badges(s)}${lab}<h2>${s.prompt}</h2>${L?"":`<p class="note">Select all that apply.</p>`}<div class="spm" role="group" aria-label="Monitor readings">${s.tiles.map((t,i)=>{const on=P.multi.includes(i);let cls="";
-    if(L)cls=t.bad?"bad":"okv";else if(P.status==="wrong"&&on!==!!t.bad)cls="wrong";
+// note:true = the prenotification for the last RACE practice patient (tiles from rbNote() in js/hands-on/race.js; bad = goes in)
+const spotTiles=s=>s.note?rbNote().tiles:s.tiles;
+function spotHTML(s,lab){const L=locked(),rv=P.status==="revealed";if(s.note)s.explain=rbNote().msg;
+  return `${badges(s)}${lab}<h2>${s.prompt}</h2>${L?"":`<p class="note">Select all that apply.</p>`}<div class="spm${s.note?" spn":""}" role="group" aria-label="${s.note?"Prenotification items":"Monitor readings"}">${spotTiles(s).map((t,i)=>{const on=P.multi.includes(i);let cls="";
+    if(L)cls=t.bad?(s.note?"incl":"bad"):"okv";else if(P.status==="wrong"&&on!==!!t.bad)cls="wrong";
     return `<button class="spt ${cls}${on&&!L?" on":""}" data-spot="${i}" aria-pressed="${L?!!t.bad:on}" ${L?"disabled":""}><span class="spk">${t.k}</span><b>${t.v}<small>${t.u||""}</small></b>${L&&t.why?`<em>${t.why}</em>`:""}</button>`}).join("")}</div>${srcLine(s)}`;}
 document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("[data-spot]");if(!t||!P||locked())return;const i=+t.dataset.spot;P.multi=P.multi.includes(i)?P.multi.filter(x=>x!==i):[...P.multi,i];P.status="idle";drawPlayer(`[data-spot="${i}"]`);});
 const PHONE=()=>matchMedia("(max-width:600px)").matches;
@@ -747,7 +749,7 @@ function evaluate(s){
   if(s.type==="choice") return P.sel===s.answer;
   if(s.type==="multi") return P.multi.length===s.answer.length&&s.answer.every(i=>P.multi.includes(i));
   if(s.type==="sort") return s.cards.every((cd,ci)=>P.sort[ci]===cd.b);
-  if(s.type==="spot") return s.tiles.every((t,i)=>!!t.bad===P.multi.includes(i));
+  if(s.type==="spot") return spotTiles(s).every((t,i)=>!!t.bad===P.multi.includes(i));
   if(s.type==="match") return s.pairs.every((_,k)=>P.match[k]===k);
   if(s.type==="order") return P.ord.every((v,k)=>v===k);
   if(s.type==="racebench") return rbEval();

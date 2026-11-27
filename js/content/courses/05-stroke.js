@@ -1,5 +1,5 @@
 COURSES.push(
- { id:"stroke", title:"Stroke", category:"Module 4", hue:"--c-stroke", icon:"stroke", minutes:20, requires:["intro"],
+ { id:"stroke", title:"Stroke", category:"Module 4", hue:"--c-stroke", icon:"stroke", minutes:25, requires:["intro"],
    desc:"The changed time window, destination and priority tree, RACE and prenotification.",
    coverage:"CPG 3.1",
    units:[
@@ -34,9 +34,10 @@ COURSES.push(
        explain:"Face 2 + arm 2 + leg 1 + gaze 1 + aphasia 1 = 7. RACE ≥5 suggests LVO.", src:"CPG 3.1 p.63"}
      ]},
      {id:"st-rb", title:"RACE Practice", steps:[
-      {type:"racebench", label:"Patient 1 of 3", onset:"mid", scope:"AP"},
-      {type:"racebench", label:"Patient 2 of 3", onset:"other", scope:"AP"},
-      {type:"racebench", label:"Patient 3 of 3", onset:"any", scope:"AP"}
+      {type:"racebench", label:"Patient 1 of 3", onset:"mid", hi:true, scope:"AP", pending:["The arm, leg and face descriptions (arm held up 10 seconds, leg 5 seconds, slight asymmetry = mild) follow the original RACE scale (Pérez de la Ossa et al., Stroke 2014), not CPG 3.1. Confirm they match the HMCAS RACE video."]},
+      {type:"spot", note:true, label:"Prenotification", scope:"AP", prompt:"You update CC:E for this patient. Which items go in the stroke prenotification?", tiles:[], src:"CPG 3.1 p.62"},
+      {type:"racebench", label:"Patient 2 of 3", onset:"other", scope:"AP", pending:["The arm, leg and face descriptions (arm held up 10 seconds, leg 5 seconds, slight asymmetry = mild) follow the original RACE scale (Pérez de la Ossa et al., Stroke 2014), not CPG 3.1. Confirm they match the HMCAS RACE video."]},
+      {type:"racebench", label:"Patient 3 of 3", onset:"any", more:true, scope:"AP", pending:["The arm, leg and face descriptions (arm held up 10 seconds, leg 5 seconds, slight asymmetry = mild) follow the original RACE scale (Pérez de la Ossa et al., Stroke 2014), not CPG 3.1. Confirm they match the HMCAS RACE video."]}
      ]}
     ]},
     {title:"Handover and care", lessons:[
