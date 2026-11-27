@@ -23,3 +23,4 @@ Notes
 - Progress is saved in the browser on that computer only. It is not an official training record.
 - To host it for a team, upload the whole folder to any web server or intranet site and share the link to index.html.
 - Clinical-review draft: content checked against the approved HMCAS CPG v2.6 (2026), awaiting education-lead sign-off.
+- Instructors: open the course once with ?instructor=1 at the end of the link to show the Instructor feedback button in every lesson. Setup of the feedback sheet: README-feedback.txt.

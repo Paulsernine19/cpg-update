@@ -5,7 +5,7 @@ COURSES.push(
    units:[
     {title:"Destination", lessons:[
      {id:"st-3", title:"Route Decisions", steps:[
-      {type:"read", title:"The updated decision tree", scope:"AP", visual:"tree", body:"Destination depends on when the patient was last known well and, in the 8 to 24-hour window, on RACE. The old 15-hour threshold has been removed. Wake-up or unknown-onset stroke is treated as acute.",
+      {type:"read", title:"The updated decision tree", scope:"AP", visual:"tree",
        src:"CPG 3.1 p.64"},
       {type:"scrub", scrub:"stroke", label:"Explore", scope:"AP"},
       {type:"sort", label:"Route each patient", scope:"AP", prompt:"Where does each patient go?", bins:["P1 to HGH ED","P2 to nearest ED","Treat per condition"],
